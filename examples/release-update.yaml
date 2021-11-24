@@ -4,10 +4,10 @@ on:
   workflow_dispatch:
     inputs:
       repository_full_name:
-        description: Image repository full name (includes registry URL and repository name)
+        description: Image repository full name of application (includes registry URL and repository_name).
         required: true
       version:
-        description: Current version
+        description: Current application version.
         required: true
 
 env:
@@ -72,3 +72,5 @@ jobs:
           cd_staging_aws_access_key_id: ${{ secrets.CD_STAGING_AWS_ACCESS_KEY_ID }}
           cd_staging_aws_secret_access_key: ${{ secrets.CD_STAGING_AWS_SECRET_ACCESS_KEY }}
           rmk_command: update
+          repository_full_name: ${{ github.event.inputs.repository_full_name }}
+          version: ${{ github.event.inputs.version }}

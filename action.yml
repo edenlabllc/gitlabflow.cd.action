@@ -53,15 +53,21 @@ inputs:
         app=fhir-server-api
     required: false
     default: ""
+  repository_full_name:
+    description: Image repository full name of application (includes registry URL and repository_name).
+    required: true
+  version:
+    description: Current application version.
+    required: true
 outputs:
   git_branch:
-    description: Git branch
-  version:
-    description: Current version
+    description: Git branch.
   repository_full_name:
-    description: Image repository full name (includes registry URL and repository_name)
+    description: Image repository full name of application (includes registry URL and repository_name).
+  version:
+    description: Current application version.
   environment:
-    description: Current environment
+    description: Current CD environment.
 runs:
   using: docker
   image: docker://core.gitlabflow.cd.action
