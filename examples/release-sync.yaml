@@ -72,5 +72,3 @@ jobs:
           cd_staging_aws_access_key_id: ${{ secrets.CD_STAGING_AWS_ACCESS_KEY_ID }}
           cd_staging_aws_secret_access_key: ${{ secrets.CD_STAGING_AWS_SECRET_ACCESS_KEY }}
           rmk_command: sync
-          repository_full_name: ${{ github.event.inputs.repository_full_name }}
-          version: ${{ github.event.inputs.version }}
