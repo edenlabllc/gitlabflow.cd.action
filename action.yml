@@ -1,0 +1,63 @@
+name: GitLab flow action for tenant bootstrap repositories
+description: |
+inputs:
+  github_token_repo_full_access:
+    description: GitHub token with full access permissions to repositories (used by installer script and rmk).
+    required: true
+  cloudflare_token:
+    description: Cloudflare token for DNS provisioning (used by rmk).
+    required: true
+  cd_develop_aws_region:
+    description: AWS region of the AWS account deploying applications to EKS for develop.
+    required: true
+  cd_develop_aws_access_key_id:
+    description: AWS access key ID of the AWS account deploying applications to EKS for develop.
+    required: true
+  cd_develop_aws_secret_key:
+    description: AWS secret key of the AWS account deploying applications to EKS for develop.
+    required: true
+  cd_staging_aws_region:
+    description: AWS region of the AWS account deploying applications to EKS for staging.
+    required: true
+  cd_staging_aws_access_key_id:
+    description: AWS access key ID of the AWS account deploying applications to EKS for staging.
+    required: true
+  cd_staging_aws_secret_key:
+    description: AWS secret key of the AWS account deploying applications to EKS for staging.
+    required: true
+  ci_cd_tools_version:
+    description: CI/CD tools version. Default is "master" to fetch the latest version.
+    required: false
+    default: master
+  rmk_command:
+    description: Command to run CD in rmk. Allowed values are "update", "sync".
+    required: true
+  rmk_update_helmfile_repos_command:
+    description: Helmfile command to update repos when running update in rmk. Allowed values are "" (do nothing), "repos", "fetch" (only if rmk_command=update).
+    required: false
+    default: ""
+  rmk_sync_skip_deps:
+    description: Whether to skip running "helm repo update" and "helm dependency build" when running sync in rmk (only if rmk_command=sync).
+    required: false
+    default: true
+  rmk_sync_labels:
+    description: |
+      List of labels when running sync in rmk (only if rmk_command=sync).
+      Example:
+      rmk_sync_labels: |
+        scope=kodjin
+        app=fhir-server-api
+    required: false
+    default: ""
+outputs:
+  git_branch:
+    description: Git branch
+  version:
+    description: Current version
+  repository_full_name:
+    description: Image repository full name (includes registry URL and repository_name)
+  environment:
+    description: Current environment
+runs:
+  using: docker
+  image: docker://core.gitlabflow.cd.action
