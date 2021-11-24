@@ -62,12 +62,12 @@ case "${INPUT_RMK_COMMAND}" in
     fi
 
     if [[ "${INPUT_RMK_UPDATE_SKIP_DEPLOY}" == "true" ]]; then
-      FLAGS_SKIP_DEPLOY="--commit"
+      FLAGS_COMMIT_DEPLOY="--commit"
     else
-      FLAGS_SKIP_DEPLOY="--deploy"
+      FLAGS_COMMIT_DEPLOY="--deploy"
     fi
 
-    rmk release update --repository "${REPOSITORY_FULL_NAME}" --tag "${VERSION}" --skip-actions ${FLAGS_SKIP_DEPLOY}
+    rmk release update --repository "${REPOSITORY_FULL_NAME}" --tag "${VERSION}" --skip-actions ${FLAGS_COMMIT_DEPLOY}
     ;;
   sync)
     FLAGS_SKIP_DEPS=""
