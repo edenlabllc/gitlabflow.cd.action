@@ -13,8 +13,8 @@ inputs:
   cd_develop_aws_access_key_id:
     description: AWS access key ID of the AWS account deploying applications to EKS for develop.
     required: true
-  cd_develop_aws_secret_key:
-    description: AWS secret key of the AWS account deploying applications to EKS for develop.
+  cd_develop_aws_secret_access_key:
+    description: AWS secret access key of the AWS account deploying applications to EKS for develop.
     required: true
   cd_staging_aws_region:
     description: AWS region of the AWS account deploying applications to EKS for staging.
@@ -22,8 +22,8 @@ inputs:
   cd_staging_aws_access_key_id:
     description: AWS access key ID of the AWS account deploying applications to EKS for staging.
     required: true
-  cd_staging_aws_secret_key:
-    description: AWS secret key of the AWS account deploying applications to EKS for staging.
+  cd_staging_aws_secret_access_key:
+    description: AWS secret access key of the AWS account deploying applications to EKS for staging.
     required: true
   rmk_version:
     description: rmk version. Default value is "latest".
