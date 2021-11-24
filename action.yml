@@ -25,10 +25,10 @@ inputs:
   cd_staging_aws_secret_key:
     description: AWS secret key of the AWS account deploying applications to EKS for staging.
     required: true
-  ci_cd_tools_version:
-    description: CI/CD tools version. Default is "master" to fetch the latest version.
+  rmk_version:
+    description: rmk version. Default value is "latest".
     required: false
-    default: master
+    default: latest
   rmk_command:
     description: Command to run CD in rmk. Allowed values are "update", "sync".
     required: true

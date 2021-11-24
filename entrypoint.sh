@@ -30,7 +30,6 @@ VERSION="${INPUT_VERSION}"
 # exports are required by the installer scripts and rmk
 export CLOUDFLARE_TOKEN="${INPUT_CLOUDFLARE_TOKEN}"
 export GITHUB_TOKEN="${INPUT_GITHUB_TOKEN_REPO_FULL_ACCESS}"
-export CI_CD_TOOLS_VERSION="${INPUT_CI_CD_TOOLS_VERSION}"
 
 case "${ENVIRONMENT}" in
   develop)
@@ -51,7 +50,7 @@ echo "Install rmk and dependencies, initialize configuration, run CD."
 git config user.name github-actions
 git config user.email github-actions@github.com
 
-curl -sL "https://${GITHUB_TOKEN}@raw.githubusercontent.com/${GITHUB_ORG}/rmk.tools.infra/${CI_CD_TOOLS_VERSION}/bin/installer" | bash
+curl -sL "https://${GITHUB_TOKEN}@raw.githubusercontent.com/${GITHUB_ORG}/rmk.tools.infra/master/bin/installer" | bash -s -- "${INPUT_RMK_VERSION}"
 
 rmk --version
 rmk config init --progress-bar=false
