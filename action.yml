@@ -36,6 +36,10 @@ inputs:
     description: Helmfile command to update repos when running update in rmk. Allowed values are "" (do nothing), "repos", "fetch" (only if rmk_command=update).
     required: false
     default: ""
+  rmk_update_skip_deploy:
+    description: Whether to skip deploy and commit only when running update in rmk (only if rmk_command=update).
+    required: false
+    default: false
   rmk_sync_skip_deps:
     description: Whether to skip running "helm repo update" and "helm dependency build" when running sync in rmk (only if rmk_command=sync).
     required: false

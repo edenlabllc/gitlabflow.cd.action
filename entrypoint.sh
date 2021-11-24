@@ -61,7 +61,13 @@ case "${INPUT_RMK_COMMAND}" in
       rmk release "${INPUT_RMK_UPDATE_HELMFILE_REPOS_COMMAND}"
     fi
 
-    rmk release update --repository "${REPOSITORY_FULL_NAME}" --tag "${VERSION}" --skip-actions --deploy
+    if [[ "${INPUT_RMK_UPDATE_SKIP_DEPLOY}" == "true" ]]; then
+      FLAGS_SKIP_DEPLOY="--commit"
+    else
+      FLAGS_SKIP_DEPLOY="--deploy"
+    fi
+
+    rmk release update --repository "${REPOSITORY_FULL_NAME}" --tag "${VERSION}" --skip-actions ${FLAGS_SKIP_DEPLOY}
     ;;
   sync)
     FLAGS_SKIP_DEPS=""
