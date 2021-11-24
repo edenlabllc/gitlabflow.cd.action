@@ -88,6 +88,6 @@ esac
 
 # always output action variables
 echo "::set-output name=git_branch::${GIT_BRANCH}"
-echo "::set-output name=environment::${ENVIRONMENT}"
 echo "::set-output name=repository_full_name::${REPOSITORY_FULL_NAME}"
 echo "::set-output name=version::${VERSION}"
+echo "::set-output name=environment::${ENVIRONMENT}"

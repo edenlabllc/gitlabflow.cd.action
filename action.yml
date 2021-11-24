@@ -13,8 +13,8 @@ inputs:
   cd_develop_aws_access_key_id:
     description: AWS access key ID of the AWS account deploying applications to EKS for develop.
     required: true
-  cd_develop_aws_secret_key:
-    description: AWS secret key of the AWS account deploying applications to EKS for develop.
+  cd_develop_aws_secret_access_key:
+    description: AWS secret access key of the AWS account deploying applications to EKS for develop.
     required: true
   cd_staging_aws_region:
     description: AWS region of the AWS account deploying applications to EKS for staging.
@@ -22,8 +22,8 @@ inputs:
   cd_staging_aws_access_key_id:
     description: AWS access key ID of the AWS account deploying applications to EKS for staging.
     required: true
-  cd_staging_aws_secret_key:
-    description: AWS secret key of the AWS account deploying applications to EKS for staging.
+  cd_staging_aws_secret_access_key:
+    description: AWS secret access key of the AWS account deploying applications to EKS for staging.
     required: true
   rmk_version:
     description: rmk version. Default value is "latest".
@@ -53,15 +53,21 @@ inputs:
         app=fhir-server-api
     required: false
     default: ""
+  repository_full_name:
+    description: Image repository full name of application (includes registry URL and repository_name).
+    required: true
+  version:
+    description: Current application version.
+    required: true
 outputs:
   git_branch:
-    description: Git branch
-  version:
-    description: Current version
+    description: Git branch.
   repository_full_name:
-    description: Image repository full name (includes registry URL and repository_name)
+    description: Image repository full name of application (includes registry URL and repository_name).
+  version:
+    description: Current application version.
   environment:
-    description: Current environment
+    description: Current CD environment.
 runs:
   using: docker
   image: docker://core.gitlabflow.cd.action
