@@ -1,4 +1,7 @@
 #!/bin/bash
+
+# todo COPIED FROM https://github.com/edenlabllc/fhir.ecr_build_push.action/blob/master/release-service.sh
+
 set -e
 
 VERSION="${1}"

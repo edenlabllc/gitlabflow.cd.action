@@ -1,4 +1,7 @@
 #!/bin/bash
+
+# todo COPIED FROM https://github.com/edenlabllc/fhir.ecr_build_push.action/blob/master/scan-image.sh
+
 set -e
 
 REPOSITORY_NAME="${1}"
