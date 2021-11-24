@@ -22,8 +22,7 @@ env:
 
 jobs:
   release-update:
-    name: Checkout main and gitlabflow action repositories, run gitlabflow action
-    if: ${{ !contains(github.event.head_commit.message, '[ci skip]') }}
+    name: Checkout main and gitlabflow action repositories, run gitlabflow action for release update
     runs-on: ubuntu-20.04
     steps:
       - name: Checkout main repository
