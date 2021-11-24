@@ -13,6 +13,10 @@ on:
 env:
   # AWS region of the AWS account storing images in ECR.
   CORE_AWS_REGION: eu-north-1
+  # AWS region of the AWS account deploying applications to EKS for develop.
+  CD_DEVELOP_AWS_REGION:
+  # AWS region of the AWS account deploying applications to EKS for staging.
+  CD_STAGING_AWS_REGION:
   # The latest action version.
   ACTION_VERSION: v1
 
@@ -62,10 +66,10 @@ jobs:
         with:
           github_token_repo_full_access: ${{ secrets.GH_TOKEN_REPO_FULL_ACCESS }}
           cloudflare_token: ${{ secrets.CLOUDFLARE_TOKEN }}
-          cd_develop_aws_region: ${{ secrets.CD_DEVELOP_AWS_REGION }}
+          cd_develop_aws_region: ${{ env.CD_DEVELOP_AWS_REGION }}
           cd_develop_aws_access_key_id: ${{ secrets.CD_DEVELOP_AWS_ACCESS_KEY_ID }}
-          cd_develop_aws_secret_key: ${{ secrets.CD_DEVELOP_AWS_SECRET_ACCESS_KEY }}
-          cd_staging_aws_region: ${{ secrets.CD_STAGING_AWS_REGION }}
+          cd_develop_aws_secret_access_key: ${{ secrets.CD_DEVELOP_AWS_SECRET_ACCESS_KEY }}
+          cd_staging_aws_region: ${{ env.CD_STAGING_AWS_REGION }}
           cd_staging_aws_access_key_id: ${{ secrets.CD_STAGING_AWS_ACCESS_KEY_ID }}
-          cd_staging_aws_secret_key: ${{ secrets.CD_STAGING_AWS_SECRET_ACCESS_KEY }}
+          cd_staging_aws_secret_access_key: ${{ secrets.CD_STAGING_AWS_SECRET_ACCESS_KEY }}
           rmk_command: update
