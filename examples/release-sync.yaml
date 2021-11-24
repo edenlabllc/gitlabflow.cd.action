@@ -1,0 +1,75 @@
+name: GitLab CD workflow for release sync
+
+on:
+  push:
+    branches:
+      - develop
+
+concurrency:
+  group: release-sync-${{ github.ref }}
+  cancel-in-progress: false
+
+env:
+  # AWS region of the AWS account storing images in ECR.
+  CORE_AWS_REGION: eu-north-1
+  # AWS region of the AWS account deploying applications to EKS for develop.
+  CD_DEVELOP_AWS_REGION:
+  # AWS region of the AWS account deploying applications to EKS for staging.
+  CD_STAGING_AWS_REGION:
+  # The latest action version.
+  ACTION_VERSION: v1
+
+jobs:
+  release-sync:
+    name: Checkout main and gitlabflow action repositories, run gitlabflow action for release sync
+    runs-on: ubuntu-20.04
+    steps:
+      - name: Checkout main repository
+        uses: actions/checkout@v2
+        with:
+          ref: ${{ github.ref }}
+          fetch-depth: 0
+
+      - name: Checkout gitlabflow action repository
+        uses: actions/checkout@v2
+        with:
+          repository: edenlabllc/gitlabflow.cd.action
+          ref: ${{ env.ACTION_VERSION }}
+          token: ${{ secrets.GH_TOKEN_REPO_FULL_ACCESS }}
+          path: .github/actions/gitlabflow
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v1
+        with:
+          aws-region: ${{ env.CORE_AWS_REGION }}
+          aws-access-key-id: ${{ secrets.CORE_AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.CORE_AWS_SECRET_ACCESS_KEY }}
+
+      - name: Login to AWS ECR
+        uses: aws-actions/amazon-ecr-login@v1
+
+      - name: Pull GitLab flow action image from AWS ECR
+        run: |
+          ECR_REGISTRY_URL="${{ secrets.CORE_AWS_ACCOUNT_ID }}.dkr.ecr.${{ env.CORE_AWS_REGION }}.amazonaws.com"
+          IMAGE_NAME="core.gitlabflow.cd.action"
+          IMAGE_FULL_NAME="${ECR_REGISTRY_URL}/${IMAGE_NAME}:${{ env.ACTION_VERSION }}"
+          docker pull "${IMAGE_FULL_NAME}"
+          docker tag "${IMAGE_FULL_NAME}" "${IMAGE_NAME}"
+
+      - name: Run gitlabflow action
+        id: gitlabflow
+        uses: ./.github/actions/gitlabflow
+
+        # Common action inputs
+        with:
+          github_token_repo_full_access: ${{ secrets.GH_TOKEN_REPO_FULL_ACCESS }}
+          cloudflare_token: ${{ secrets.CLOUDFLARE_TOKEN }}
+          cd_develop_aws_region: ${{ env.CD_DEVELOP_AWS_REGION }}
+          cd_develop_aws_access_key_id: ${{ secrets.CD_DEVELOP_AWS_ACCESS_KEY_ID }}
+          cd_develop_aws_secret_access_key: ${{ secrets.CD_DEVELOP_AWS_SECRET_ACCESS_KEY }}
+          cd_staging_aws_region: ${{ env.CD_STAGING_AWS_REGION }}
+          cd_staging_aws_access_key_id: ${{ secrets.CD_STAGING_AWS_ACCESS_KEY_ID }}
+          cd_staging_aws_secret_access_key: ${{ secrets.CD_STAGING_AWS_SECRET_ACCESS_KEY }}
+          rmk_command: sync
+          repository_full_name: ${{ github.event.inputs.repository_full_name }}
+          version: ${{ github.event.inputs.version }}
