@@ -1,4 +1,4 @@
-name: GitLab CD workflow for release update
+name: Release update GitLab CD workflow
 
 on:
   workflow_dispatch:
