@@ -54,11 +54,11 @@ inputs:
     required: false
     default: ""
   repository_full_name:
-    description: Image repository full name of application (includes registry URL and repository_name).
-    required: true
+    description: Image repository full name of application (includes registry URL and repository_name, only if rmk_command=update).
+    required: false
   version:
-    description: Current application version.
-    required: true
+    description: Current application version (only if rmk_command=update).
+    required: false
 outputs:
   git_branch:
     description: Git branch.
