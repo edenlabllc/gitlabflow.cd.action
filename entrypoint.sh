@@ -17,7 +17,7 @@ fi
 GIT_BRANCH="${GITHUB_REF#refs/heads/}"
 
 ENVIRONMENT="${GIT_BRANCH}"
-ALLOWED_ENVIRONMENTS=("develop" "staging")
+ALLOWED_ENVIRONMENTS=("${INPUT_ALLOWED_ENVIRONMENTS/,/ }")
 
 if [[ ! " ${ALLOWED_ENVIRONMENTS[*]} " =~ " ${ENVIRONMENT} " ]]; then
     >&2 echo "Environment \"${ENVIRONMENT}\" not allowed for automatic CD."

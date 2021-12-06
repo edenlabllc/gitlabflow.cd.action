@@ -25,6 +25,10 @@ inputs:
   cd_staging_aws_secret_access_key:
     description: AWS secret access key of the AWS account deploying applications to EKS for staging.
     required: true
+  allowed_environments:
+    description: Allowed environments participating in releases for rmk commands update & sync.
+    required: true
+    default: develop,staging
   rmk_version:
     description: rmk version. Default value is "latest".
     required: false
