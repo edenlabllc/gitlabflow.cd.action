@@ -30,7 +30,7 @@ if ! [[ "${ENVIRONMENT}" =~ feature/FFS-* && "${INPUT_RMK_COMMAND}" =~ install|u
     exit 1
   fi
 else
-  echo "Skipped check allow environment. Running prepare feature cluster."
+  echo "Skipped check allowed environment. Running prepare feature cluster."
 fi
 
 REPOSITORY_FULL_NAME="${INPUT_REPOSITORY_FULL_NAME}"
@@ -66,11 +66,6 @@ rmk config init --progress-bar=false
 
 case "${INPUT_RMK_COMMAND}" in
 install)
-  if ! (rmk cluster provision --plan); then
-    echo >&2 "Failed to prepare terraform plan for environment: \"${ENVIRONMENT}\"."
-    exit 1
-  fi
-
   rmk cluster provision
 
   if ! (rmk release list); then
@@ -101,7 +96,7 @@ uninstall)
     exit 1
   fi
 
-  rmk release sync
+  rmk release destroy
 
   if ! (rmk cluster provision --plan); then
     echo >&2 "Failed to prepare terraform plan for environment: \"${ENVIRONMENT}\"."
