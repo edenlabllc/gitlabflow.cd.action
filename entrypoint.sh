@@ -62,7 +62,7 @@ case "${INPUT_RMK_COMMAND}" in
     fi
 
     if [[ "${INPUT_RMK_UPDATE_SKIP_DEPLOY}" == "true" ]]; then
-      FLAGS_COMMIT_DEPLOY="--commit"
+      FLAGS_COMMIT_DEPLOY="--skip-context-switch --commit"
     else
       FLAGS_COMMIT_DEPLOY="--deploy"
     fi
