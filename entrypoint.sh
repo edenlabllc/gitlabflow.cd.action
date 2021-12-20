@@ -19,9 +19,14 @@ GIT_BRANCH="${GITHUB_REF#refs/heads/}"
 ENVIRONMENT="${GIT_BRANCH}"
 
 if ! [[ "${ENVIRONMENT}" =~ feature/FFS-* && "${INPUT_RMK_COMMAND}" =~ install|uninstall ]]; then
-  ALLOWED_ENVIRONMENTS=("${INPUT_ALLOWED_ENVIRONMENTS/,/ }")
-  if [[ ! " ${ALLOWED_ENVIRONMENTS[*]} " =~ " ${ENVIRONMENT} " ]]; then
-    echo >&2 "Environment \"${ENVIRONMENT}\" not allowed for automatic CD."
+  if [[ "${INPUT_RMK_COMMAND}" =~ sync|update ]]; then
+    ALLOWED_ENVIRONMENTS=("${INPUT_ALLOWED_ENVIRONMENTS/,/ }")
+    if [[ ! " ${ALLOWED_ENVIRONMENTS[*]} " =~ " ${ENVIRONMENT} " ]]; then
+      echo >&2 "Environment \"${ENVIRONMENT}\" not allowed for automatic CD."
+      exit 1
+    fi
+  else
+    >&2 echo "Not selected feature branch or not set correct commands actions for feature cluster."
     exit 1
   fi
 else
