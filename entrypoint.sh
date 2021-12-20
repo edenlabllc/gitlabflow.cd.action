@@ -56,18 +56,20 @@ rmk --version
 rmk config init --progress-bar=false
 
 case "${INPUT_RMK_COMMAND}" in
-  update)
-    if [[ "${INPUT_RMK_UPDATE_HELMFILE_REPOS_COMMAND}" != "" ]]; then
-      rmk release "${INPUT_RMK_UPDATE_HELMFILE_REPOS_COMMAND}"
+  install)
+    if ! (rmk cluster provision --plan); then
+      >&2 echo "Failed to prepare terraform plan for environment: \"${ENVIRONMENT}\"."
+      exit 1
     fi
 
-    if [[ "${INPUT_RMK_UPDATE_SKIP_DEPLOY}" == "true" ]]; then
-      FLAGS_COMMIT_DEPLOY="--skip-context-switch --commit"
-    else
-      FLAGS_COMMIT_DEPLOY="--deploy"
+    rmk cluster provision
+
+    if ! (rmk release list); then
+      >&2 echo "Failed to get list of releases for environment: \"${ENVIRONMENT}\"."
+      exit 1
     fi
 
-    rmk release update --repository "${REPOSITORY_FULL_NAME}" --tag "${VERSION}" --skip-actions ${FLAGS_COMMIT_DEPLOY}
+    rmk release sync
     ;;
   sync)
     FLAGS_SKIP_DEPS=""
@@ -83,6 +85,34 @@ case "${INPUT_RMK_COMMAND}" in
     fi
 
     rmk release -- ${FLAGS_LABELS} sync ${FLAGS_SKIP_DEPS}
+    ;;
+  uninstall)
+    if ! (rmk release list); then
+      >&2 echo "Failed to get list of releases for environment: \"${ENVIRONMENT}\"."
+      exit 1
+    fi
+
+    rmk release sync
+
+    if ! (rmk cluster provision --plan); then
+      >&2 echo "Failed to prepare terraform plan for environment: \"${ENVIRONMENT}\"."
+      exit 1
+    fi
+
+    rmk cluster destroy
+    ;;
+  update)
+    if [[ "${INPUT_RMK_UPDATE_HELMFILE_REPOS_COMMAND}" != "" ]]; then
+      rmk release "${INPUT_RMK_UPDATE_HELMFILE_REPOS_COMMAND}"
+    fi
+
+    if [[ "${INPUT_RMK_UPDATE_SKIP_DEPLOY}" == "true" ]]; then
+      FLAGS_COMMIT_DEPLOY="--skip-context-switch --commit"
+    else
+      FLAGS_COMMIT_DEPLOY="--deploy"
+    fi
+
+    rmk release update --repository "${REPOSITORY_FULL_NAME}" --tag "${VERSION}" --skip-actions ${FLAGS_COMMIT_DEPLOY}
     ;;
 esac
 
