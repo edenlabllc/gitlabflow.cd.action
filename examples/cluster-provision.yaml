@@ -1,12 +1,12 @@
-name: Release sync GitLab CD workflow
+name: Cluster provisioner
 
 on:
   workflow_dispatch:
     inputs:
-      feature_cluster_command:
-        description: 'Enter command action for feature cluster, available: install or uninstall.'
+      cluster_provisioner_command:
+        description: 'Enter command action for cluster provisioner, available: provision or destroy.'
         required: true
-        default: 'install'
+        default: 'provision'
 
 env:
   # AWS region of the AWS account storing images in ECR.
@@ -69,5 +69,5 @@ jobs:
           cd_staging_aws_region: ${{ env.CD_STAGING_AWS_REGION }}
           cd_staging_aws_access_key_id: ${{ secrets.CD_STAGING_AWS_ACCESS_KEY_ID }}
           cd_staging_aws_secret_access_key: ${{ secrets.CD_STAGING_AWS_SECRET_ACCESS_KEY }}
-          allowed_environments: feature
-          rmk_command: ${{ github.event.inputs.feature_cluster_command }}
+          cluster_provisioner: true
+          rmk_command: ${{ github.event.inputs.cluster_provisioner_command }}
