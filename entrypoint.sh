@@ -66,6 +66,9 @@ rmk config init --progress-bar=false
 
 case "${INPUT_RMK_COMMAND}" in
 install)
+  if ! (rmk cluster switch); then
+    echo "Cluster not provisioned."
+  fi
   rmk cluster provision
 
   if ! (rmk release list); then
