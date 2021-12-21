@@ -66,15 +66,17 @@ rmk config init --progress-bar=false
 
 case "${INPUT_RMK_COMMAND}" in
 install)
-  rmk cluster switch
+  if ! (rmk cluster switch); then
+    echo "Cluster not provisioned."
+  fi
   rmk cluster provision
 
-  if ! (rmk release list); then
-    echo >&2 "Failed to get list of releases for environment: \"${ENVIRONMENT}\"."
-    exit 1
-  fi
-
-  rmk release sync
+#  if ! (rmk release list); then
+#    echo >&2 "Failed to get list of releases for environment: \"${ENVIRONMENT}\"."
+#    exit 1
+#  fi
+#
+#  rmk release sync
   ;;
 sync)
   FLAGS_SKIP_DEPS=""
