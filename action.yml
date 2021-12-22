@@ -29,6 +29,10 @@ inputs:
     description: Allowed environments participating in releases for rmk commands update & sync.
     required: true
     default: develop,staging
+  cluster_provisioner:
+    description: Allows using a set of rmk commands to provision cluster according to the specification tenant repositories.
+    required: true
+    default: false
   rmk_version:
     description: rmk version. Default value is "latest".
     required: false
