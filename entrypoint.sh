@@ -25,7 +25,7 @@ function check_cluster_provision_command() {
   fi
 }
 
-if [[ "${INPUT_CLUSTER_PROVISION}" == "true" ]]; then
+if [[ "${INPUT_CLUSTER_PROVISIONER}" == "true" ]]; then
   case "${ENVIRONMENT}" in
   feature/FFS-*)
     echo
