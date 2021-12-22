@@ -29,12 +29,12 @@ if [[ "${INPUT_CLUSTER_PROVISIONER}" == "true" ]]; then
   case "${ENVIRONMENT}" in
   feature/FFS-*)
     echo
-    echo "Skipped check allowed environment. Running prepare feature cluster."
+    echo "Skipped check allowed environment. Running prepare feature cluster from branch \"${ENVIRONMENT}\"."
     check_cluster_provision_command
     ;;
   release/v*)
     echo
-    echo "Skipped check allowed environment. Running prepare release cluster."
+    echo "Skipped check allowed environment. Running prepare release cluster from branch \"${ENVIRONMENT}\"."
     check_cluster_provision_command
     ;;
   *)
