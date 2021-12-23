@@ -19,8 +19,8 @@ env:
   ACTION_VERSION: v1
 
 jobs:
-  release-sync:
-    name: Checkout main and gitlabflow action repositories, run gitlabflow action for release sync
+  cluster-provision:
+    name: 'Cluster will be ${{ github.event.inputs.cluster_provisioner_command }} for branch: ${{ github.ref_name }}.'
     runs-on: ubuntu-20.04
     steps:
       - name: Checkout main repository
