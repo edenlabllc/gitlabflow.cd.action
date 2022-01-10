@@ -7,6 +7,7 @@ RUN apk --no-cache add \
     docker \
     python3 \
     py3-pip \
+    bind-tools \
     && pip3 install awscli
 
 # Copies your code file from your action repository to the filesystem path `/` of the container
