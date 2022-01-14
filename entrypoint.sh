@@ -86,12 +86,15 @@ if [[ "${INPUT_RMK_SLACK_NOTIFICATIONS}" == "true" ]]; then
 
   FLAGS_SLACK_MESSAGE_DETAILS=""
   if [[ "${INPUT_RMK_SLACK_MESSAGE_DETAILS}" != "" ]]; then
-    while read -r DETAIL; do
+    OLDIFS="${IFS}"
+    IFS=$'\n'
+    for DETAIL in ${INPUT_RMK_SLACK_MESSAGE_DETAILS}; do
       FLAGS_SLACK_MESSAGE_DETAILS="${FLAGS_SLACK_MESSAGE_DETAILS} --smd=\"${DETAIL}\""
-    done <<< "${INPUT_RMK_SLACK_MESSAGE_DETAILS}"
+    done
+    IFS="${OLDIFS}"
   fi
 
-  rmk config init --progress-bar=false --slack-notifications "${FLAGS_SLACK_MESSAGE_DETAILS}"
+  eval rmk config init --progress-bar=false --slack-notifications ${FLAGS_SLACK_MESSAGE_DETAILS}
 else
   rmk config init --progress-bar=false
 fi
