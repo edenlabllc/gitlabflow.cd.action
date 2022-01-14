@@ -80,7 +80,7 @@ curl -sL "https://${GITHUB_TOKEN}@raw.githubusercontent.com/${GITHUB_ORG}/rmk.to
 
 rmk --version
 # Slack notification
-if [[ ${INPUT_RMK_SLACK_NOTIFICATIONS} == "true" ]]; then
+if [[ "${INPUT_RMK_SLACK_NOTIFICATIONS}" == "true" ]]; then
   export SLACK_WEBHOOK=${INPUT_RMK_SLACK_WEBHOOK}
   export SLACK_CHANNEL=${INPUT_RMK_SLACK_CHANNEL}
 
