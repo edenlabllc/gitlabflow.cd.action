@@ -37,6 +37,27 @@ inputs:
     description: rmk version. Default value is "latest".
     required: false
     default: latest
+  rmk_slack_notifications:
+    description: Enable slack notifications.
+    required: false
+    default: false
+  rmk_slack_webhook:
+    description: Url for slack webhook (required if rmk_slack_notifications=true).
+    required: false
+    default: ""
+  rmk_slack_channel:
+    description: Channel name for slack notification (required if rmk_slack_notifications=true).
+    required: false
+    default: ""
+  rmk_slack_message_details:
+    description: |
+      Additional information in the body of the slack message (only if rmk_slack_notifications=true).
+      Example:
+      rmk_slack_message_details: |
+        GitHub Action Url: ${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}
+        Build Number: ${GITHUB_RUN_NUMBER}
+    required: false
+    default: ""
   rmk_command:
     description: Command to run CD in rmk. Allowed values are "update", "sync".
     required: true

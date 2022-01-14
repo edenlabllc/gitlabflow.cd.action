@@ -73,6 +73,12 @@ jobs:
           cd_staging_aws_secret_access_key: ${{ secrets.CD_STAGING_AWS_SECRET_ACCESS_KEY }}
           # In stable mode allowed branch: develop
           allowed_environments: develop
+          rmk_slack_notifications: true
+          rmk_slack_webhook: ${{ secrets.SLACK_WEBHOOK }}
+          rmk_slack_channel: fhir-kodjin-cd
+          rmk_slack_message_details: |
+            GitHub Action Url: ${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}
+            Build Number: ${GITHUB_RUN_NUMBER}
           rmk_command: update
           repository_full_name: ${{ github.event.inputs.repository_full_name }}
           version: ${{ github.event.inputs.version }}
