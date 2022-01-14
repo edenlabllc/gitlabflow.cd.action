@@ -79,7 +79,22 @@ git config user.email github-actions@github.com
 curl -sL "https://${GITHUB_TOKEN}@raw.githubusercontent.com/${GITHUB_ORG}/rmk.tools.infra/master/bin/installer" | bash -s -- "${INPUT_RMK_VERSION}"
 
 rmk --version
-rmk config init --progress-bar=false
+# Slack notification
+if [[ ${RMK_SLACK_NOTIFICATIONS} == "true" ]]; then
+  export SLACK_WEBHOOK=${INPUT_RMK_SLACK_WEBHOOK}
+  export SLACK_CHANNEL=${INPUT_RMK_SLACK_CHANNEL}
+
+  FLAGS_SLACK_MESSAGE_DETAILS=""
+  if [[ "${INPUT_RMK_SLACK_MESSAGE_DETAILS}" != "" ]]; then
+    for DETAIL in ${INPUT_RMK_SLACK_MESSAGE_DETAILS}; do
+      FLAGS_SLACK_MESSAGE_DETAILS="${FLAGS_SLACK_MESSAGE_DETAILS} --smd ${DETAIL}"
+    done
+  fi
+
+  rmk config init --progress-bar=false --slack-notifications "${FLAGS_SLACK_MESSAGE_DETAILS}"
+else
+  rmk config init --progress-bar=false
+fi
 
 case "${INPUT_RMK_COMMAND}" in
 destroy)
