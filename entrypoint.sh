@@ -11,7 +11,7 @@ echo "Initialize environment variables."
 GITHUB_ORG="${GITHUB_REPOSITORY%%/*}"
 
 if [[ "${GITHUB_REF}" != refs/heads/* ]]; then
-  >&2 echo "ERROR: Only pushes to branches are supported. Check the workflow's on.push.* section."
+  echo >&2 "ERROR: Only pushes to branches are supported. Check the workflow's on.push.* section."
   exit 1
 fi
 
@@ -20,7 +20,7 @@ ENVIRONMENT="${GIT_BRANCH}"
 
 function check_cluster_provision_command() {
   if ! [[ "${INPUT_RMK_COMMAND}" =~ provision|destroy ]]; then
-    >&2 echo "ERROR: For provision a cluster, commands only are allowed: provision, destroy"
+    echo >&2 "ERROR: For provision a cluster, commands only are allowed: provision, destroy"
     exit 1
   fi
 }
@@ -38,14 +38,14 @@ if [[ "${INPUT_CLUSTER_PROVISIONER}" == "true" ]]; then
     check_cluster_provision_command
     ;;
   *)
-    >&2 echo "ERROR: Provisioning temporary clusters is only allowed from branches with prefixes 'feature/FFS-*' or 'release/v*.'"
+    echo >&2 "ERROR: Provisioning temporary clusters is only allowed from branches with prefixes 'feature/FFS-*' or 'release/v*.'"
     exit 1
     ;;
   esac
 else
   ALLOWED_ENVIRONMENTS=("${INPUT_ALLOWED_ENVIRONMENTS/,/ }")
   if [[ ! " ${ALLOWED_ENVIRONMENTS[*]} " =~ " ${ENVIRONMENT} " ]]; then
-    >&2 echo "ERROR: Environment \"${ENVIRONMENT}\" not allowed for automatic CD."
+    echo >&2 "ERROR: Environment \"${ENVIRONMENT}\" not allowed for automatic CD."
     exit 1
   fi
 fi
@@ -58,12 +58,12 @@ export CLOUDFLARE_TOKEN="${INPUT_CLOUDFLARE_TOKEN}"
 export GITHUB_TOKEN="${INPUT_GITHUB_TOKEN_REPO_FULL_ACCESS}"
 
 case "${ENVIRONMENT}" in
-develop|feature/FFS-*)
+develop | feature/FFS-*)
   export AWS_REGION="${INPUT_CD_DEVELOP_AWS_REGION}"
   export AWS_ACCESS_KEY_ID="${INPUT_CD_DEVELOP_AWS_ACCESS_KEY_ID}"
   export AWS_SECRET_ACCESS_KEY="${INPUT_CD_DEVELOP_AWS_SECRET_ACCESS_KEY}"
   ;;
-staging|release/v*)
+staging | release/v*)
   export AWS_REGION="${INPUT_CD_STAGING_AWS_REGION}"
   export AWS_ACCESS_KEY_ID="${INPUT_CD_STAGING_AWS_ACCESS_KEY_ID}"
   export AWS_SECRET_ACCESS_KEY="${INPUT_CD_STAGING_AWS_SECRET_ACCESS_KEY}"
@@ -86,12 +86,15 @@ if [[ "${INPUT_RMK_SLACK_NOTIFICATIONS}" == "true" ]]; then
 
   FLAGS_SLACK_MESSAGE_DETAILS=""
   if [[ "${INPUT_RMK_SLACK_MESSAGE_DETAILS}" != "" ]]; then
-    while read -r DETAIL; do
+    OLDIFS="${IFS}"
+    IFS=$'\n'
+    for DETAIL in ${INPUT_RMK_SLACK_MESSAGE_DETAILS}; do
       FLAGS_SLACK_MESSAGE_DETAILS="${FLAGS_SLACK_MESSAGE_DETAILS} --smd=\"${DETAIL}\""
-    done <<< "${INPUT_RMK_SLACK_MESSAGE_DETAILS}"
+    done
+    IFS="${OLDIFS}"
   fi
 
-  rmk config init --progress-bar=false --slack-notifications "${FLAGS_SLACK_MESSAGE_DETAILS}"
+  eval rmk config init --progress-bar=false --slack-notifications ${FLAGS_SLACK_MESSAGE_DETAILS}
 else
   rmk config init --progress-bar=false
 fi
