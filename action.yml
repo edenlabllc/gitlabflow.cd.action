@@ -95,7 +95,7 @@ inputs:
   destroy_branch_pattern_exception:
     description: Pattern based on to destroy clusters
     required: false
-    default: "[skip cluster destroy]"
+    default: "skip cluster destroy"
   scheduled_destroy_clusters:
     description: Destroy all clusters based on destroy_branch_pattern input
     required: false
