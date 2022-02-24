@@ -32,7 +32,9 @@ if [[ "${INPUT_SCHEDULED_DESTROY_CLUSTERS}" == "true" ]]; then
     git checkout ${remote#origin/}
 
     if ! [[ `git show -s --format=%s | grep -v "${INPUT_DESTROY_BRANCH_PATTERN_EXCEPTION}"` ]]; then
+      curl -X POST -H 'Content-type: application/json' --data '{"text":"*Tenant*: Kodjin\n*Action*: Scheduled Job\n'"*Skipped cluster*: ${remote#origin/}"'"}' ${INPUT_RMK_SLACK_WEBHOOK}
       echo "Skip cluster destroy for branch: \"${remote#origin/}\"."
+      echo
       continue
     fi
 
@@ -43,6 +45,7 @@ if [[ "${INPUT_SCHEDULED_DESTROY_CLUSTERS}" == "true" ]]; then
     set +e
     if ! (rmk cluster switch); then
       echo >&2 "Cluster doesn't exist for branch: \"${remote#origin/}\"."
+      echo
       continue
     fi
     set -e
@@ -51,6 +54,8 @@ if [[ "${INPUT_SCHEDULED_DESTROY_CLUSTERS}" == "true" ]]; then
 
     rmk cluster destroy
     echo "Cluster has been destroy for branch: \"${remote#origin/}\"."
+    curl -X POST -H 'Content-type: application/json' --data '{"text":"*Tenant*: Kodjin\n*Action*: Scheduled Job\n'"*Destroyed cluster*: ${remote#origin/}"'"}' ${INPUT_RMK_SLACK_WEBHOOK}
+
   done
   exit 0
 fi
