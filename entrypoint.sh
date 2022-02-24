@@ -13,6 +13,9 @@ echo "Install rmk and dependencies, initialize configuration, run CD."
 git config user.name github-actions
 git config user.email github-actions@github.com
 
+export GITHUB_TOKEN="${INPUT_GITHUB_TOKEN_REPO_FULL_ACCESS}"
+export GITHUB_ORG="${GITHUB_REPOSITORY%%/*}"
+
 curl -sL "https://${GITHUB_TOKEN}@raw.githubusercontent.com/${GITHUB_ORG}/rmk.tools.infra/master/bin/installer" | bash -s -- "${INPUT_RMK_VERSION}"
 
 rmk --version
@@ -51,8 +54,6 @@ if [[ "${INPUT_SCHEDULED_DESTROY_CLUSTERS}" == "true" ]]; then
   done
   exit 0
 fi
-
-GITHUB_ORG="${GITHUB_REPOSITORY%%/*}"
 
 if [[ "${GITHUB_REF}" != refs/heads/* ]]; then
   >&2 echo "ERROR: Only pushes to branches are supported. Check the workflow's on.push.* section."
@@ -99,7 +100,6 @@ VERSION="${INPUT_VERSION}"
 
 # exports are required by the installer scripts and rmk
 export CLOUDFLARE_TOKEN="${INPUT_CLOUDFLARE_TOKEN}"
-export GITHUB_TOKEN="${INPUT_GITHUB_TOKEN_REPO_FULL_ACCESS}"
 
 case "${ENVIRONMENT}" in
 develop|feature/FFS-*)
