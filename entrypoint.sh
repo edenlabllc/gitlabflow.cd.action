@@ -7,6 +7,11 @@ set -e
 
 echo
 echo "Initialize environment variables."
+echo
+echo "Install rmk and dependencies, initialize configuration, run CD."
+
+git config user.name github-actions
+git config user.email github-actions@github.com
 
 curl -sL "https://${GITHUB_TOKEN}@raw.githubusercontent.com/${GITHUB_ORG}/rmk.tools.infra/master/bin/installer" | bash -s -- "${INPUT_RMK_VERSION}"
 
@@ -108,12 +113,6 @@ staging|release/v*)
   export AWS_SECRET_ACCESS_KEY="${INPUT_CD_STAGING_AWS_SECRET_ACCESS_KEY}"
   ;;
 esac
-
-echo
-echo "Install rmk and dependencies, initialize configuration, run CD."
-
-git config user.name github-actions
-git config user.email github-actions@github.com
 
 # Slack notification
 if [[ "${INPUT_RMK_SLACK_NOTIFICATIONS}" == "true" ]]; then
