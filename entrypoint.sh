@@ -31,23 +31,21 @@ if [[ "${INPUT_SCHEDULED_DESTROY_CLUSTERS}" == "true" ]]; then
   for remote in `git branch -r | grep "${INPUT_DESTROY_BRANCH_PATTERN}"`; do
     git checkout ${remote#origin/}
 
-    set +e
-    git show -s --format=%s
-    echo $INPUT_DESTROY_BRANCH_PATTERN_EXCEPTION
     if ! [[ `git show -s --format=%s | grep -v "${INPUT_DESTROY_BRANCH_PATTERN_EXCEPTION}"` ]]; then
       echo "Skip cluster destroy for branch: \"${remote#origin/}\"."
       continue
     fi
-    set -e
 
     rmk config init --progress-bar=false
     echo
     echo "Destroy cluster for branch: \"${remote#origin/}\"."
 
-    if ! (set +e; rmk cluster switch; set -e); then
+    set +e
+    if ! (rmk cluster switch); then
       echo >&2 "Cluster doesn't exist for branch: \"${remote#origin/}\"."
       continue
     fi
+    set -e
 
     rmk release destroy
 
