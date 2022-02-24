@@ -8,6 +8,39 @@ set -e
 echo
 echo "Initialize environment variables."
 
+if [[ "${INPUT_SCAN_AND_DELETE}" == "true" ]]; then
+
+  export AWS_REGION="${INPUT_CD_DEVELOP_AWS_REGION}"
+  export AWS_ACCESS_KEY_ID="${INPUT_CD_DEVELOP_AWS_ACCESS_KEY_ID}"
+  export AWS_SECRET_ACCESS_KEY="${INPUT_CD_DEVELOP_AWS_SECRET_ACCESS_KEY}"
+
+  for remote in `git branch -r | grep "${INPUT_DESTROY_BRANCH_PATTERN}"`; do
+    git checkout ${remote#origin/}
+
+    set +e
+    if ! [[ `git show -s --format=%s | grep -v "${INPUT_DESTROY_BRANCH_PATTERN_EXCEPTION}"` ]]; then
+      echo "Skip cluster destroy for branch: \"${remote#origin/}\"."
+      continue
+    fi
+    set -e
+
+    rmk config init --progress-bar=false
+    echo
+    echo "Destroy cluster for branch: \"${remote#origin/}\"."
+
+    if ! (set +e; rmk cluster switch; set -e); then
+      echo >&2 "Cluster doesn't exist for branch: \"${remote#origin/}\"."
+      continue
+    fi
+
+    rmk release destroy
+
+    rmk cluster destroy
+    echo "Cluster has been destroy for branch: \"${remote#origin/}\"."
+  done
+  exit 0
+fi
+
 GITHUB_ORG="${GITHUB_REPOSITORY%%/*}"
 
 if [[ "${GITHUB_REF}" != refs/heads/* ]]; then
@@ -97,28 +130,6 @@ if [[ "${INPUT_RMK_SLACK_NOTIFICATIONS}" == "true" ]]; then
   eval rmk config init --progress-bar=false --slack-notifications ${FLAGS_SLACK_MESSAGE_DETAILS}
 else
   rmk config init --progress-bar=false
-fi
-
-if [[ "${INPUT_SCAN_AND_DELETE}" == "true" ]]; then
-  for remote in `git branch -r | grep feature/FFS-`; do
-    git checkout ${remote#origin/}
-    echo
-    echo "Destroy cluster for branch: \"${remote#origin/}\"."
-    if ! (rmk release list); then
-      echo >&2 "Failed to get list of releases for environment: \"${remote#origin/}\"."
-      continue
-    fi
-
-    rmk release destroy
-
-    if ! (rmk cluster provision --plan); then
-      echo >&2 "Failed to prepare terraform plan for environment: \"${remote#origin/}\"."
-      continue
-    fi
-
-    rmk cluster destroy
-  done
-  exit 0
 fi
 
 case "${INPUT_RMK_COMMAND}" in
