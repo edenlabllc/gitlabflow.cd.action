@@ -8,6 +8,10 @@ set -e
 echo
 echo "Initialize environment variables."
 
+curl -sL "https://${GITHUB_TOKEN}@raw.githubusercontent.com/${GITHUB_ORG}/rmk.tools.infra/master/bin/installer" | bash -s -- "${INPUT_RMK_VERSION}"
+
+rmk --version
+
 if [[ "${INPUT_SCHEDULED_DESTROY_CLUSTERS}" == "true" ]]; then
 
   export AWS_REGION="${INPUT_CD_DEVELOP_AWS_REGION}"
@@ -111,9 +115,6 @@ echo "Install rmk and dependencies, initialize configuration, run CD."
 git config user.name github-actions
 git config user.email github-actions@github.com
 
-curl -sL "https://${GITHUB_TOKEN}@raw.githubusercontent.com/${GITHUB_ORG}/rmk.tools.infra/master/bin/installer" | bash -s -- "${INPUT_RMK_VERSION}"
-
-rmk --version
 # Slack notification
 if [[ "${INPUT_RMK_SLACK_NOTIFICATIONS}" == "true" ]]; then
   export SLACK_WEBHOOK=${INPUT_RMK_SLACK_WEBHOOK}
