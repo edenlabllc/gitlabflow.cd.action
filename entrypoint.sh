@@ -8,7 +8,7 @@ set -e
 echo
 echo "Initialize environment variables."
 
-if [[ "${INPUT_SCAN_AND_DELETE}" == "true" ]]; then
+if [[ "${INPUT_SCHEDULED_DESTROY_CLUSTERS}" == "true" ]]; then
 
   export AWS_REGION="${INPUT_CD_DEVELOP_AWS_REGION}"
   export AWS_ACCESS_KEY_ID="${INPUT_CD_DEVELOP_AWS_ACCESS_KEY_ID}"
@@ -18,6 +18,8 @@ if [[ "${INPUT_SCAN_AND_DELETE}" == "true" ]]; then
     git checkout ${remote#origin/}
 
     set +e
+    git show -s --format=%s
+    echo $INPUT_DESTROY_BRANCH_PATTERN_EXCEPTION
     if ! [[ `git show -s --format=%s | grep -v "${INPUT_DESTROY_BRANCH_PATTERN_EXCEPTION}"` ]]; then
       echo "Skip cluster destroy for branch: \"${remote#origin/}\"."
       continue
