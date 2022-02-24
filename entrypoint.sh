@@ -99,6 +99,28 @@ else
   rmk config init --progress-bar=false
 fi
 
+if [[ "${INPUT_SCAN_AND_DELETE}" == "true" ]]; then
+  for remote in `git branch -r | grep feature/FFS-`; do
+    git checkout ${remote#origin/}
+    echo
+    echo "Destroy cluster for branch: \"${remote#origin/}\"."
+    if ! (rmk release list); then
+      echo >&2 "Failed to get list of releases for environment: \"${remote#origin/}\"."
+      continue
+    fi
+
+    rmk release destroy
+
+    if ! (rmk cluster provision --plan); then
+      echo >&2 "Failed to prepare terraform plan for environment: \"${remote#origin/}\"."
+      continue
+    fi
+
+    rmk cluster destroy
+  done
+  exit 0
+fi
+
 case "${INPUT_RMK_COMMAND}" in
 destroy)
   echo

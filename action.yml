@@ -88,6 +88,10 @@ inputs:
   version:
     description: Current application version (only if rmk_command=update).
     required: false
+  scan_and_delete:
+    description: Run branch scanning and delete feature clusters if any exist
+    required: false
+    default: false
 outputs:
   git_branch:
     description: Git branch.
