@@ -13,7 +13,9 @@ echo "Install rmk and dependencies, initialize configuration, run CD."
 git config user.name github-actions
 git config user.email github-actions@github.com
 
+# exports are required by the installer scripts and rmk
 export GITHUB_TOKEN="${INPUT_GITHUB_TOKEN_REPO_FULL_ACCESS}"
+export CLOUDFLARE_TOKEN="${INPUT_CLOUDFLARE_TOKEN}"
 export GITHUB_ORG="${GITHUB_REPOSITORY%%/*}"
 
 curl -sL "https://${GITHUB_TOKEN}@raw.githubusercontent.com/${GITHUB_ORG}/rmk.tools.infra/master/bin/installer" | bash -s -- "${INPUT_RMK_VERSION}"
@@ -97,9 +99,6 @@ fi
 
 REPOSITORY_FULL_NAME="${INPUT_REPOSITORY_FULL_NAME}"
 VERSION="${INPUT_VERSION}"
-
-# exports are required by the installer scripts and rmk
-export CLOUDFLARE_TOKEN="${INPUT_CLOUDFLARE_TOKEN}"
 
 case "${ENVIRONMENT}" in
 develop|feature/FFS-*)
