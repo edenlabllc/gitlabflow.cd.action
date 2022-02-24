@@ -91,7 +91,7 @@ inputs:
   destroy_branch_pattern:
     description: Pattern based on to destroy clusters
     required: false
-    default: "feature/FFS-"
+    default: "feature/FFS-999"
   destroy_branch_pattern_exception:
     description: Pattern based on to destroy clusters
     required: false
