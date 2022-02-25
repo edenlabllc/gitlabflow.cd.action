@@ -28,11 +28,29 @@ if [[ "${INPUT_SCHEDULED_DESTROY_CLUSTERS}" == "true" ]]; then
   export AWS_ACCESS_KEY_ID="${INPUT_CD_DEVELOP_AWS_ACCESS_KEY_ID}"
   export AWS_SECRET_ACCESS_KEY="${INPUT_CD_DEVELOP_AWS_SECRET_ACCESS_KEY}"
 
+  destroy_clusters_based_on_pattern()
+  exit 0
+fi
+
+if [[ "${GITHUB_REF}" != refs/heads/* ]]; then
+  >&2 echo "ERROR: Only pushes to branches are supported. Check the workflow's on.push.* section."
+  exit 1
+fi
+
+GIT_BRANCH="${GITHUB_REF#refs/heads/}"
+ENVIRONMENT="${GIT_BRANCH}"
+
+function destroy_clusters_based_on_pattern() {
+
+  export AWS_REGION="${INPUT_CD_DEVELOP_AWS_REGION}"
+  export AWS_ACCESS_KEY_ID="${INPUT_CD_DEVELOP_AWS_ACCESS_KEY_ID}"
+  export AWS_SECRET_ACCESS_KEY="${INPUT_CD_DEVELOP_AWS_SECRET_ACCESS_KEY}"
+
   for remote in `git branch -r | grep "${INPUT_DESTROY_BRANCH_PATTERN}"`; do
     git checkout ${remote#origin/}
 
     if ! [[ `git show -s --format=%s | grep -v "${INPUT_DESTROY_BRANCH_PATTERN_EXCEPTION}"` ]]; then
-      curl -X POST -H 'Content-type: application/json' --data '{"text":"*Tenant*: Kodjin\n*Action*: Scheduled Job\n'"*Skipped cluster*: ${remote#origin/}"'"}' ${INPUT_RMK_SLACK_WEBHOOK}
+      slack_notification("Skip destroy",${remote#origin/})
       echo "Skip cluster destroy for branch: \"${remote#origin/}\"."
       echo
       continue
@@ -54,19 +72,14 @@ if [[ "${INPUT_SCHEDULED_DESTROY_CLUSTERS}" == "true" ]]; then
 
     rmk cluster destroy
     echo "Cluster has been destroy for branch: \"${remote#origin/}\"."
-    curl -X POST -H 'Content-type: application/json' --data '{"text":"*Tenant*: Kodjin\n*Action*: Scheduled Job\n'"*Destroyed cluster*: ${remote#origin/}"'"}' ${INPUT_RMK_SLACK_WEBHOOK}
+    slack_notification("Destroy"${remote#origin/})
 
   done
-  exit 0
-fi
+}
 
-if [[ "${GITHUB_REF}" != refs/heads/* ]]; then
-  >&2 echo "ERROR: Only pushes to branches are supported. Check the workflow's on.push.* section."
-  exit 1
-fi
-
-GIT_BRANCH="${GITHUB_REF#refs/heads/}"
-ENVIRONMENT="${GIT_BRANCH}"
+function slack_notification() {
+  curl -X POST -H 'Content-type: application/json' --data '{"text":"*Tenant*: Kodjin\n*Action*: '"$1"'\n'"*Cluster*: $2"'"}' ${INPUT_RMK_SLACK_WEBHOOK}
+}
 
 function check_cluster_provision_command() {
   if ! [[ "${INPUT_RMK_COMMAND}" =~ provision|destroy ]]; then
@@ -152,6 +165,8 @@ destroy)
     exit 1
   fi
 
+  slack_notification("Destroy",${ENVIRONMENT})
+
   rmk cluster destroy
   ;;
 provision)
@@ -163,6 +178,8 @@ provision)
     echo >&2 "Failed to get list of releases for environment: \"${ENVIRONMENT}\"."
     exit 1
   fi
+
+  slack_notification("Provision",${ENVIRONMENT})
 
   rmk release sync
   ;;
