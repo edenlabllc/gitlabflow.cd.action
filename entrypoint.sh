@@ -32,7 +32,7 @@ function slack_notification() {
   Destroy)
     icon_imoji=":large_red_square:"
     ;;
-  Skip destroy)
+  "Skip destroy")
     icon_imoji=":white_square:"
     ;;
   esac
