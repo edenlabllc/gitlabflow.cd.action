@@ -28,7 +28,7 @@ if [[ "${INPUT_SCHEDULED_DESTROY_CLUSTERS}" == "true" ]]; then
   export AWS_ACCESS_KEY_ID="${INPUT_CD_DEVELOP_AWS_ACCESS_KEY_ID}"
   export AWS_SECRET_ACCESS_KEY="${INPUT_CD_DEVELOP_AWS_SECRET_ACCESS_KEY}"
 
-  destroy_clusters_based_on_pattern()
+  destroy_clusters_based_on_pattern
   exit 0
 fi
 
@@ -50,7 +50,7 @@ function destroy_clusters_based_on_pattern() {
     git checkout ${remote#origin/}
 
     if ! [[ `git show -s --format=%s | grep -v "${INPUT_DESTROY_BRANCH_PATTERN_EXCEPTION}"` ]]; then
-      slack_notification("Skip destroy",${remote#origin/})
+      slack_notification "Skip destroy" ${remote#origin/}
       echo "Skip cluster destroy for branch: \"${remote#origin/}\"."
       echo
       continue
@@ -72,7 +72,7 @@ function destroy_clusters_based_on_pattern() {
 
     rmk cluster destroy
     echo "Cluster has been destroy for branch: \"${remote#origin/}\"."
-    slack_notification("Destroy"${remote#origin/})
+    slack_notification "Destroy" ${remote#origin/}
 
   done
 }
@@ -165,7 +165,7 @@ destroy)
     exit 1
   fi
 
-  slack_notification("Destroy",${ENVIRONMENT})
+  slack_notification "Destroy" ${ENVIRONMENT}
 
   rmk cluster destroy
   ;;
@@ -179,7 +179,7 @@ provision)
     exit 1
   fi
 
-  slack_notification("Provision",${ENVIRONMENT})
+  slack_notification "Provision" ${ENVIRONMENT}
 
   rmk release sync
   ;;
