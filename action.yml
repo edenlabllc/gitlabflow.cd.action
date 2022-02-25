@@ -91,7 +91,7 @@ inputs:
   destroy_branch_pattern:
     description: Pattern based on to destroy clusters
     required: false
-    default: "feature/FFS-999"
+    default: "feature/FFS-"
   scheduled_destroy_clusters:
     description: Destroy all clusters based on destroy_branch_pattern input
     required: false
