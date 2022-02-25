@@ -21,7 +21,8 @@ export GITHUB_ORG="${GITHUB_REPOSITORY%%/*}"
 curl -sL "https://${GITHUB_TOKEN}@raw.githubusercontent.com/${GITHUB_ORG}/rmk.tools.infra/master/bin/installer" | bash -s -- "${INPUT_RMK_VERSION}"
 
 rmk --version
-export TENANT="$(rmk config view | grep tenant | cut -d ':' -f 2)"
+
+export TENANT=$(echo $GITHUB_REPOSITORY | cut -d '/' -f2 | cut -d '.' -f1)
 function slack_notification() {
   curl -X POST -H 'Content-type: application/json' --data '{"text":"*Tenant*: '"${TENANT}"'\n*Action*: '"$1"'\n'"*Cluster for branch*: $2"'"}' ${INPUT_RMK_SLACK_WEBHOOK}
 }
