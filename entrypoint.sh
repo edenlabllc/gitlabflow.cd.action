@@ -24,7 +24,7 @@ rmk --version
 
 export TENANT=$(echo $GITHUB_REPOSITORY | cut -d '/' -f2 | cut -d '.' -f1)
 function slack_notification() {
-  curl -X POST -H 'Content-type: application/json' --data '{"text":"*Tenant*: '"${TENANT}"'\n*Action*: '"$1"'\n'"*Cluster for branch*: $2"'"}' ${INPUT_RMK_SLACK_WEBHOOK}
+  curl -s -X POST -H 'Content-type: application/json' --data '{"text":"*Tenant*: '"${TENANT}"'\n*Action*: '"$1"'\n'"*Cluster for branch*: $2"'"}' ${INPUT_RMK_SLACK_WEBHOOK}
 }
 
 function destroy_clusters_based_on_pattern() {
