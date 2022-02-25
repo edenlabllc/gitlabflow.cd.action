@@ -22,23 +22,9 @@ curl -sL "https://${GITHUB_TOKEN}@raw.githubusercontent.com/${GITHUB_ORG}/rmk.to
 
 rmk --version
 
-if [[ "${INPUT_SCHEDULED_DESTROY_CLUSTERS}" == "true" ]]; then
-
-  export AWS_REGION="${INPUT_CD_DEVELOP_AWS_REGION}"
-  export AWS_ACCESS_KEY_ID="${INPUT_CD_DEVELOP_AWS_ACCESS_KEY_ID}"
-  export AWS_SECRET_ACCESS_KEY="${INPUT_CD_DEVELOP_AWS_SECRET_ACCESS_KEY}"
-
-  destroy_clusters_based_on_pattern
-  exit 0
-fi
-
-if [[ "${GITHUB_REF}" != refs/heads/* ]]; then
-  >&2 echo "ERROR: Only pushes to branches are supported. Check the workflow's on.push.* section."
-  exit 1
-fi
-
-GIT_BRANCH="${GITHUB_REF#refs/heads/}"
-ENVIRONMENT="${GIT_BRANCH}"
+function slack_notification() {
+  curl -X POST -H 'Content-type: application/json' --data '{"text":"*Tenant*: Kodjin\n*Action*: '"$1"'\n'"*Cluster*: $2"'"}' ${INPUT_RMK_SLACK_WEBHOOK}
+}
 
 function destroy_clusters_based_on_pattern() {
 
@@ -77,9 +63,23 @@ function destroy_clusters_based_on_pattern() {
   done
 }
 
-function slack_notification() {
-  curl -X POST -H 'Content-type: application/json' --data '{"text":"*Tenant*: Kodjin\n*Action*: '"$1"'\n'"*Cluster*: $2"'"}' ${INPUT_RMK_SLACK_WEBHOOK}
-}
+if [[ "${INPUT_SCHEDULED_DESTROY_CLUSTERS}" == "true" ]]; then
+
+  export AWS_REGION="${INPUT_CD_DEVELOP_AWS_REGION}"
+  export AWS_ACCESS_KEY_ID="${INPUT_CD_DEVELOP_AWS_ACCESS_KEY_ID}"
+  export AWS_SECRET_ACCESS_KEY="${INPUT_CD_DEVELOP_AWS_SECRET_ACCESS_KEY}"
+
+  destroy_clusters_based_on_pattern
+  exit 0
+fi
+
+if [[ "${GITHUB_REF}" != refs/heads/* ]]; then
+  >&2 echo "ERROR: Only pushes to branches are supported. Check the workflow's on.push.* section."
+  exit 1
+fi
+
+GIT_BRANCH="${GITHUB_REF#refs/heads/}"
+ENVIRONMENT="${GIT_BRANCH}"
 
 function check_cluster_provision_command() {
   if ! [[ "${INPUT_RMK_COMMAND}" =~ provision|destroy ]]; then
