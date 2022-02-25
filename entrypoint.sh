@@ -21,9 +21,9 @@ export GITHUB_ORG="${GITHUB_REPOSITORY%%/*}"
 curl -sL "https://${GITHUB_TOKEN}@raw.githubusercontent.com/${GITHUB_ORG}/rmk.tools.infra/master/bin/installer" | bash -s -- "${INPUT_RMK_VERSION}"
 
 rmk --version
-
+export TENANT="${rmk config view | grep tenant | cut -d ':' -f 2}"
 function slack_notification() {
-  curl -X POST -H 'Content-type: application/json' --data '{"text":"*Tenant*: Kodjin\n*Action*: '"$1"'\n'"*Cluster*: $2"'"}' ${INPUT_RMK_SLACK_WEBHOOK}
+  curl -X POST -H 'Content-type: application/json' --data '{"text":"*Tenant*: '"${TENANT}"'\n*Action*: '"$1"'\n'"*Cluster for branch*: $2"'"}' ${INPUT_RMK_SLACK_WEBHOOK}
 }
 
 function destroy_clusters_based_on_pattern() {
@@ -35,7 +35,7 @@ function destroy_clusters_based_on_pattern() {
   for remote in `git branch -r | grep "${INPUT_DESTROY_BRANCH_PATTERN}"`; do
     git checkout ${remote#origin/}
 
-    if ! [[ `git show -s --format=%s | grep -v "${INPUT_DESTROY_BRANCH_PATTERN_EXCEPTION}"` ]]; then
+    if ! [[ `git show -s --format=%s | grep -v "\[skip cluster destroy\]"` ]]; then
       slack_notification "Skip destroy" ${remote#origin/}
       echo "Skip cluster destroy for branch: \"${remote#origin/}\"."
       echo
@@ -64,6 +64,11 @@ function destroy_clusters_based_on_pattern() {
 }
 
 if [[ "${INPUT_SCHEDULED_DESTROY_CLUSTERS}" == "true" ]]; then
+
+  if [[ "${INPUT_CLUSTER_PROVISIONER}" == true ]]; then
+    echo "Inputs cluster_provisioner and scheduled_destroy_clusters can't be provided simultaneously"
+    exit 1
+  fi
 
   export AWS_REGION="${INPUT_CD_DEVELOP_AWS_REGION}"
   export AWS_ACCESS_KEY_ID="${INPUT_CD_DEVELOP_AWS_ACCESS_KEY_ID}"

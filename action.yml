@@ -60,7 +60,7 @@ inputs:
     default: ""
   rmk_command:
     description: Command to run CD in rmk. Allowed values are "update", "sync".
-    required: true
+    required: false
   rmk_update_helmfile_repos_command:
     description: Helmfile command to update repos when running update in rmk. Allowed values are "" (do nothing), "repos", "fetch" (only if rmk_command=update).
     required: false
@@ -92,10 +92,6 @@ inputs:
     description: Pattern based on to destroy clusters
     required: false
     default: "feature/FFS-999"
-  destroy_branch_pattern_exception:
-    description: Pattern based on to destroy clusters
-    required: false
-    default: "skip cluster destroy"
   scheduled_destroy_clusters:
     description: Destroy all clusters based on destroy_branch_pattern input
     required: false
