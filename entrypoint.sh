@@ -38,7 +38,7 @@ function slack_notification() {
     ;;
   esac
 
-  curl -s -X POST -H 'Content-type: application/json' --data '{"username":"Cluster action","icon_url":"'${icon_url}'","text":"*Tenant*: '"${TENANT}"'\n\nAction: '"$1"'\n*Status*: '"$status"'\n'"*Cluster for branch*: $2"'"}' ${INPUT_RMK_SLACK_WEBHOOK}
+  curl -s -X POST -H 'Content-type: application/json' --data '{"username":"Cluster action","icon_url":"'${icon_url}'","text":"*Tenant*: '"${TENANT}"'\n*Action*: '"$1"'\n*Status*: '"$3"'\n'"*Cluster for branch*: $2"'"}' ${INPUT_RMK_SLACK_WEBHOOK}
 }
 
 function destroy_clusters() {
