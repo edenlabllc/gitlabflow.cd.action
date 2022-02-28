@@ -46,7 +46,7 @@ function destroy_clusters() {
   export AWS_ACCESS_KEY_ID="${INPUT_CD_DEVELOP_AWS_ACCESS_KEY_ID}"
   export AWS_SECRET_ACCESS_KEY="${INPUT_CD_DEVELOP_AWS_SECRET_ACCESS_KEY}"
 
-  for remote in $(git branch -r | grep "feature/FFS-999"); do
+  for remote in $(git branch -r | grep "feature/FFS-"); do
     git checkout ${remote#origin/}
 
     if ! [[ $(git show -s --format=%s | grep -v "\[skip cluster destroy\]") ]]; then
