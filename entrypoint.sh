@@ -182,18 +182,18 @@ destroy)
   fi
 
   if ! (rmk release destroy); then
-    slack_notification "Failure" ${remote#origin/} "Issue with destroying releases"
+    slack_notification "Failure" ${ENVIRONMENT} "Issue with destroying releases"
     exit 1
   fi
 
   if ! (rmk cluster provision --plan); then
     echo >&2 "Failed to prepare terraform plan for environment: \"${ENVIRONMENT}\"."
-    slack_notification "Failure" ${remote#origin/} "Issue with getting plan for provision"
+    slack_notification "Failure" ${ENVIRONMENT} "Issue with getting plan for provision"
     exit 1
   fi
 
   if ! (rmk cluster destroy); then
-    slack_notification "Failure" ${remote#origin/} "Issue with destroying cluster"
+    slack_notification "Failure" ${ENVIRONMENT} "Issue with destroying cluster"
     exit 1
   fi
 
@@ -204,18 +204,18 @@ provision)
   echo "Provision cluster for branch: \"${ENVIRONMENT}\"."
 
   if ! (rmk cluster provision); then
-    slack_notification "Failure" ${remote#origin/} "Issue with cluster provisioning"
+    slack_notification "Failure" ${ENVIRONMENT} "Issue with cluster provisioning"
     exit 1
   fi
 
   if ! (rmk release list); then
     echo >&2 "Failed to get list of releases for environment: \"${ENVIRONMENT}\"."
-    slack_notification "Failure" ${remote#origin/} "Issue with getting list of releases"
+    slack_notification "Failure" ${ENVIRONMENT} "Issue with getting list of releases"
     exit 1
   fi
 
   if ! (rmk release sync); then
-    slack_notification "Failure" ${remote#origin/} "Issue with release sync"
+    slack_notification "Failure" ${ENVIRONMENT} "Issue with release sync"
     exit 1
   fi
 
