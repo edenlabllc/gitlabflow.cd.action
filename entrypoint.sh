@@ -23,33 +23,34 @@ curl -sL "https://${GITHUB_TOKEN}@raw.githubusercontent.com/${GITHUB_ORG}/rmk.to
 rmk --version
 
 export TENANT=$(echo $GITHUB_REPOSITORY | cut -d '/' -f2 | cut -d '.' -f1)
+
 function slack_notification() {
   local icon_url="https://img.icons8.com/ios-filled/50/000000/0-degrees.png"
   case "$1" in
-  Provision)
+  Success)
     icon_url="https://img.icons8.com/doodle/48/000000/add.png"
     ;;
-  Destroy)
+  Failure)
     icon_url="https://img.icons8.com/office/40/000000/minus.png"
     ;;
-  "Skip destroy")
+  Skip)
     icon_url="https://img.icons8.com/ios-filled/50/000000/0-degrees.png"
     ;;
   esac
-  curl -s -X POST -H 'Content-type: application/json' --data '{"username":"Cluster action","icon_url":"'${icon_url}'","text":"*Tenant*: '"${TENANT}"'\n*Action*: '"$1"'\n'"*Cluster for branch*: $2"'"}' ${INPUT_RMK_SLACK_WEBHOOK}
+
+  curl -s -X POST -H 'Content-type: application/json' --data '{"username":"Cluster action","icon_url":"'${icon_url}'","text":"*Tenant*: '"${TENANT}"'\n\nAction: '"$1"'\n*Status*: '"$status"'\n'"*Cluster for branch*: $2"'"}' ${INPUT_RMK_SLACK_WEBHOOK}
 }
 
-function destroy_clusters_based_on_pattern() {
-
+function destroy_clusters() {
   export AWS_REGION="${INPUT_CD_DEVELOP_AWS_REGION}"
   export AWS_ACCESS_KEY_ID="${INPUT_CD_DEVELOP_AWS_ACCESS_KEY_ID}"
   export AWS_SECRET_ACCESS_KEY="${INPUT_CD_DEVELOP_AWS_SECRET_ACCESS_KEY}"
 
-  for remote in `git branch -r | grep "${INPUT_DESTROY_BRANCH_PATTERN}"`; do
+  for remote in $(git branch -r | grep "feature/FFS-999"); do
     git checkout ${remote#origin/}
 
-    if ! [[ `git show -s --format=%s | grep -v "\[skip cluster destroy\]"` ]]; then
-      slack_notification "Skip destroy" ${remote#origin/}
+    if ! [[ $(git show -s --format=%s | grep -v "\[skip cluster destroy\]") ]]; then
+      slack_notification "Skip" ${remote#origin/} "Cluster destroy was skipped"
       echo "Skip cluster destroy for branch: \"${remote#origin/}\"."
       echo
       continue
@@ -59,27 +60,31 @@ function destroy_clusters_based_on_pattern() {
     echo
     echo "Destroy cluster for branch: \"${remote#origin/}\"."
 
-    set +e
     if ! (rmk cluster switch); then
       echo >&2 "Cluster doesn't exist for branch: \"${remote#origin/}\"."
       echo
       continue
     fi
-    set -e
 
-    rmk release destroy
+    if ! (rmk release destroy); then
+      slack_notification "Failure" ${remote#origin/} "Issue with destroying releases"
+      continue
+    fi
 
-    rmk cluster destroy
+    if ! (rmk cluster destroy); then
+      slack_notification "Failure" ${remote#origin/} "Issue with destroying cluster"
+      continue
+    fi
+
     echo "Cluster has been destroy for branch: \"${remote#origin/}\"."
-    slack_notification "Destroy" ${remote#origin/}
+    slack_notification "Success" ${remote#origin/} "Cluster has been destroyed"
 
   done
 }
 
-if [[ "${INPUT_SCHEDULED_DESTROY_CLUSTERS}" == "true" ]]; then
-
+if [[ "${INPUT_DESTROY_CLUSTERS}" == true ]]; then
   if [[ "${INPUT_CLUSTER_PROVISIONER}" == true ]]; then
-    echo "Inputs cluster_provisioner and scheduled_destroy_clusters can't be provided simultaneously"
+    echo "Inputs cluster_provisioner and destroy_clusters can't be provided simultaneously"
     exit 1
   fi
 
@@ -87,7 +92,7 @@ if [[ "${INPUT_SCHEDULED_DESTROY_CLUSTERS}" == "true" ]]; then
   export AWS_ACCESS_KEY_ID="${INPUT_CD_DEVELOP_AWS_ACCESS_KEY_ID}"
   export AWS_SECRET_ACCESS_KEY="${INPUT_CD_DEVELOP_AWS_SECRET_ACCESS_KEY}"
 
-  destroy_clusters_based_on_pattern
+  destroy_clusters
   exit 0
 fi
 
@@ -176,30 +181,45 @@ destroy)
     exit 1
   fi
 
-  rmk release destroy
-
-  if ! (rmk cluster provision --plan); then
-    echo >&2 "Failed to prepare terraform plan for environment: \"${ENVIRONMENT}\"."
+  if ! (rmk release destroy); then
+    slack_notification "Failure" ${remote#origin/} "Issue with destroying releases"
     exit 1
   fi
 
-  slack_notification "Destroy" ${ENVIRONMENT}
+  if ! (rmk cluster provision --plan); then
+    echo >&2 "Failed to prepare terraform plan for environment: \"${ENVIRONMENT}\"."
+    slack_notification "Failure" ${remote#origin/} "Issue with getting plan for provision"
+    exit 1
+  fi
 
-  rmk cluster destroy
+  if ! (rmk cluster destroy); then
+    slack_notification "Failure" ${remote#origin/} "Issue with destroying cluster"
+    exit 1
+  fi
+
+  slack_notification "Success" ${ENVIRONMENT} "Cluster has been destroyed"
   ;;
 provision)
   echo
   echo "Provision cluster for branch: \"${ENVIRONMENT}\"."
-  rmk cluster provision
 
-  if ! (rmk release list); then
-    echo >&2 "Failed to get list of releases for environment: \"${ENVIRONMENT}\"."
+  if ! (rmk cluster provision); then
+    slack_notification "Failure" ${remote#origin/} "Issue with cluster provisioning"
     exit 1
   fi
 
-  slack_notification "Provision" ${ENVIRONMENT}
+  if ! (rmk release list); then
+    echo >&2 "Failed to get list of releases for environment: \"${ENVIRONMENT}\"."
+    slack_notification "Failure" ${remote#origin/} "Issue with getting list of releases"
+    exit 1
+  fi
 
-  rmk release sync
+  if ! (rmk release sync); then
+    slack_notification "Failure" ${remote#origin/} "Issue with release sync"
+    exit 1
+  fi
+
+  slack_notification "Success" ${ENVIRONMENT} "Cluster has been provisioned"
   ;;
 sync)
   FLAGS_SKIP_DEPS=""

@@ -88,12 +88,8 @@ inputs:
   version:
     description: Current application version (only if rmk_command=update).
     required: false
-  destroy_branch_pattern:
-    description: Pattern based on to destroy clusters
-    required: false
-    default: "feature/FFS-"
-  scheduled_destroy_clusters:
-    description: Destroy all clusters based on destroy_branch_pattern input
+  destroy_clusters:
+    description: Destroy all clusters by feature/FFS-* branches
     required: false
     default: false
 outputs:
