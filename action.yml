@@ -85,6 +85,9 @@ inputs:
   repository_full_name:
     description: Image repository full name of application (includes registry URL and repository_name, only if rmk_command=update).
     required: false
+  database_restore:
+    description: Restore database as part of cluster provisioning
+    required: false
   version:
     description: Current application version (only if rmk_command=update).
     required: false
