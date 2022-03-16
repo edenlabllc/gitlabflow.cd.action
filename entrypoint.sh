@@ -219,9 +219,11 @@ provision)
     exit 1
   fi
 
-  if ! (rmk release --uc -- -l name=mongodb-tools -state-values-set mongodb-tools.enabled=true sync --set "env.ACTION=restore" --skip-deps); then
-    slack_notification "Failure" ${ENVIRONMENT} "Issue with backup restore"
-    exit 1
+  if [[ "${INPUT_DATABASE_RESTORE}" == "true" ]]; then
+    if ! (rmk release --uc -- -l name=mongodb-tools -state-values-set mongodb-tools.enabled=true sync --set "env.ACTION=restore" --skip-deps); then
+      slack_notification "Failure" ${ENVIRONMENT} "Issue with backup restore"
+      exit 1
+    fi
   fi
 
   slack_notification "Success" ${ENVIRONMENT} "Cluster has been provisioned"
