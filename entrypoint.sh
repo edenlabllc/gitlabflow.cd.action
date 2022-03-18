@@ -224,7 +224,34 @@ provision)
       slack_notification "Failure" ${ENVIRONMENT} "Issue with backup restore"
       exit 1
     fi
-    if ! (rmk release --uc -- -l app=fhir-server-search-reindexer --state-values-set fhir-server-search-reindexer.enabled=true sync --set "env.COLLECTIONS=Account|ActivityDefinition|AdverseEvent|AllergyIntolerance|Appointment|AppointmentResponse|AuditEvent|Basic|Binary|BiologicallyDerivedProduct|BodyStructure|CapabilityStatement|CarePlan|CareTeam|CatalogEntry|ChargeItemDefinition|ChargeItem|Claim|ClaimResponse|ClinicalImpression|Communication|CommunicationRequest|CompartmentDefinition|Composition|Condition|Consent|Contract|CoverageEligibilityRequest|CoverageEligibilityResponse|Coverage|DetectedIssue|DeviceDefinition|Device|DeviceMetric|DeviceRequest|DeviceUseStatement|DiagnosticReport|DocumentManifest|DocumentReference|EffectEvidenceSynthesis|Encounter|Endpoint|EnrollmentRequest|EnrollmentResponse|EpisodeOfCare|EventDefinition|Evidence|EvidenceVariable|ExampleScenario|ExplanationOfBenefit|FamilyMemberHistory|Flag|Goal|GraphDefinition|Group|GuidanceResponse|HealthcareService|ImagingStudy|ImmunizationEvaluation|Immunization|ImmunizationRecommendation|ImplementationGuide|InsurancePlan|Invoice|Library|Linkage|List|Location|Measure|MeasureReport|Media|MedicationAdministration|MedicationDispense|Medication|MedicationKnowledge|MedicationRequest|MedicationStatement|MedicinalProductAuthorization|MedicinalProductContraindication|MedicinalProductIndication|MedicinalProductIngredient|MedicinalProductInteraction|MedicinalProduct|MedicinalProductManufactured|MedicinalProductPackaged|MedicinalProductPharmaceutical|MedicinalProductUndesirableEffect|MessageDefinition|MessageHeader|MolecularSequence|NamingSystem|NutritionOrder|ObservationDefinition|Observation|OperationDefinition|OperationOutcome|OrganizationAffiliation|Organization|Parameters|Patient|PaymentNotice|PaymentReconciliation|Person|PlanDefinition|Practitioner|PractitionerRole|Procedure|Provenance|Questionnaire|QuestionnaireResponse|RelatedPerson|RequestGroup|ResearchDefinition|ResearchElementDefinition|ResearchStudy|ResearchSubject|RiskAssessment|RiskEvidenceSynthesis|Schedule|SearchParameter|ServiceRequest|Slot|SpecimenDefinition|Specimen|StructureDefinition|StructureMap|Subscription|Substance|SubstancePolymer|SubstanceProtein|SubstanceReferenceInformation|SubstanceSourceMaterial|SubstanceSpecification|SupplyDelivery|SupplyRequest|TerminologyCapabilities|TestReport|TestScript|VerificationResult|VisionPrescription|Bundle|Task"); then
+
+COLLECTIONS="Account|ActivityDefinition|AdverseEvent|AllergyIntolerance|Appointment|
+AppointmentResponse|AuditEvent|Basic|Binary|BiologicallyDerivedProduct|BodyStructure|
+CapabilityStatement|CarePlan|CareTeam|CatalogEntry|ChargeItemDefinition|ChargeItem|Claim|
+ClaimResponse|ClinicalImpression|Communication|CommunicationRequest|CompartmentDefinition|
+Composition|Condition|Consent|Contract|CoverageEligibilityRequest|CoverageEligibilityResponse|
+Coverage|DetectedIssue|DeviceDefinition|Device|DeviceMetric|DeviceRequest|DeviceUseStatement|
+DiagnosticReport|DocumentManifest|DocumentReference|EffectEvidenceSynthesis|Encounter|
+Endpoint|EnrollmentRequest|EnrollmentResponse|EpisodeOfCare|EventDefinition|Evidence|
+EvidenceVariable|ExampleScenario|ExplanationOfBenefit|FamilyMemberHistory|Flag|Goal|
+GraphDefinition|Group|GuidanceResponse|HealthcareService|ImagingStudy|ImmunizationEvaluation|
+Immunization|ImmunizationRecommendation|ImplementationGuide|InsurancePlan|Invoice|Library|Linkage|
+List|Location|Measure|MeasureReport|Media|MedicationAdministration|MedicationDispense|Medication|
+MedicationKnowledge|MedicationRequest|MedicationStatement|MedicinalProductAuthorization|
+MedicinalProductContraindication|MedicinalProductIndication|MedicinalProductIngredient|
+MedicinalProductInteraction|MedicinalProduct|MedicinalProductManufactured|MedicinalProductPackaged|
+MedicinalProductPharmaceutical|MedicinalProductUndesirableEffect|MessageDefinition|MessageHeader|
+MolecularSequence|NamingSystem|NutritionOrder|ObservationDefinition|Observation|OperationDefinition|
+OperationOutcome|OrganizationAffiliation|Organization|Parameters|Patient|PaymentNotice|
+PaymentReconciliation|Person|PlanDefinition|Practitioner|PractitionerRole|Procedure|
+Provenance|Questionnaire|QuestionnaireResponse|RelatedPerson|RequestGroup|ResearchDefinition|
+ResearchElementDefinition|ResearchStudy|ResearchSubject|RiskAssessment|RiskEvidenceSynthesis|
+Schedule|SearchParameter|ServiceRequest|Slot|SpecimenDefinition|Specimen|StructureDefinition|
+StructureMap|Subscription|Substance|SubstancePolymer|SubstanceProtein|SubstanceReferenceInformation|
+SubstanceSourceMaterial|SubstanceSpecification|SupplyDelivery|SupplyRequest|TerminologyCapabilities|
+TestReport|TestScript|VerificationResult|VisionPrescription|Bundle|Task"
+
+    if ! (rmk release --uc -- -l app=fhir-server-search-reindexer --state-values-set fhir-server-search-reindexer.enabled=true sync --set "env.COLLECTIONS='${COLLECTIONS}'"); then
       slack_notification "Failure" ${ENVIRONMENT} "Issue with running reindexer"
       exit 1
     fi
