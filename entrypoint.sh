@@ -42,10 +42,6 @@ function slack_notification() {
 }
 
 function destroy_clusters() {
-  export AWS_REGION="${INPUT_CD_DEVELOP_AWS_REGION}"
-  export AWS_ACCESS_KEY_ID="${INPUT_CD_DEVELOP_AWS_ACCESS_KEY_ID}"
-  export AWS_SECRET_ACCESS_KEY="${INPUT_CD_DEVELOP_AWS_SECRET_ACCESS_KEY}"
-
   for remote in $(git branch -r | grep "feature/FFS-"); do
     git checkout ${remote#origin/}
 
@@ -82,6 +78,13 @@ function destroy_clusters() {
   done
 }
 
+function make_mongodb_backup() {
+  if ! (rmk release -- -l name=mongodb-tools sync --set "env.ACTION=backup" --skip-deps); then
+    slack_notification "Failure with making MongoDB Backup"
+    continue
+  fi
+}
+
 if [[ "${INPUT_DESTROY_CLUSTERS}" == true ]]; then
   if [[ "${INPUT_CLUSTER_PROVISIONER}" == true ]]; then
     echo "Inputs cluster_provisioner and destroy_clusters can't be provided simultaneously"
@@ -93,6 +96,7 @@ if [[ "${INPUT_DESTROY_CLUSTERS}" == true ]]; then
   export AWS_SECRET_ACCESS_KEY="${INPUT_CD_DEVELOP_AWS_SECRET_ACCESS_KEY}"
 
   destroy_clusters
+  make_mongodb_backup
   exit 0
 fi
 
@@ -170,6 +174,14 @@ if [[ "${INPUT_RMK_SLACK_NOTIFICATIONS}" == "true" ]]; then
   eval rmk config init --progress-bar=false --slack-notifications ${FLAGS_SLACK_MESSAGE_DETAILS}
 else
   rmk config init --progress-bar=false
+fi
+
+if [[ "${INPUT_MONGODB_BACKUPS}" == "true" ]]; then
+  if ! (rmk release -- -l name=mongodb-tools sync --set "env.ACTION=backup" --skip-deps); then
+    slack_notification "Failure with making MongoDB Backup"
+    exit 1
+  fi
+  exit 0
 fi
 
 case "${INPUT_RMK_COMMAND}" in
