@@ -168,11 +168,12 @@ else
   rmk config init --progress-bar=false
 fi
 
-if [[ "${INPUT_MONGODB_BACKUPS}" == "true" ]]; then
+if [[ "${INPUT_MONGODB_BACKUP}" == "true" ]]; then
   if ! (rmk release -- -l name=mongodb-tools sync --set "env.ACTION=backup" --skip-deps); then
     slack_notification "Failure with making MongoDB Backup"
     exit 1
   fi
+
   exit 0
 fi
 
