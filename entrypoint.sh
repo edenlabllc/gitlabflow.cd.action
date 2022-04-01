@@ -221,6 +221,10 @@ provision)
     exit 1
   fi
 
+  if [[ "${INPUT_MONGODB_RESTORE}" == "true" ]]; then
+    export FHIR_SERVER_MONGODB_TOOLS_ENABLED=true
+  fi
+
   if ! (rmk release sync); then
     slack_notification "Failure" ${ENVIRONMENT} "Issue with release sync"
     exit 1
