@@ -169,9 +169,9 @@ else
 fi
 
 if [[ "${INPUT_MONGODB_BACKUP}" == "true" ]]; then
-  export FHIR_SERVER_MONGODB_TOOLS_ENABLED=true
+  export MONGODB_TOOLS_ENABLED=true
 
-  if ! (rmk release -- -l name=fhir-server-mongodb-tools sync --set "env.ACTION=backup" --skip-deps); then
+  if ! (rmk release -- -l name=mongodb-tools sync --set "env.ACTION=backup" --skip-deps); then
     slack_notification "Failure" ${ENVIRONMENT} "Failure with making MongoDB Backup"
     exit 1
   fi
@@ -219,6 +219,10 @@ provision)
     echo >&2 "Failed to get list of releases for environment: \"${ENVIRONMENT}\"."
     slack_notification "Failure" ${ENVIRONMENT} "Issue with getting list of releases"
     exit 1
+  fi
+
+  if [[ "${INPUT_MONGODB_RESTORE}" == "true" ]]; then
+    export MONGODB_TOOLS_ENABLED=true
   fi
 
   if ! (rmk release sync); then
