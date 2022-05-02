@@ -260,6 +260,14 @@ update)
 
   rmk release update --repository "${REPOSITORY_FULL_NAME}" --tag "${VERSION}" --skip-actions ${FLAGS_COMMIT_DEPLOY}
   ;;
+reindex)
+  export FHIR_SERVER_SEARCH_REINDEXER_ENABLED=true
+  if [[ "${INPUT_REINDEXER_COLLECTIONS}" != "" ]]; then
+    COLLECTIONS_SET="--set env.COLLECTIONS=${INPUT_REINDEXER_COLLECTIONS}"
+  fi
+  
+  rmk release -- -l name="fhir-server-search-reindexer" sync ${COLLECTIONS_SET}
+  ;;
 esac
 
 # always output action variables
