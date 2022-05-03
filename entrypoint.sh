@@ -9,9 +9,6 @@ echo
 echo "Initialize environment variables."
 echo
 echo "Install rmk and dependencies, initialize configuration, run CD."
-ls -laR
-git --version
-git config --global --add safe.directory "*"
 git config --global user.name github-actions
 git config --global user.email github-actions@github.com
 
