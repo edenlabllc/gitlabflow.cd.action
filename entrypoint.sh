@@ -9,6 +9,7 @@ echo
 echo "Initialize environment variables."
 echo
 echo "Install rmk and dependencies, initialize configuration, run CD."
+
 git config --global user.name github-actions
 git config --global user.email github-actions@github.com
 
@@ -266,9 +267,10 @@ reindex)
   fi
   
   if ! (rmk release -- -l name="fhir-server-search-reindexer" sync ${COLLECTIONS_SET}); then
-    slack_notification "Failure" ${ENVIRONMENT} "Reindexer has failed"
+    slack_notification "Failure" ${ENVIRONMENT} "Reindexer job has failed"
     exit 1
   fi
+  slack_notification "Success" ${ENVIRONMENT} "Reindexer job has been completed"
   ;;
 esac
 
