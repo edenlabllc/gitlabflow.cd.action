@@ -12,8 +12,8 @@ echo "Install rmk and dependencies, initialize configuration, run CD."
 ls -laR
 git --version
 git config --global --add safe.directory "*"
-git config user.name github-actions
-git config user.email github-actions@github.com
+git config --global user.name github-actions
+git config --global user.email github-actions@github.com
 
 # exports are required by the installer scripts and rmk
 export GITHUB_TOKEN="${INPUT_GITHUB_TOKEN_REPO_FULL_ACCESS}"
