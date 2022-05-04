@@ -33,6 +33,10 @@ inputs:
     description: Allows using a set of rmk commands to provision cluster according to the specification tenant repositories.
     required: true
     default: false
+  reindexer_release_name:
+    description: Reindexer release name
+    required: false
+    default: fhir-server-search-reindexer
   rmk_version:
     description: rmk version. Default value is "latest".
     required: false
@@ -59,7 +63,7 @@ inputs:
     required: false
     default: ""
   rmk_command:
-    description: Command to run CD in rmk. Allowed values are "update", "sync".
+    description: Command to run CD in rmk. Allowed values are "update", "sync", "provision", "reindex", "destroy".
     required: false
   rmk_update_helmfile_repos_command:
     description: Helmfile command to update repos when running update in rmk. Allowed values are "" (do nothing), "repos", "fetch" (only if rmk_command=update).
@@ -100,6 +104,9 @@ inputs:
     description: Restore backup of MongoDB databases
     required: false
     default: false
+  reindexer_collections:
+    description: Collections to reindex (if empty, then reindex all from values)
+    required: false
 
 outputs:
   git_branch:

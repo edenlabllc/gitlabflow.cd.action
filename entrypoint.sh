@@ -10,8 +10,8 @@ echo "Initialize environment variables."
 echo
 echo "Install rmk and dependencies, initialize configuration, run CD."
 
-git config user.name github-actions
-git config user.email github-actions@github.com
+git config --global user.name github-actions
+git config --global user.email github-actions@github.com
 
 # exports are required by the installer scripts and rmk
 export GITHUB_TOKEN="${INPUT_GITHUB_TOKEN_REPO_FULL_ACCESS}"
@@ -124,7 +124,7 @@ if [[ "${INPUT_CLUSTER_PROVISIONER}" == "true" ]]; then
     exit 1
     ;;
   esac
-else
+elif [[ "${INPUT_RMK_COMMAND}" != "reindex" ]]; then
   ALLOWED_ENVIRONMENTS=("${INPUT_ALLOWED_ENVIRONMENTS/,/ }")
   if [[ ! " ${ALLOWED_ENVIRONMENTS[*]} " =~ " ${ENVIRONMENT} " ]]; then
     >&2 echo "ERROR: Environment \"${ENVIRONMENT}\" not allowed for automatic CD."
@@ -259,6 +259,18 @@ update)
   fi
 
   rmk release update --repository "${REPOSITORY_FULL_NAME}" --tag "${VERSION}" --skip-actions ${FLAGS_COMMIT_DEPLOY}
+  ;;
+reindex)
+  export FHIR_SERVER_SEARCH_REINDEXER_ENABLED=true
+  if [[ "${INPUT_REINDEXER_COLLECTIONS}" != "" ]]; then
+    COLLECTIONS_SET="--set env.COLLECTIONS=${INPUT_REINDEXER_COLLECTIONS}"
+  fi
+  
+  if ! (rmk release -- -l name="${INPUT_REINDEXER_RELEASE_NAME}" sync ${COLLECTIONS_SET}); then
+    slack_notification "Failure" ${ENVIRONMENT} "Reindexer job has failed"
+    exit 1
+  fi
+  slack_notification "Success" ${ENVIRONMENT} "Reindexer job has been completed"
   ;;
 esac
 
