@@ -33,6 +33,10 @@ inputs:
     description: Allows using a set of rmk commands to provision cluster according to the specification tenant repositories.
     required: true
     default: false
+  reindexer_release_name:
+    description: Reindexer release name
+    required: false
+    default: fhir-server-search-reindexer
   rmk_version:
     description: rmk version. Default value is "latest".
     required: false

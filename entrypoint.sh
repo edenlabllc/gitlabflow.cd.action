@@ -266,7 +266,7 @@ reindex)
     COLLECTIONS_SET="--set env.COLLECTIONS=${INPUT_REINDEXER_COLLECTIONS}"
   fi
   
-  if ! (rmk release -- -l name="fhir-server-search-reindexer" sync ${COLLECTIONS_SET}); then
+  if ! (rmk release -- -l name="${INPUT_REINDEXER_RELEASE_NAME}" sync ${COLLECTIONS_SET}); then
     slack_notification "Failure" ${ENVIRONMENT} "Reindexer job has failed"
     exit 1
   fi
