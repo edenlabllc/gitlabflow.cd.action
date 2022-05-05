@@ -12,6 +12,7 @@ echo "Install rmk and dependencies, initialize configuration, run CD."
 
 git config --global user.name github-actions
 git config --global user.email github-actions@github.com
+git config --global --add safe.directory /github/workspace
 
 # exports are required by the installer scripts and rmk
 export GITHUB_TOKEN="${INPUT_GITHUB_TOKEN_REPO_FULL_ACCESS}"
@@ -55,7 +56,7 @@ function destroy_clusters() {
     rmk config init --progress-bar=false
     echo
     echo "Destroy cluster for branch: \"${remote#origin/}\"."
-
+    
     if ! (rmk cluster switch); then
       echo >&2 "Cluster doesn't exist for branch: \"${remote#origin/}\"."
       echo
@@ -74,7 +75,7 @@ function destroy_clusters() {
 
     echo "Cluster has been destroy for branch: \"${remote#origin/}\"."
     slack_notification "Success" ${remote#origin/} "Cluster has been destroyed"
-
+    
   done
 }
 
