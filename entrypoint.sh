@@ -19,6 +19,9 @@ export GITHUB_TOKEN="${INPUT_GITHUB_TOKEN_REPO_FULL_ACCESS}"
 export CLOUDFLARE_TOKEN="${INPUT_CLOUDFLARE_TOKEN}"
 export GITHUB_ORG="${GITHUB_REPOSITORY%%/*}"
 
+# add the tools installed by rmk to PATH
+export PATH="${HOME}/.local/bin:${PATH}"
+
 curl -sL "https://${GITHUB_TOKEN}@raw.githubusercontent.com/${GITHUB_ORG}/rmk.tools.infra/master/bin/installer" | bash -s -- "${INPUT_RMK_VERSION}"
 
 rmk --version
@@ -54,39 +57,39 @@ function slack_notification() {
 }
 
 function destroy_clusters() {
-  for remote in $(git branch -r | grep "feature/FFS-"); do
-    git checkout ${remote#origin/}
-
-    if ! [[ $(git show -s --format=%s | grep -v "\[skip cluster destroy\]") ]]; then
-      slack_notification "Skip" ${remote#origin/} "Cluster destroy was skipped"
-      echo "Skip cluster destroy for branch: \"${remote#origin/}\"."
-      echo
-      continue
-    fi
-
-    rmk config init --progress-bar=false
-    echo
-    echo "Destroy cluster for branch: \"${remote#origin/}\"."
-
-    if ! (rmk cluster switch); then
-      echo >&2 "Cluster doesn't exist for branch: \"${remote#origin/}\"."
-      echo
-      continue
-    fi
-
-    if ! (rmk release destroy); then
-      slack_notification "Failure" ${remote#origin/} "Issue with destroying releases"
-      continue
-    fi
-
-    if ! (rmk cluster destroy); then
-      slack_notification "Failure" ${remote#origin/} "Issue with destroying cluster"
-      continue
-    fi
-
-    echo "Cluster has been destroy for branch: \"${remote#origin/}\"."
-    slack_notification "Success" ${remote#origin/} "Cluster has been destroyed"
-  done
+#  for remote in $(git branch -r | grep "feature/FFS-"); do
+#    git checkout ${remote#origin/}
+#
+#    if ! [[ $(git show -s --format=%s | grep -v "\[skip cluster destroy\]") ]]; then
+#      slack_notification "Skip" ${remote#origin/} "Cluster destroy was skipped"
+#      echo "Skip cluster destroy for branch: \"${remote#origin/}\"."
+#      echo
+#      continue
+#    fi
+#
+#    rmk config init --progress-bar=false
+#    echo
+#    echo "Destroy cluster for branch: \"${remote#origin/}\"."
+#
+#    if ! (rmk cluster switch); then
+#      echo >&2 "Cluster doesn't exist for branch: \"${remote#origin/}\"."
+#      echo
+#      continue
+#    fi
+#
+#    if ! (rmk release destroy); then
+#      slack_notification "Failure" ${remote#origin/} "Issue with destroying releases"
+#      continue
+#    fi
+#
+#    if ! (rmk cluster destroy); then
+#      slack_notification "Failure" ${remote#origin/} "Issue with destroying cluster"
+#      continue
+#    fi
+#
+#    echo "Cluster has been destroy for branch: \"${remote#origin/}\"."
+#    slack_notification "Success" ${remote#origin/} "Cluster has been destroyed"
+#  done
 
   if [[ "${INPUT_CHECK_ORPHANED_CLUSTERS}" == true ]]; then
     ORPHANED_CLUSTERS="$(aws eks list-clusters --output=json | jq -r '.clusters[] | select(. | test("^'"${TENANT}"'-ffs-\\d+-eks$"))')"
@@ -99,6 +102,7 @@ function destroy_clusters() {
   fi
 
   if [[ "${INPUT_CHECK_ORPHANED_VOLUMES}" == true ]]; then
+    # check all volumes in the region because there is no volume tag with a tenant name in AWS
     ORPHANED_VOLUMES="$(aws ec2 describe-volumes --output=json --filters "Name=status,Values=[available,error]" \
       | jq -r '.Volumes[] | (.CreateTime + " " + .AvailabilityZone + " " + .State + " " +  .VolumeId + " " + .VolumeType + " "  + (.Size | tostring) + "GiB")')"
     echo
