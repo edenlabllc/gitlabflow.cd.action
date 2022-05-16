@@ -94,7 +94,7 @@ function destroy_clusters() {
   which jq
   jq --version
 
-  if [[ "${INPUT_CHECK_ORPHANED_CLUSTERS}" == true ]]; then
+#  if [[ "${INPUT_CHECK_ORPHANED_CLUSTERS}" == true ]]; then
     ORPHANED_CLUSTERS="$(aws eks list-clusters --output=json | jq -r '.clusters[] | select(. | test("^'"${TENANT}"'-ffs-\\d+-eks$"))')"
     echo
     echo "Orphaned clusters:"
@@ -102,9 +102,9 @@ function destroy_clusters() {
     if [[ "${ORPHANED_CLUSTERS}" != "" ]]; then
       slack_notification "Failure" "N/A" "Orphaned clusters:\n${ORPHANED_CLUSTERS}"
     fi
-  fi
+#  fi
 
-  if [[ "${INPUT_CHECK_ORPHANED_VOLUMES}" == true ]]; then
+#  if [[ "${INPUT_CHECK_ORPHANED_VOLUMES}" == true ]]; then
     # check all volumes in the region because there is no volume tag with a tenant name in AWS
     ORPHANED_VOLUMES="$(aws ec2 describe-volumes --output=json --filters "Name=status,Values=[available,error]" \
       | jq -r '.Volumes[] | (.CreateTime + " " + .AvailabilityZone + " " + .State + " " +  .VolumeId + " " + .VolumeType + " "  + (.Size | tostring) + "GiB")')"
@@ -114,7 +114,7 @@ function destroy_clusters() {
     if [[ "${ORPHANED_VOLUMES}" != "" ]]; then
       slack_notification "Failure" "N/A" "Orphaned volumes:\n${ORPHANED_VOLUMES}" "N/A"
     fi
-  fi
+#  fi
 }
 
 if [[ "${INPUT_DESTROY_CLUSTERS}" == true ]]; then
