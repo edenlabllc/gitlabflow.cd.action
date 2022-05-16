@@ -26,57 +26,85 @@ rmk --version
 export TENANT=$(echo $GITHUB_REPOSITORY | cut -d '/' -f2 | cut -d '.' -f1)
 
 function slack_notification() {
-  local icon_url="https://img.icons8.com/ios-filled/50/000000/0-degrees.png"
-  case "$1" in
-  Success)
-    icon_url="https://img.icons8.com/doodle/48/000000/add.png"
-    ;;
-  Failure)
-    icon_url="https://img.icons8.com/office/40/000000/minus.png"
-    ;;
-  Skip)
-    icon_url="https://img.icons8.com/ios-filled/50/000000/0-degrees.png"
-    ;;
+  local STATUS="${1}"
+  local BRANCH="${2}"
+  local MESSAGE="${3}"
+
+  local ICON_URL="https://img.icons8.com/ios-filled/50/000000/0-degrees.png"
+
+  case "${STATUS}" in
+    Success)
+      ICON_URL="https://img.icons8.com/doodle/48/000000/add.png"
+      ;;
+    Failure)
+      ICON_URL="https://img.icons8.com/office/40/000000/minus.png"
+      ;;
+    Skip)
+      ICON_URL="https://img.icons8.com/ios-filled/50/000000/0-degrees.png"
+      ;;
   esac
 
-  curl -s -X POST -H 'Content-type: application/json' --data '{"username":"Cluster action","icon_url":"'${icon_url}'","text":"*Tenant*: '"${TENANT}"'\n*Status*: '"$1"'\n*Action*: '"$3"'\n'"*Cluster for branch*: $2"'"}' ${INPUT_RMK_SLACK_WEBHOOK}
+  curl \
+    -s \
+    -X POST \
+    -H 'Content-type: application/json' \
+    --data '{"username":"Cluster action","icon_url":"'${ICON_URL}'","text":"*Tenant*: '"${TENANT}"'\n*Status*: '"${STATUS}"'\n*Message*: '"${MESSAGE}"'\n'"*Cluster for branch*: ${BRANCH}"'"}' \
+    "${INPUT_RMK_SLACK_WEBHOOK}"
 }
 
 function destroy_clusters() {
-  for remote in $(git branch -r | grep "feature/FFS-"); do
-    git checkout ${remote#origin/}
+#  for remote in $(git branch -r | grep "feature/FFS-"); do
+#    git checkout ${remote#origin/}
+#
+#    if ! [[ $(git show -s --format=%s | grep -v "\[skip cluster destroy\]") ]]; then
+#      slack_notification "Skip" ${remote#origin/} "Cluster destroy was skipped"
+#      echo "Skip cluster destroy for branch: \"${remote#origin/}\"."
+#      echo
+#      continue
+#    fi
+#
+#    rmk config init --progress-bar=false
+#    echo
+#    echo "Destroy cluster for branch: \"${remote#origin/}\"."
+#
+#    if ! (rmk cluster switch); then
+#      echo >&2 "Cluster doesn't exist for branch: \"${remote#origin/}\"."
+#      echo
+#      continue
+#    fi
+#
+#    if ! (rmk release destroy); then
+#      slack_notification "Failure" ${remote#origin/} "Issue with destroying releases"
+#      continue
+#    fi
+#
+#    if ! (rmk cluster destroy); then
+#      slack_notification "Failure" ${remote#origin/} "Issue with destroying cluster"
+#      continue
+#    fi
+#
+#    echo "Cluster has been destroy for branch: \"${remote#origin/}\"."
+#    slack_notification "Success" ${remote#origin/} "Cluster has been destroyed"
+#  done
 
-    if ! [[ $(git show -s --format=%s | grep -v "\[skip cluster destroy\]") ]]; then
-      slack_notification "Skip" ${remote#origin/} "Cluster destroy was skipped"
-      echo "Skip cluster destroy for branch: \"${remote#origin/}\"."
-      echo
-      continue
-    fi
+  ORPHANED_CLUSTERS="$(aws eks list-clusters --output=json | jq -r '.clusters[] | select(. | test("^.+-ffs-\\d+-eks$"))')"
+  MSG="Orphaned clusters:\n${ORPHANED_CLUSTERS}"
+  echo
+  echo "${MSG}"
+  if [[ "${ORPHANED_CLUSTERS}" != "" ]]; then
+    slack_notification "Failure" "N/A" "${MSG}"
+  fi
 
-    rmk config init --progress-bar=false
-    echo
-    echo "Destroy cluster for branch: \"${remote#origin/}\"."
-    
-    if ! (rmk cluster switch); then
-      echo >&2 "Cluster doesn't exist for branch: \"${remote#origin/}\"."
-      echo
-      continue
-    fi
-
-    if ! (rmk release destroy); then
-      slack_notification "Failure" ${remote#origin/} "Issue with destroying releases"
-      continue
-    fi
-
-    if ! (rmk cluster destroy); then
-      slack_notification "Failure" ${remote#origin/} "Issue with destroying cluster"
-      continue
-    fi
-
-    echo "Cluster has been destroy for branch: \"${remote#origin/}\"."
-    slack_notification "Success" ${remote#origin/} "Cluster has been destroyed"
-    
-  done
+  ORPHANED_VOLUMES="$(aws ec2 describe-volumes \
+    --output=json \
+    --filters "Name=status,Values=[available,error]" \
+    | jq -r '.Volumes[] | (.CreateTime + " " + .AvailabilityZone + " " + .State + " " +  .VolumeId + " " + .VolumeType + " "  + (.Size | tostring) + "GiB")')"
+  MSG="Orphaned volumes:\n${ORPHANED_VOLUMES}"
+  echo
+  echo "${MSG}"
+  if [[ "${ORPHANED_VOLUMES}" != "" ]]; then
+    slack_notification "Failure" "N/A" "${MSG}"
+  fi
 }
 
 if [[ "${INPUT_DESTROY_CLUSTERS}" == true ]]; then
