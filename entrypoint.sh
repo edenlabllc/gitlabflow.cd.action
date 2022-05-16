@@ -29,6 +29,7 @@ function slack_notification() {
   local STATUS="${1}"
   local BRANCH="${2}"
   local MESSAGE="${3}"
+  local TENANT="${4:-${TENANT}}"
 
   local ICON_URL="https://img.icons8.com/ios-filled/50/000000/0-degrees.png"
 
@@ -88,22 +89,22 @@ function destroy_clusters() {
 #  done
 
   ORPHANED_CLUSTERS="$(aws eks list-clusters --output=json | jq -r '.clusters[] | select(. | test("^'"${TENANT}"'-ffs-\\d+-eks$"))')"
-  MSG="Orphaned clusters:\n${ORPHANED_CLUSTERS}"
   echo
-  echo "${MSG}"
+  echo "Orphaned clusters:"
+  echo "${ORPHANED_CLUSTERS}"
   if [[ "${ORPHANED_CLUSTERS}" != "" ]]; then
-    slack_notification "Failure" "N/A" "${MSG}"
+    slack_notification "Failure" "N/A" "Orphaned clusters:\n${ORPHANED_CLUSTERS}"
   fi
 
   ORPHANED_VOLUMES="$(aws ec2 describe-volumes \
     --output=json \
     --filters "Name=status,Values=[available,error]" \
     | jq -r '.Volumes[] | (.CreateTime + " " + .AvailabilityZone + " " + .State + " " +  .VolumeId + " " + .VolumeType + " "  + (.Size | tostring) + "GiB")')"
-  MSG="Orphaned volumes:\n${ORPHANED_VOLUMES}"
   echo
-  echo "${MSG}"
+  echo "Orphaned volumes:"
+  echo "${ORPHANED_VOLUMES}"
   if [[ "${ORPHANED_VOLUMES}" != "" ]]; then
-    slack_notification "Failure" "N/A" "${MSG}"
+    slack_notification "Failure" "N/A" "Orphaned volumes:\n${ORPHANED_VOLUMES}" "N/A"
   fi
 }
 
