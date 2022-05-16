@@ -87,7 +87,7 @@ function destroy_clusters() {
 #    slack_notification "Success" ${remote#origin/} "Cluster has been destroyed"
 #  done
 
-  ORPHANED_CLUSTERS="$(aws eks list-clusters --output=json | jq -r '.clusters[] | select(. | test("^.+-ffs-\\d+-eks$"))')"
+  ORPHANED_CLUSTERS="$(aws eks list-clusters --output=json | jq -r '.clusters[] | select(. | test("^'"${TENANT}"'-ffs-\\d+-eks$"))')"
   MSG="Orphaned clusters:\n${ORPHANED_CLUSTERS}"
   echo
   echo "${MSG}"
