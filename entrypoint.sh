@@ -54,57 +54,59 @@ function slack_notification() {
 }
 
 function destroy_clusters() {
-#  for remote in $(git branch -r | grep "feature/FFS-"); do
-#    git checkout ${remote#origin/}
-#
-#    if ! [[ $(git show -s --format=%s | grep -v "\[skip cluster destroy\]") ]]; then
-#      slack_notification "Skip" ${remote#origin/} "Cluster destroy was skipped"
-#      echo "Skip cluster destroy for branch: \"${remote#origin/}\"."
-#      echo
-#      continue
-#    fi
-#
-#    rmk config init --progress-bar=false
-#    echo
-#    echo "Destroy cluster for branch: \"${remote#origin/}\"."
-#
-#    if ! (rmk cluster switch); then
-#      echo >&2 "Cluster doesn't exist for branch: \"${remote#origin/}\"."
-#      echo
-#      continue
-#    fi
-#
-#    if ! (rmk release destroy); then
-#      slack_notification "Failure" ${remote#origin/} "Issue with destroying releases"
-#      continue
-#    fi
-#
-#    if ! (rmk cluster destroy); then
-#      slack_notification "Failure" ${remote#origin/} "Issue with destroying cluster"
-#      continue
-#    fi
-#
-#    echo "Cluster has been destroy for branch: \"${remote#origin/}\"."
-#    slack_notification "Success" ${remote#origin/} "Cluster has been destroyed"
-#  done
+  for remote in $(git branch -r | grep "feature/FFS-"); do
+    git checkout ${remote#origin/}
 
-  ORPHANED_CLUSTERS="$(aws eks list-clusters --output=json | jq -r '.clusters[] | select(. | test("^'"${TENANT}"'-ffs-\\d+-eks$"))')"
-  echo
-  echo "Orphaned clusters:"
-  echo "${ORPHANED_CLUSTERS}"
-  if [[ "${ORPHANED_CLUSTERS}" != "" ]]; then
-    slack_notification "Failure" "N/A" "Orphaned clusters:\n${ORPHANED_CLUSTERS}"
+    if ! [[ $(git show -s --format=%s | grep -v "\[skip cluster destroy\]") ]]; then
+      slack_notification "Skip" ${remote#origin/} "Cluster destroy was skipped"
+      echo "Skip cluster destroy for branch: \"${remote#origin/}\"."
+      echo
+      continue
+    fi
+
+    rmk config init --progress-bar=false
+    echo
+    echo "Destroy cluster for branch: \"${remote#origin/}\"."
+
+    if ! (rmk cluster switch); then
+      echo >&2 "Cluster doesn't exist for branch: \"${remote#origin/}\"."
+      echo
+      continue
+    fi
+
+    if ! (rmk release destroy); then
+      slack_notification "Failure" ${remote#origin/} "Issue with destroying releases"
+      continue
+    fi
+
+    if ! (rmk cluster destroy); then
+      slack_notification "Failure" ${remote#origin/} "Issue with destroying cluster"
+      continue
+    fi
+
+    echo "Cluster has been destroy for branch: \"${remote#origin/}\"."
+    slack_notification "Success" ${remote#origin/} "Cluster has been destroyed"
+  done
+
+  if [[ "${INPUT_CHECK_ORPHANED_CLUSTERS}" == true ]]; then
+    ORPHANED_CLUSTERS="$(aws eks list-clusters --output=json | jq -r '.clusters[] | select(. | test("^'"${TENANT}"'-ffs-\\d+-eks$"))')"
+    echo
+    echo "Orphaned clusters:"
+    echo "${ORPHANED_CLUSTERS}"
+    if [[ "${ORPHANED_CLUSTERS}" != "" ]]; then
+      slack_notification "Failure" "N/A" "Orphaned clusters:\n${ORPHANED_CLUSTERS}"
+    fi
   fi
 
-  ORPHANED_VOLUMES="$(aws ec2 describe-volumes \
-    --output=json \
-    --filters "Name=status,Values=[available,error]" \
-    | jq -r '.Volumes[] | (.CreateTime + " " + .AvailabilityZone + " " + .State + " " +  .VolumeId + " " + .VolumeType + " "  + (.Size | tostring) + "GiB")')"
-  echo
-  echo "Orphaned volumes:"
-  echo "${ORPHANED_VOLUMES}"
-  if [[ "${ORPHANED_VOLUMES}" != "" ]]; then
-    slack_notification "Failure" "N/A" "Orphaned volumes:\n${ORPHANED_VOLUMES}" "N/A"
+  if [[ "${INPUT_CHECK_ORPHANED_VOLUMES}" == true ]]; then
+    ORPHANED_VOLUMES="$(aws ec2 describe-volumes --output=json --filters "Name=status,Values=[available,error]" \
+      | jq -r '.Volumes[] | (.CreateTime + " " + .AvailabilityZone + " " + .State + " " +  .VolumeId + " " + .VolumeType + " "  + (.Size | tostring) + "GiB")')"
+    echo
+    echo "Orphaned volumes:"
+    echo "${ORPHANED_VOLUMES}"
+    if [[ "${ORPHANED_VOLUMES}" != "" ]]; then
+      slack_notification "Failure" "N/A" "Orphaned volumes:\n${ORPHANED_VOLUMES}" "N/A"
+    fi
   fi
 }
 
