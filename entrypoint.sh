@@ -24,7 +24,12 @@ export PATH="${HOME}/.local/bin:${PATH}"
 
 curl -sL "https://${GITHUB_TOKEN}@raw.githubusercontent.com/${GITHUB_ORG}/rmk.tools.infra/master/bin/installer" | bash -s -- "${INPUT_RMK_VERSION}"
 
+echo before
 rmk --version
+echo after
+ls -alh ${HOME}/.local/bin
+which jq
+jq --version
 
 export TENANT=$(echo $GITHUB_REPOSITORY | cut -d '/' -f2 | cut -d '.' -f1)
 
