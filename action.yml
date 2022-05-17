@@ -96,6 +96,14 @@ inputs:
     description: Destroy all clusters by feature/FFS-* branches
     required: false
     default: false
+  check_orphaned_clusters:
+    description: Whether to check for orphaned clusters (only if destroy_clusters=true)
+    required: false
+    default: true
+  check_orphaned_volumes:
+    description: Whether to check for orphaned volumes (only if destroy_clusters=true)
+    required: false
+    default: false
   mongodb_backup:
     description: Make new backup of MongoDB databases
     required: false

@@ -26,20 +26,31 @@ rmk --version
 export TENANT=$(echo $GITHUB_REPOSITORY | cut -d '/' -f2 | cut -d '.' -f1)
 
 function slack_notification() {
-  local icon_url="https://img.icons8.com/ios-filled/50/000000/0-degrees.png"
-  case "$1" in
-  Success)
-    icon_url="https://img.icons8.com/doodle/48/000000/add.png"
-    ;;
-  Failure)
-    icon_url="https://img.icons8.com/office/40/000000/minus.png"
-    ;;
-  Skip)
-    icon_url="https://img.icons8.com/ios-filled/50/000000/0-degrees.png"
-    ;;
+  local STATUS="${1}"
+  local BRANCH="${2}"
+  local MESSAGE="${3}"
+  local TENANT="${4:-${TENANT}}"
+
+  local ICON_URL="https://img.icons8.com/ios-filled/50/000000/0-degrees.png"
+
+  case "${STATUS}" in
+    Success)
+      ICON_URL="https://img.icons8.com/doodle/48/000000/add.png"
+      ;;
+    Failure)
+      ICON_URL="https://img.icons8.com/office/40/000000/minus.png"
+      ;;
+    Skip)
+      ICON_URL="https://img.icons8.com/ios-filled/50/000000/0-degrees.png"
+      ;;
   esac
 
-  curl -s -X POST -H 'Content-type: application/json' --data '{"username":"Cluster action","icon_url":"'${icon_url}'","text":"*Tenant*: '"${TENANT}"'\n*Status*: '"$1"'\n*Action*: '"$3"'\n'"*Cluster for branch*: $2"'"}' ${INPUT_RMK_SLACK_WEBHOOK}
+  curl \
+    -s \
+    -X POST \
+    -H 'Content-type: application/json' \
+    --data '{"username":"Cluster action","icon_url":"'${ICON_URL}'","text":"*Tenant*: '"${TENANT}"'\n*Status*: '"${STATUS}"'\n*Message*: '"${MESSAGE}"'\n'"*Cluster for branch*: ${BRANCH}"'"}' \
+    "${INPUT_RMK_SLACK_WEBHOOK}"
 }
 
 function destroy_clusters() {
@@ -56,7 +67,7 @@ function destroy_clusters() {
     rmk config init --progress-bar=false
     echo
     echo "Destroy cluster for branch: \"${remote#origin/}\"."
-    
+
     if ! (rmk cluster switch); then
       echo >&2 "Cluster doesn't exist for branch: \"${remote#origin/}\"."
       echo
@@ -75,8 +86,29 @@ function destroy_clusters() {
 
     echo "Cluster has been destroy for branch: \"${remote#origin/}\"."
     slack_notification "Success" ${remote#origin/} "Cluster has been destroyed"
-    
   done
+
+  if [[ "${INPUT_CHECK_ORPHANED_CLUSTERS}" == true ]]; then
+    ORPHANED_CLUSTERS="$(aws eks list-clusters --output=json | jq -r '.clusters[] | select(. | test("^'"${TENANT}"'-ffs-\\d+-eks$"))')"
+    echo
+    echo "Orphaned clusters:"
+    echo "${ORPHANED_CLUSTERS}"
+    if [[ "${ORPHANED_CLUSTERS}" != "" ]]; then
+      slack_notification "Failure" "N/A" "Orphaned clusters:\n${ORPHANED_CLUSTERS}"
+    fi
+  fi
+
+  if [[ "${INPUT_CHECK_ORPHANED_VOLUMES}" == true ]]; then
+    # check all volumes in the region because there is no volume tag with a tenant name in AWS
+    ORPHANED_VOLUMES="$(aws ec2 describe-volumes --output=json --filters "Name=status,Values=[available,error]" \
+      | jq -r '.Volumes[] | (.CreateTime + " " + .AvailabilityZone + " " + .State + " " +  .VolumeId + " " + .VolumeType + " "  + (.Size | tostring) + "GiB")')"
+    echo
+    echo "Orphaned volumes:"
+    echo "${ORPHANED_VOLUMES}"
+    if [[ "${ORPHANED_VOLUMES}" != "" ]]; then
+      slack_notification "Failure" "N/A" "Orphaned volumes:\n${ORPHANED_VOLUMES}" "N/A"
+    fi
+  fi
 }
 
 if [[ "${INPUT_DESTROY_CLUSTERS}" == true ]]; then
