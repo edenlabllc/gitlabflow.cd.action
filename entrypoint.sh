@@ -212,6 +212,17 @@ if [[ "${INPUT_MONGODB_BACKUP}" == "true" ]]; then
   exit 0
 fi
 
+if [[ "${INPUT_ROUTES_TEST}" == "true" ]]; then
+  git clone git@github.com:edenlabllc/fhir.routes.tests.git
+
+  ENV_DOMAIN="https://$(rmk config view | grep root-domain | cut -d ' ' -f2)"
+  cd fhir.routes.tests && docker build testing .
+  
+  docker run testing -D url="${ENV_DOMAIN}"
+
+  exit 0
+fi
+
 case "${INPUT_RMK_COMMAND}" in
 destroy)
   echo
