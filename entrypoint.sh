@@ -213,7 +213,7 @@ if [[ "${INPUT_MONGODB_BACKUP}" == "true" ]]; then
 fi
 
 if [[ "${INPUT_ROUTES_TEST}" == "true" ]]; then
-  git clone git@github.com:edenlabllc/fhir.routes.tests.git
+  git clone "https://${GITHUB_TOKEN}@github.com/edenlabllc/fhir.routes.tests.git"
 
   ENV_DOMAIN="https://$(rmk config view | grep root-domain | cut -d ' ' -f2)"
   cd fhir.routes.tests && docker build testing .
