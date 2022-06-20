@@ -159,7 +159,7 @@ if [[ "${INPUT_CLUSTER_PROVISIONER}" == "true" ]]; then
   esac
 elif [[ "${INPUT_RMK_COMMAND}" != "reindex" ]]; then
   ALLOWED_ENVIRONMENTS=("${INPUT_ALLOWED_ENVIRONMENTS/,/ }")
-  if [[ ! " ${ALLOWED_ENVIRONMENTS[*]} " =~ " ${ENVIRONMENT} " ]]; then
+  if [[ ! " ${ENVIRONMENT} " =~ " ${ALLOWED_ENVIRONMENTS[*]} " ]]; then
     >&2 echo "ERROR: Environment \"${ENVIRONMENT}\" not allowed for automatic CD."
     exit 1
   fi
