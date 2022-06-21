@@ -125,8 +125,8 @@ if [[ "${INPUT_DESTROY_CLUSTERS}" == true ]]; then
   exit 0
 fi
 
-if [[ "${GITHUB_REF}" != refs/heads/* ]]; then
-  >&2 echo "ERROR: Only pushes to branches are supported. Check the workflow's on.push.* section."
+if [[ "${GITHUB_REF}" != refs/heads/* && "${GITHUB_REF}" != refs/pull/* ]]; then
+  >&2 echo "ERROR: Only pushes to branches and PR creation are supported. Check the workflow's on.push.* section."
   exit 1
 fi
 
