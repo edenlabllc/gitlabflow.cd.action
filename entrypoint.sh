@@ -197,6 +197,9 @@ if [[ "${INPUT_RMK_SLACK_NOTIFICATIONS}" == "true" ]]; then
   fi
 
   eval rmk config init --progress-bar=false --slack-notifications ${FLAGS_SLACK_MESSAGE_DETAILS}
+elif [[ "${INPUT_ROUTES_TEST}" == "true" && "${GITHUB_REF}" == refs/pull/* ]]; then
+  git checkout ${GITHUB_HEAD_REF}
+  rmk config init --progress-bar=false
 else
   rmk config init --progress-bar=false
 fi
