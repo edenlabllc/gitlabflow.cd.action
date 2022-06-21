@@ -112,6 +112,14 @@ inputs:
     description: Restore backup of MongoDB databases
     required: false
     default: false
+  routes_test:
+    description: Execute routes test
+    required: false
+    default: false
+  routes_test_branch:
+    description: Branch for fhir.routes.tests repository
+    required: false
+    default: "master"
   reindexer_collections:
     description: Collections to reindex (if empty, then reindex all from values)
     required: false

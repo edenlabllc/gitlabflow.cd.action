@@ -125,8 +125,8 @@ if [[ "${INPUT_DESTROY_CLUSTERS}" == true ]]; then
   exit 0
 fi
 
-if [[ "${GITHUB_REF}" != refs/heads/* ]]; then
-  >&2 echo "ERROR: Only pushes to branches are supported. Check the workflow's on.push.* section."
+if [[ "${GITHUB_REF}" != refs/heads/* && "${GITHUB_REF}" != refs/pull/* ]]; then
+  >&2 echo "ERROR: Only pushes to branches and PR creation are supported. Check the workflow's on.push.* section."
   exit 1
 fi
 
@@ -157,7 +157,7 @@ if [[ "${INPUT_CLUSTER_PROVISIONER}" == "true" ]]; then
     exit 1
     ;;
   esac
-elif [[ "${INPUT_RMK_COMMAND}" != "reindex" ]]; then
+elif [[ "${INPUT_RMK_COMMAND}" != "reindex" && "${INPUT_ROUTES_TEST}" != "true" ]]; then
   ALLOWED_ENVIRONMENTS=("${INPUT_ALLOWED_ENVIRONMENTS/,/ }")
   if [[ ! " ${ALLOWED_ENVIRONMENTS[*]} " =~ " ${ENVIRONMENT} " ]]; then
     >&2 echo "ERROR: Environment \"${ENVIRONMENT}\" not allowed for automatic CD."
@@ -181,6 +181,21 @@ staging|release/v*)
   ;;
 esac
 
+if [[ "${GITHUB_REF}" == refs/pull/* ]]; then
+  case "${GITHUB_HEAD_REF}" in
+  develop|feature/FFS-*)
+    export AWS_REGION="${INPUT_CD_DEVELOP_AWS_REGION}"
+    export AWS_ACCESS_KEY_ID="${INPUT_CD_DEVELOP_AWS_ACCESS_KEY_ID}"
+    export AWS_SECRET_ACCESS_KEY="${INPUT_CD_DEVELOP_AWS_SECRET_ACCESS_KEY}"
+    ;;
+  staging|release/v*)
+    export AWS_REGION="${INPUT_CD_STAGING_AWS_REGION}"
+    export AWS_ACCESS_KEY_ID="${INPUT_CD_STAGING_AWS_ACCESS_KEY_ID}"
+    export AWS_SECRET_ACCESS_KEY="${INPUT_CD_STAGING_AWS_SECRET_ACCESS_KEY}"
+    ;;
+  esac
+fi
+
 # Slack notification
 if [[ "${INPUT_RMK_SLACK_NOTIFICATIONS}" == "true" ]]; then
   export SLACK_WEBHOOK=${INPUT_RMK_SLACK_WEBHOOK}
@@ -197,6 +212,9 @@ if [[ "${INPUT_RMK_SLACK_NOTIFICATIONS}" == "true" ]]; then
   fi
 
   eval rmk config init --progress-bar=false --slack-notifications ${FLAGS_SLACK_MESSAGE_DETAILS}
+elif [[ "${INPUT_ROUTES_TEST}" == "true" && "${GITHUB_REF}" == refs/pull/* ]]; then
+  git checkout ${GITHUB_HEAD_REF}
+  rmk config init --progress-bar=false
 else
   rmk config init --progress-bar=false
 fi
@@ -209,6 +227,14 @@ if [[ "${INPUT_MONGODB_BACKUP}" == "true" ]]; then
     exit 1
   fi
 
+  exit 0
+fi
+
+if [[ "${INPUT_ROUTES_TEST}" == "true" ]]; then
+  git clone "https://${GITHUB_TOKEN}@github.com/edenlabllc/fhir.routes.tests.git"
+  ENV_DOMAIN="https://$(rmk config view | grep root-domain | cut -d ' ' -f2)"
+  cd fhir.routes.tests && git checkout ${INPUT_ROUTES_TEST_BRANCH} && docker build -t testing .
+  docker run testing -D url="${ENV_DOMAIN}"
   exit 0
 fi
 
