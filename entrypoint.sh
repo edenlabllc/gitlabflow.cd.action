@@ -232,7 +232,7 @@ fi
 
 if [[ "${INPUT_ROUTES_TEST}" == "true" ]]; then
   git clone "https://${GITHUB_TOKEN}@github.com/edenlabllc/fhir.routes.tests.git"
-  ENV_DOMAIN="https://$(rmk config view | grep root-domain | cut -d ' ' -f2)"
+  ENV_DOMAIN="https://$(rmk --lf=json config view | jq -r '.config.RootDomain')"
   cd fhir.routes.tests && git checkout ${INPUT_ROUTES_TEST_BRANCH} && docker build -t testing .
   docker run testing -D url="${ENV_DOMAIN}"
   exit 0
