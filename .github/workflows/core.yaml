@@ -54,7 +54,7 @@ jobs:
       - name: Scan image for vulnerabilities
         run: |
           # argument DELETE_IMAGE is false to keep "${VERSION}-develop" image tag in ECR for development purposes
-          ./scan-image.sh ${{ env.REPOSITORY_NAME }} ${{ env.VERSION }} ${{ env.GIT_BRANCH }} true false
+          ./scan-image.sh ${{ env.REPOSITORY_NAME }} ${{ env.VERSION }} ${{ env.GIT_BRANCH }} false false
 
       - name: Release service
         run: |
