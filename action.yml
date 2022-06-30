@@ -76,7 +76,7 @@ inputs:
   rmk_sync_skip_deps:
     description: Whether to skip running "helm repo update" and "helm dependency build" when running sync in rmk (only if rmk_command=sync).
     required: false
-    default: true
+    default: false
   rmk_sync_labels:
     description: |
       List of labels when running sync in rmk (only if rmk_command=sync).
