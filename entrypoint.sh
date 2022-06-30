@@ -204,7 +204,7 @@ fi
 if [[ "${INPUT_MONGODB_BACKUP}" == "true" ]]; then
   export MONGODB_TOOLS_ENABLED=true
 
-  if ! (rmk release -- -l name=mongodb-tools sync --set "env.ACTION=backup" --skip-deps); then
+  if ! (rmk release -- -l name=mongodb-tools sync --set "env.ACTION=backup"); then
     slack_notification "Failure" ${ENVIRONMENT} "Failure with making MongoDB Backup"
     exit 1
   fi
