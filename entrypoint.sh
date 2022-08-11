@@ -54,38 +54,51 @@ function slack_notification() {
 }
 
 function destroy_clusters() {
-  for remote in $(git branch -r | grep "feature/FFS-"); do
-    git checkout ${remote#origin/}
+  local EXIT_CODE=0
+
+  # grep should be case-insensitive and match the RMK's Golang regex ^[a-z]+-\d+
+  for REMOTE_BRANCH in $(git branch -r | grep -i "origin/feature/FFS-\d\+"); do
+    local LOCAL_BRANCH="${REMOTE_BRANCH#origin/}"
+
+    git checkout "${LOCAL_BRANCH}"
 
     if ! [[ $(git show -s --format=%s | grep -v "\[skip cluster destroy\]") ]]; then
-      slack_notification "Skip" ${remote#origin/} "Cluster destroy was skipped"
-      echo "Skip cluster destroy for branch: \"${remote#origin/}\"."
+      slack_notification "Skip" "${LOCAL_BRANCH}" "Cluster destroy was skipped"
+      echo "Skip cluster destroy for branch: \"${LOCAL_BRANCH}\"."
       echo
       continue
     fi
 
-    rmk config init --progress-bar=false
+    if ! (rmk config init --progress-bar=false); then
+      echo >&2 "Config init failed for branch: \"${LOCAL_BRANCH}\"."
+      echo
+      # mark as error because initialization is considered required
+      EXIT_CODE=1
+      # continue to delete rest of clusters
+      continue
+    fi
+
     echo
-    echo "Destroy cluster for branch: \"${remote#origin/}\"."
+    echo "Destroy cluster for branch: \"${LOCAL_BRANCH}\"."
 
     if ! (rmk cluster switch); then
-      echo >&2 "Cluster doesn't exist for branch: \"${remote#origin/}\"."
+      echo >&2 "Cluster doesn't exist for branch: \"${LOCAL_BRANCH}\"."
       echo
       continue
     fi
 
     if ! (rmk release destroy); then
-      slack_notification "Failure" ${remote#origin/} "Issue with destroying releases"
+      slack_notification "Failure" "${LOCAL_BRANCH}" "Issue with destroying releases"
       continue
     fi
 
     if ! (rmk cluster destroy); then
-      slack_notification "Failure" ${remote#origin/} "Issue with destroying cluster"
+      slack_notification "Failure" "${LOCAL_BRANCH}" "Issue with destroying cluster"
       continue
     fi
 
-    echo "Cluster has been destroy for branch: \"${remote#origin/}\"."
-    slack_notification "Success" ${remote#origin/} "Cluster has been destroyed"
+    echo "Cluster has been destroy for branch: \"${LOCAL_BRANCH}\"."
+    slack_notification "Success" "${LOCAL_BRANCH}" "Cluster has been destroyed"
   done
 
   if [[ "${INPUT_CHECK_ORPHANED_CLUSTERS}" == true ]]; then
@@ -109,6 +122,8 @@ function destroy_clusters() {
       slack_notification "Failure" "N/A" "Orphaned volumes:\n${ORPHANED_VOLUMES}" "N/A"
     fi
   fi
+
+  exit ${EXIT_CODE}
 }
 
 if [[ "${INPUT_DESTROY_CLUSTERS}" == true ]]; then
@@ -122,7 +137,6 @@ if [[ "${INPUT_DESTROY_CLUSTERS}" == true ]]; then
   export AWS_SECRET_ACCESS_KEY="${INPUT_CD_DEVELOP_AWS_SECRET_ACCESS_KEY}"
 
   destroy_clusters
-  exit 0
 fi
 
 if [[ "${GITHUB_REF}" != refs/heads/* ]]; then
