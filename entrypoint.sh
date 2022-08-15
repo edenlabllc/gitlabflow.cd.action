@@ -154,6 +154,33 @@ function check_cluster_provision_command() {
   fi
 }
 
+function check_exits_release_cluster() {
+  local EXIT_CODE=0
+    # grep should be case-insensitive and match the RMK's Golang regex ^[a-z]+-\d+
+  for REMOTE_BRANCH in $(git branch -r | grep -i "origin/release/RC-\d\+"); do
+    local LOCAL_BRANCH="${REMOTE_BRANCH#origin/}"
+
+    git checkout "${LOCAL_BRANCH}"
+
+    if ! (rmk config init --progress-bar=false); then
+      echo >&2 "Config init failed for branch: \"${LOCAL_BRANCH}\"."
+      echo
+      # mark as error because initialization is considered required
+      EXIT_CODE=1
+      # continue to search available release cluster
+      continue
+    fi
+
+    if (rmk cluster switch); then
+      echo >&2 "One release cluster already exists by the branch: \"${LOCAL_BRANCH}\"."
+      echo >&2 "Please destroy existed cluster and try again."
+      exit 1
+    fi
+  done
+
+  exit ${EXIT_CODE}
+}
+
 if [[ "${INPUT_CLUSTER_PROVISIONER}" == "true" ]]; then
   case "${ENVIRONMENT}" in
   feature/FFS-*)
@@ -264,25 +291,10 @@ destroy)
 provision)
   echo
   echo "Provision cluster for branch: \"${ENVIRONMENT}\"."
-    # grep should be case-insensitive and match the RMK's Golang regex ^[a-z]+-\d+
-  for REMOTE_BRANCH in $(git branch -r | grep -i "origin/release/RC-\d\+"); do
-    local LOCAL_BRANCH="${REMOTE_BRANCH#origin/}"
 
-    git checkout "${LOCAL_BRANCH}"
-
-    if ! (rmk config init --progress-bar=false); then
-      echo >&2 "Config init failed for branch: \"${LOCAL_BRANCH}\"."
-      echo
-      # continue to search available release cluster
-      continue
-    fi
-
-    if (rmk cluster switch); then
-      echo >&2 "One release cluster already exists by the branch: \"${LOCAL_BRANCH}\"."
-      echo >&2 "Please destroy existed cluster and try again."
-      exit 1
-    fi
-  done
+  if [[ "${ENVIRONMENT}" =~ release\/RC-* ]]; then
+    check_exits_release_cluster
+  fi
 
   if ! (rmk cluster provision); then
     slack_notification "Failure" ${ENVIRONMENT} "Issue with cluster provisioning"
