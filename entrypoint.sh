@@ -161,7 +161,7 @@ if [[ "${INPUT_CLUSTER_PROVISIONER}" == "true" ]]; then
     echo "Skipped check allowed environment. Running prepare feature cluster from branch \"${ENVIRONMENT}\"."
     check_cluster_provision_command
     ;;
-  release/v*)
+  release/RC-*)
     echo
     echo "Skipped check allowed environment. Running prepare release cluster from branch \"${ENVIRONMENT}\"."
     check_cluster_provision_command
@@ -188,7 +188,7 @@ develop|feature/FFS-*)
   export AWS_ACCESS_KEY_ID="${INPUT_CD_DEVELOP_AWS_ACCESS_KEY_ID}"
   export AWS_SECRET_ACCESS_KEY="${INPUT_CD_DEVELOP_AWS_SECRET_ACCESS_KEY}"
   ;;
-staging|release/v*)
+staging|release/RC-*)
   export AWS_REGION="${INPUT_CD_STAGING_AWS_REGION}"
   export AWS_ACCESS_KEY_ID="${INPUT_CD_STAGING_AWS_ACCESS_KEY_ID}"
   export AWS_SECRET_ACCESS_KEY="${INPUT_CD_STAGING_AWS_SECRET_ACCESS_KEY}"
