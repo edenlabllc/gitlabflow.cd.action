@@ -178,7 +178,7 @@ function check_exits_release_cluster() {
     fi
   done
 
-  exit ${EXIT_CODE}
+  return ${EXIT_CODE}
 }
 
 if [[ "${INPUT_CLUSTER_PROVISIONER}" == "true" ]]; then
