@@ -264,6 +264,25 @@ destroy)
 provision)
   echo
   echo "Provision cluster for branch: \"${ENVIRONMENT}\"."
+    # grep should be case-insensitive and match the RMK's Golang regex ^[a-z]+-\d+
+  for REMOTE_BRANCH in $(git branch -r | grep -i "origin/release/RC-\d\+"); do
+    local LOCAL_BRANCH="${REMOTE_BRANCH#origin/}"
+
+    git checkout "${LOCAL_BRANCH}"
+
+    if ! (rmk config init --progress-bar=false); then
+      echo >&2 "Config init failed for branch: \"${LOCAL_BRANCH}\"."
+      echo
+      # continue to search available release cluster
+      continue
+    fi
+
+    if (rmk cluster switch); then
+      echo >&2 "One release cluster already exists by the branch: \"${LOCAL_BRANCH}\"."
+      echo >&2 "Please destroy existed cluster and try again."
+      exit 1
+    fi
+  done
 
   if ! (rmk cluster provision); then
     slack_notification "Failure" ${ENVIRONMENT} "Issue with cluster provisioning"
