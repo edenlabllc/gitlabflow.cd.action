@@ -171,7 +171,7 @@ function check_exits_release_cluster() {
       continue
     fi
 
-    if (rmk cluster switch); then
+    if (rmk cluster switch 2> /dev/null); then
       echo >&2 "One release cluster already exists by the branch: \"${LOCAL_BRANCH}\"."
       echo >&2 "Please destroy existed cluster and try again."
       exit 1
