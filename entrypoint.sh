@@ -97,7 +97,7 @@ function destroy_clusters() {
       continue
     fi
 
-    echo "Cluster has been destroy for branch: \"${LOCAL_BRANCH}\"."
+    echo "Cluster has been destroyed for branch: \"${LOCAL_BRANCH}\"."
     slack_notification "Success" "${LOCAL_BRANCH}" "Cluster has been destroyed"
   done
 
