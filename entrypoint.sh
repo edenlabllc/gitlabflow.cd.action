@@ -162,7 +162,7 @@ function check_exits_release_cluster() {
 
     git checkout "${LOCAL_BRANCH}"
 
-    if ! (rmk config init --progress-bar=false); then
+    if ! (rmk config init --progress-bar=false 1> /dev/null); then
       echo >&2 "Config init failed for branch: \"${LOCAL_BRANCH}\"."
       echo
       # mark as error because initialization is considered required
@@ -177,6 +177,8 @@ function check_exits_release_cluster() {
       exit 1
     fi
   done
+
+  git checkout "${GIT_BRANCH}"
 
   return ${EXIT_CODE}
 }
@@ -360,8 +362,8 @@ reindex)
   ;;
 esac
 
-# always output action variables
-echo "::set-output name=git_branch::${GIT_BRANCH}"
-echo "::set-output name=repository_full_name::${REPOSITORY_FULL_NAME}"
-echo "::set-output name=version::${VERSION}"
-echo "::set-output name=environment::${ENVIRONMENT}"
+# always output action variables, description by link https://github.blog/changelog/2022-10-11-github-actions-deprecating-save-state-and-set-output-commands/
+echo "git_branch=${GIT_BRANCH}" >> "${GITHUB_OUTPUT}"
+echo "repository_full_name=${REPOSITORY_FULL_NAME}" >> "${GITHUB_OUTPUT}"
+echo "version=${VERSION}" >> "${GITHUB_OUTPUT}"
+echo "environment=${ENVIRONMENT}" >> "${GITHUB_OUTPUT}"
