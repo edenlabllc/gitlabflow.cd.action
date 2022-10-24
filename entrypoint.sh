@@ -178,6 +178,8 @@ function check_exits_release_cluster() {
     fi
   done
 
+  git checkout "${GIT_BRANCH}"
+
   return ${EXIT_CODE}
 }
 
