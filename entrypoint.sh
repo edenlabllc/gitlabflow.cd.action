@@ -363,7 +363,7 @@ reindex)
 esac
 
 # always output action variables
-echo "::set-output name=git_branch::${GIT_BRANCH}"
-echo "::set-output name=repository_full_name::${REPOSITORY_FULL_NAME}"
-echo "::set-output name=version::${VERSION}"
-echo "::set-output name=environment::${ENVIRONMENT}"
+echo "git_branch=${GIT_BRANCH}" >> "${GITHUB_OUTPUT}"
+echo "repository_full_name=${REPOSITORY_FULL_NAME}" >> "${GITHUB_OUTPUT}"
+echo "version=${VERSION}" >> "${GITHUB_OUTPUT}"
+echo "environment=${ENVIRONMENT}" >> "${GITHUB_OUTPUT}"
