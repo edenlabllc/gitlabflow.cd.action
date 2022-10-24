@@ -162,7 +162,7 @@ function check_exits_release_cluster() {
 
     git checkout "${LOCAL_BRANCH}"
 
-    if ! (rmk config init --progress-bar=false); then
+    if ! (rmk config init --progress-bar=false 1> /dev/null); then
       echo >&2 "Config init failed for branch: \"${LOCAL_BRANCH}\"."
       echo
       # mark as error because initialization is considered required
