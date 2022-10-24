@@ -362,7 +362,7 @@ reindex)
   ;;
 esac
 
-# always output action variables? description by link https://github.blog/changelog/2022-10-11-github-actions-deprecating-save-state-and-set-output-commands/
+# always output action variables, description by link https://github.blog/changelog/2022-10-11-github-actions-deprecating-save-state-and-set-output-commands/
 echo "git_branch=${GIT_BRANCH}" >> "${GITHUB_OUTPUT}"
 echo "repository_full_name=${REPOSITORY_FULL_NAME}" >> "${GITHUB_OUTPUT}"
 echo "version=${VERSION}" >> "${GITHUB_OUTPUT}"
