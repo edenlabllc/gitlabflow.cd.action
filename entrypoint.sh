@@ -10,22 +10,21 @@ echo "Initialize environment variables."
 echo
 echo "Install rmk and dependencies, initialize configuration, run CD."
 
-git config --global user.name github-actions
-git config --global user.email github-actions@github.com
-git config --global --add safe.directory /github/workspace
+git config --global "user.name" "github-actions"
+git config --global "user.email" "github-actions@github.com"
+git config --global --add "safe.directory" "/github/workspace"
 
 # exports are required by the installer scripts and rmk
 export GITHUB_TOKEN="${INPUT_GITHUB_TOKEN_REPO_FULL_ACCESS}"
 export CLOUDFLARE_TOKEN="${INPUT_CLOUDFLARE_TOKEN}"
 export GITHUB_ORG="${GITHUB_REPOSITORY%%/*}"
 
-curl -sL "https://${GITHUB_TOKEN}@raw.githubusercontent.com/${GITHUB_ORG}/rmk.tools.infra/master/bin/installer" | bash -s -- "${INPUT_RMK_VERSION}"
-
+curl -sL "https://edenlabllc-rmk-tools-infra.s3.eu-north-1.amazonaws.com/rmk/s3-installer" | bash -s -- "${INPUT_RMK_VERSION}"
 rmk --version
 
-export TENANT=$(echo $GITHUB_REPOSITORY | cut -d '/' -f2 | cut -d '.' -f1)
+export TENANT=$(echo "${GITHUB_REPOSITORY}" | cut -d '/' -f2 | cut -d '.' -f1)
 
-function slack_notification() {
+function notify_slack() {
   local STATUS="${1}"
   local BRANCH="${2}"
   local MESSAGE="${3}"
@@ -48,8 +47,8 @@ function slack_notification() {
   curl \
     -s \
     -X POST \
-    -H 'Content-type: application/json' \
-    --data '{"username":"Cluster action","icon_url":"'${ICON_URL}'","text":"*Tenant*: '"${TENANT}"'\n*Status*: '"${STATUS}"'\n*Message*: '"${MESSAGE}"'\n'"*Cluster for branch*: ${BRANCH}"'"}' \
+    -H 'Content-Type: application/json' \
+    --data '{"username":"GitLabFlow Action","icon_url":"'${ICON_URL}'","text":"*Tenant*: '"${TENANT}"'\n*Status*: '"${STATUS}"'\n*Message*: '"${MESSAGE}"'\n'"*Branch*: ${BRANCH}"'"}' \
     "${INPUT_RMK_SLACK_WEBHOOK}"
 }
 
@@ -57,57 +56,58 @@ function destroy_clusters() {
   local EXIT_CODE=0
 
   # grep should be case-insensitive and match the RMK's Golang regex ^[a-z]+-\d+
-  for REMOTE_BRANCH in $(git branch -r | grep -i "origin/feature/FFS-\d\+"); do
+  for REMOTE_BRANCH in $(git branch -r | grep -i "origin/feature/ffs-\d\+"); do
     local LOCAL_BRANCH="${REMOTE_BRANCH#origin/}"
 
     git checkout "${LOCAL_BRANCH}"
 
     if ! [[ $(git show -s --format=%s | grep -v "\[skip cluster destroy\]") ]]; then
-      slack_notification "Skip" "${LOCAL_BRANCH}" "Cluster destroy was skipped"
-      echo "Skip cluster destroy for branch: \"${LOCAL_BRANCH}\"."
+      notify_slack  "Skip" "${LOCAL_BRANCH}" "Cluster destroy skipped"
+      echo "Skip cluster destroy for branch: \"${LOCAL_BRANCH}\""
       echo
       continue
     fi
 
     if ! (rmk config init --progress-bar=false); then
-      echo >&2 "Config init failed for branch: \"${LOCAL_BRANCH}\"."
+      echo >&2 "Config init failed for branch: \"${LOCAL_BRANCH}\""
       echo
       # mark as error because initialization is considered required
       EXIT_CODE=1
-      # continue to delete rest of clusters
+      # continue deleting rest of clusters
       continue
     fi
 
     echo
-    echo "Destroy cluster for branch: \"${LOCAL_BRANCH}\"."
+    echo "Destroying cluster for branch: \"${LOCAL_BRANCH}\""
 
     if ! (rmk cluster switch); then
-      echo >&2 "Cluster doesn't exist for branch: \"${LOCAL_BRANCH}\"."
+      echo >&2 "Cluster doesn't exist for branch: \"${LOCAL_BRANCH}\""
       echo
       continue
     fi
 
     if ! (rmk release destroy); then
-      slack_notification "Failure" "${LOCAL_BRANCH}" "Issue with destroying releases"
+      notify_slack  "Failure" "${LOCAL_BRANCH}" "Destroying releases failed"
       continue
     fi
 
     if ! (rmk cluster destroy); then
-      slack_notification "Failure" "${LOCAL_BRANCH}" "Issue with destroying cluster"
+      notify_slack  "Failure" "${LOCAL_BRANCH}" "Destroying cluster failed"
       continue
     fi
 
-    echo "Cluster has been destroyed for branch: \"${LOCAL_BRANCH}\"."
-    slack_notification "Success" "${LOCAL_BRANCH}" "Cluster has been destroyed"
+    echo "Cluster has been destroyed for branch: \"${LOCAL_BRANCH}\""
+    notify_slack "Success" "${LOCAL_BRANCH}" "Cluster has been destroyed"
   done
 
   if [[ "${INPUT_CHECK_ORPHANED_CLUSTERS}" == true ]]; then
-    ORPHANED_CLUSTERS="$(aws eks list-clusters --output=json | jq -r '.clusters[] | select(. | test("^'"${TENANT}"'-ffs-\\d+-eks$"))')"
+    #todo
+    ORPHANED_CLUSTERS="$(aws eks list-clusters --output=json | jq -r '.clusters[] | select(. | test("^'"${TENANT}"'-(ffs|rc)-\\d+-eks$"))')"
     echo
     echo "Orphaned clusters:"
     echo "${ORPHANED_CLUSTERS}"
     if [[ "${ORPHANED_CLUSTERS}" != "" ]]; then
-      slack_notification "Failure" "N/A" "Orphaned clusters:\n${ORPHANED_CLUSTERS}"
+      notify_slack "Failure" "N/A" "Orphaned clusters:\n${ORPHANED_CLUSTERS}"
     fi
   fi
 
@@ -119,7 +119,7 @@ function destroy_clusters() {
     echo "Orphaned volumes:"
     echo "${ORPHANED_VOLUMES}"
     if [[ "${ORPHANED_VOLUMES}" != "" ]]; then
-      slack_notification "Failure" "N/A" "Orphaned volumes:\n${ORPHANED_VOLUMES}" "N/A"
+      notify_slack "Failure" "N/A" "Orphaned volumes:\n${ORPHANED_VOLUMES}" "N/A"
     fi
   fi
 
@@ -128,7 +128,7 @@ function destroy_clusters() {
 
 if [[ "${INPUT_DESTROY_CLUSTERS}" == true ]]; then
   if [[ "${INPUT_CLUSTER_PROVISIONER}" == true ]]; then
-    echo "Inputs cluster_provisioner and destroy_clusters can't be provided simultaneously"
+    >&2 echo "ERROR: Inputs cluster_provisioner and destroy_clusters can't be provided simultaneously."
     exit 1
   fi
 
@@ -147,23 +147,24 @@ fi
 GIT_BRANCH="${GITHUB_REF#refs/heads/}"
 ENVIRONMENT="${GIT_BRANCH}"
 
-function check_cluster_provision_command() {
+function check_cluster_provision_command_valid() {
   if ! [[ "${INPUT_RMK_COMMAND}" =~ provision|destroy ]]; then
-    >&2 echo "ERROR: For provision a cluster, commands only are allowed: provision, destroy"
+    >&2 echo "ERROR: For cluster provisioning and destroy, only the following commands are allowed: provision destroy"
     exit 1
   fi
 }
 
-function check_exits_release_cluster() {
+function check_release_cluster_exists() {
   local EXIT_CODE=0
-    # grep should be case-insensitive and match the RMK's Golang regex ^[a-z]+-\d+
-  for REMOTE_BRANCH in $(git branch -r | grep -i "origin/release/RC-\d\+"); do
+
+  # grep should be case-insensitive and match the RMK's Golang regex ^[a-z]+-\d+
+  for REMOTE_BRANCH in $(git branch -r | grep -i "origin/release/rc-\d\+"); do
     local LOCAL_BRANCH="${REMOTE_BRANCH#origin/}"
 
     git checkout "${LOCAL_BRANCH}"
 
     if ! (rmk config init --progress-bar=false 1> /dev/null); then
-      echo >&2 "Config init failed for branch: \"${LOCAL_BRANCH}\"."
+      echo >&2 "Config init failed for branch: \"${LOCAL_BRANCH}\""
       echo
       # mark as error because initialization is considered required
       EXIT_CODE=1
@@ -172,8 +173,8 @@ function check_exits_release_cluster() {
     fi
 
     if (rmk cluster switch 2> /dev/null); then
-      echo >&2 "One release cluster already exists by the branch: \"${LOCAL_BRANCH}\"."
-      echo >&2 "Please destroy existed cluster and try again."
+      echo >&2 "Release cluster already exists for branch: \"${LOCAL_BRANCH}\""
+      echo >&2 "Destroy existing cluster and try again."
       exit 1
     fi
   done
@@ -185,20 +186,17 @@ function check_exits_release_cluster() {
 
 if [[ "${INPUT_CLUSTER_PROVISIONER}" == "true" ]]; then
   case "${ENVIRONMENT}" in
-  feature/FFS-*)
-    echo
-    echo "Skipped check allowed environment. Running prepare feature cluster from branch \"${ENVIRONMENT}\"."
-    check_cluster_provision_command
-    ;;
-  release/RC-*)
-    echo
-    echo "Skipped check allowed environment. Running prepare release cluster from branch \"${ENVIRONMENT}\"."
-    check_cluster_provision_command
-    ;;
-  *)
-    >&2 echo "ERROR: Provisioning temporary clusters is only allowed from branches with prefixes 'feature/FFS-*' or 'release/v*.'"
-    exit 1
-    ;;
+    feature/FFS-*|release/RC-*)
+      echo
+      echo "Skipped checking allowed environment."
+      echo "Preparing feature cluster for branch: \"${ENVIRONMENT}\""
+      check_cluster_provision_command_valid
+      ;;
+    *)
+      #todo
+      >&2 echo "ERROR: Provisioning temporary clusters is only allowed for the following branch prefixes: feature/FFS-* release/RC-*"
+      exit 1
+      ;;
   esac
 elif [[ "${INPUT_RMK_COMMAND}" != "reindex" && "${INPUT_ROUTES_TEST}" != "true" ]]; then
   ALLOWED_ENVIRONMENTS=("${INPUT_ALLOWED_ENVIRONMENTS/,/ }")
@@ -212,16 +210,16 @@ REPOSITORY_FULL_NAME="${INPUT_REPOSITORY_FULL_NAME}"
 VERSION="${INPUT_VERSION}"
 
 case "${ENVIRONMENT}" in
-develop|feature/FFS-*)
-  export AWS_REGION="${INPUT_CD_DEVELOP_AWS_REGION}"
-  export AWS_ACCESS_KEY_ID="${INPUT_CD_DEVELOP_AWS_ACCESS_KEY_ID}"
-  export AWS_SECRET_ACCESS_KEY="${INPUT_CD_DEVELOP_AWS_SECRET_ACCESS_KEY}"
-  ;;
-staging|release/RC-*)
-  export AWS_REGION="${INPUT_CD_STAGING_AWS_REGION}"
-  export AWS_ACCESS_KEY_ID="${INPUT_CD_STAGING_AWS_ACCESS_KEY_ID}"
-  export AWS_SECRET_ACCESS_KEY="${INPUT_CD_STAGING_AWS_SECRET_ACCESS_KEY}"
-  ;;
+  develop|feature/FFS-*)
+    export AWS_REGION="${INPUT_CD_DEVELOP_AWS_REGION}"
+    export AWS_ACCESS_KEY_ID="${INPUT_CD_DEVELOP_AWS_ACCESS_KEY_ID}"
+    export AWS_SECRET_ACCESS_KEY="${INPUT_CD_DEVELOP_AWS_SECRET_ACCESS_KEY}"
+    ;;
+  staging|release/RC-*)
+    export AWS_REGION="${INPUT_CD_STAGING_AWS_REGION}"
+    export AWS_ACCESS_KEY_ID="${INPUT_CD_STAGING_AWS_ACCESS_KEY_ID}"
+    export AWS_SECRET_ACCESS_KEY="${INPUT_CD_STAGING_AWS_SECRET_ACCESS_KEY}"
+    ;;
 esac
 
 # Slack notification
@@ -245,10 +243,10 @@ else
 fi
 
 if [[ "${INPUT_MONGODB_BACKUP}" == "true" ]]; then
-  export MONGODB_TOOLS_ENABLED=true
+  export MONGODB_TOOLS_ENABLED="true"
 
   if ! (rmk release -- -l name=mongodb-tools sync --set "env.ACTION=backup"); then
-    slack_notification "Failure" ${ENVIRONMENT} "Failure with making MongoDB Backup"
+    notify_slack "Failure" ${ENVIRONMENT} "MongoDB backup failed"
     exit 1
   fi
 
@@ -266,59 +264,60 @@ fi
 case "${INPUT_RMK_COMMAND}" in
 destroy)
   echo
-  echo "Destroy cluster for branch: \"${ENVIRONMENT}\"."
+  echo "Destroy cluster for branch: \"${ENVIRONMENT}\""
+
   if ! (rmk release list); then
-    echo >&2 "Failed to get list of releases for environment: \"${ENVIRONMENT}\"."
+    echo >&2 "Failed to get list of releases for branch: \"${ENVIRONMENT}\""
     exit 1
   fi
 
   if ! (rmk release destroy); then
-    slack_notification "Failure" ${ENVIRONMENT} "Issue with destroying releases"
+    notify_slack "Failure" "${ENVIRONMENT}" "Issue with destroying releases"
     exit 1
   fi
 
   if ! (rmk cluster provision --plan); then
-    echo >&2 "Failed to prepare terraform plan for environment: \"${ENVIRONMENT}\"."
-    slack_notification "Failure" ${ENVIRONMENT} "Issue with getting plan for provision"
+    echo >&2 "Failed to prepare terraform plan for branch: \"${ENVIRONMENT}\""
+    notify_slack "Failure" "${ENVIRONMENT}" "Issue with getting plan for provision"
     exit 1
   fi
 
   if ! (rmk cluster destroy); then
-    slack_notification "Failure" ${ENVIRONMENT} "Issue with destroying cluster"
+    notify_slack "Failure" "${ENVIRONMENT}" "Issue with destroying cluster"
     exit 1
   fi
 
-  slack_notification "Success" ${ENVIRONMENT} "Cluster has been destroyed"
+  notify_slack "Success" "${ENVIRONMENT}" "Cluster has been destroyed"
   ;;
 provision)
   echo
-  echo "Provision cluster for branch: \"${ENVIRONMENT}\"."
+  echo "Provision cluster for branch: \"${ENVIRONMENT}\""
 
   if [[ "${ENVIRONMENT}" =~ release\/RC-* ]]; then
-    check_exits_release_cluster
+    check_release_cluster_exists
   fi
 
   if ! (rmk cluster provision); then
-    slack_notification "Failure" ${ENVIRONMENT} "Issue with cluster provisioning"
+    notify_slack "Failure" "${ENVIRONMENT}" "Issue with cluster provisioning"
     exit 1
   fi
 
   if ! (rmk release list); then
-    echo >&2 "Failed to get list of releases for environment: \"${ENVIRONMENT}\"."
-    slack_notification "Failure" ${ENVIRONMENT} "Issue with getting list of releases"
+    echo >&2 "Failed to get list of releases for environment: \"${ENVIRONMENT}\""
+    notify_slack "Failure" "${ENVIRONMENT}" "Issue with getting list of releases"
     exit 1
   fi
 
   if [[ "${INPUT_MONGODB_RESTORE}" == "true" ]]; then
-    export MONGODB_TOOLS_ENABLED=true
+    export MONGODB_TOOLS_ENABLED="true"
   fi
 
   if ! (rmk release sync); then
-    slack_notification "Failure" ${ENVIRONMENT} "Issue with release sync"
+    notify_slack "Failure" "${ENVIRONMENT}" "Issue with release sync"
     exit 1
   fi
 
-  slack_notification "Success" ${ENVIRONMENT} "Cluster has been provisioned"
+  notify_slack "Success" "${ENVIRONMENT}" "Cluster has been provisioned"
   ;;
 sync)
   FLAGS_SKIP_DEPS=""
@@ -349,16 +348,16 @@ update)
   rmk release update --repository "${REPOSITORY_FULL_NAME}" --tag "${VERSION}" --skip-actions ${FLAGS_COMMIT_DEPLOY}
   ;;
 reindex)
-  export FHIR_SERVER_SEARCH_REINDEXER_ENABLED=true
+  export FHIR_SERVER_SEARCH_REINDEXER_ENABLED="true"
   if [[ "${INPUT_REINDEXER_COLLECTIONS}" != "" ]]; then
     COLLECTIONS_SET="--set env.COLLECTIONS=${INPUT_REINDEXER_COLLECTIONS}"
   fi
   
   if ! (rmk release -- -l name="${INPUT_REINDEXER_RELEASE_NAME}" sync ${COLLECTIONS_SET}); then
-    slack_notification "Failure" ${ENVIRONMENT} "Reindexer job has failed"
+    notify_slack "Failure" ${ENVIRONMENT} "Reindexer job has failed"
     exit 1
   fi
-  slack_notification "Success" ${ENVIRONMENT} "Reindexer job has been completed"
+  notify_slack "Success" ${ENVIRONMENT} "Reindexer job has been completed"
   ;;
 esac
 
