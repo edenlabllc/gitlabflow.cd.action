@@ -154,7 +154,7 @@ function check_cluster_provision_command_valid() {
   fi
 }
 
-function check_release_cluster_exists() {
+function check_release_cluster_not_exist() {
   local EXIT_CODE=0
 
   # grep should be case-insensitive and match the RMK's Golang regex ^[a-z]+-\d+
@@ -246,7 +246,7 @@ if [[ "${INPUT_MONGODB_BACKUP}" == "true" ]]; then
   export MONGODB_TOOLS_ENABLED="true"
 
   if ! (rmk release -- -l name=mongodb-tools sync --set "env.ACTION=backup"); then
-    notify_slack "Failure" ${ENVIRONMENT} "MongoDB backup failed"
+    notify_slack "Failure" "${ENVIRONMENT}" "MongoDB backup failed"
     exit 1
   fi
 
@@ -254,10 +254,11 @@ if [[ "${INPUT_MONGODB_BACKUP}" == "true" ]]; then
 fi
 
 if [[ "${INPUT_ROUTES_TEST}" == "true" ]]; then
-  git clone "https://${GITHUB_TOKEN}@github.com/edenlabllc/fhir.routes.tests.git"
+  git clone "https://${GITHUB_TOKEN}@github.com/${GITHUB_ORG}/fhir.routes.tests.git"
   ENV_DOMAIN="https://$(rmk --lf=json config view | jq -r '.config.RootDomain')"
-  cd fhir.routes.tests && git checkout ${INPUT_ROUTES_TEST_BRANCH} && docker build -t testing .
+  cd fhir.routes.tests && git checkout "${INPUT_ROUTES_TEST_BRANCH}" && docker build -t testing .
   docker run testing -D url="${ENV_DOMAIN}"
+
   exit 0
 fi
 
@@ -272,21 +273,22 @@ destroy)
   fi
 
   if ! (rmk release destroy); then
-    notify_slack "Failure" "${ENVIRONMENT}" "Issue with destroying releases"
+    notify_slack "Failure" "${ENVIRONMENT}" "Destroying releases failed"
     exit 1
   fi
 
   if ! (rmk cluster provision --plan); then
     echo >&2 "Failed to prepare terraform plan for branch: \"${ENVIRONMENT}\""
-    notify_slack "Failure" "${ENVIRONMENT}" "Issue with getting plan for provision"
+    notify_slack "Failure" "${ENVIRONMENT}" "Failed to prepare terraform plan"
     exit 1
   fi
 
   if ! (rmk cluster destroy); then
-    notify_slack "Failure" "${ENVIRONMENT}" "Issue with destroying cluster"
+    notify_slack "Failure" "${ENVIRONMENT}" "Destroying cluster failed"
     exit 1
   fi
 
+  echo "Cluster has been destroyed for branch: \"${ENVIRONMENT}\""
   notify_slack "Success" "${ENVIRONMENT}" "Cluster has been destroyed"
   ;;
 provision)
@@ -294,17 +296,17 @@ provision)
   echo "Provision cluster for branch: \"${ENVIRONMENT}\""
 
   if [[ "${ENVIRONMENT}" =~ release\/RC-* ]]; then
-    check_release_cluster_exists
+    check_release_cluster_not_exist
   fi
 
   if ! (rmk cluster provision); then
-    notify_slack "Failure" "${ENVIRONMENT}" "Issue with cluster provisioning"
+    notify_slack "Failure" "${ENVIRONMENT}" "Cluster provisioning failed"
     exit 1
   fi
 
   if ! (rmk release list); then
-    echo >&2 "Failed to get list of releases for environment: \"${ENVIRONMENT}\""
-    notify_slack "Failure" "${ENVIRONMENT}" "Issue with getting list of releases"
+    echo >&2 "Failed to get list of releases for branch: \"${ENVIRONMENT}\""
+    notify_slack "Failure" "${ENVIRONMENT}" "Failed to get list of releases"
     exit 1
   fi
 
@@ -313,7 +315,7 @@ provision)
   fi
 
   if ! (rmk release sync); then
-    notify_slack "Failure" "${ENVIRONMENT}" "Issue with release sync"
+    notify_slack "Failure" "${ENVIRONMENT}" "Release sync failed"
     exit 1
   fi
 
@@ -354,10 +356,10 @@ reindex)
   fi
   
   if ! (rmk release -- -l name="${INPUT_REINDEXER_RELEASE_NAME}" sync ${COLLECTIONS_SET}); then
-    notify_slack "Failure" ${ENVIRONMENT} "Reindexer job has failed"
+    notify_slack "Failure" "${ENVIRONMENT}" "Reindexer job failed"
     exit 1
   fi
-  notify_slack "Success" ${ENVIRONMENT} "Reindexer job has been completed"
+  notify_slack "Success" ${ENVIRONMENT} "Reindexer job complete"
   ;;
 esac
 
