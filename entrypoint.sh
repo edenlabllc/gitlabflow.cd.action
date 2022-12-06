@@ -5,25 +5,6 @@ set -e
 ############ CD part ###########
 ################################
 
-echo
-echo "Initialize environment variables."
-echo
-echo "Install rmk and dependencies, initialize configuration, run CD."
-
-git config --global "user.name" "github-actions"
-git config --global "user.email" "github-actions@github.com"
-git config --global --add "safe.directory" "/github/workspace"
-
-# exports are required by the installer scripts and rmk
-export GITHUB_TOKEN="${INPUT_GITHUB_TOKEN_REPO_FULL_ACCESS}"
-export CLOUDFLARE_TOKEN="${INPUT_CLOUDFLARE_TOKEN}"
-export GITHUB_ORG="${GITHUB_REPOSITORY%%/*}"
-
-curl -sL "https://edenlabllc-rmk-tools-infra.s3.eu-north-1.amazonaws.com/rmk/s3-installer" | bash -s -- "${INPUT_RMK_VERSION}"
-rmk --version
-
-export TENANT=$(echo "${GITHUB_REPOSITORY}" | cut -d '/' -f2 | cut -d '.' -f1)
-
 function notify_slack() {
   local STATUS="${1}"
   local BRANCH="${2}"
@@ -69,7 +50,7 @@ function destroy_clusters() {
     fi
 
     if ! (rmk config init --progress-bar=false); then
-      echo >&2 "Config init failed for branch: \"${LOCAL_BRANCH}\""
+      >&2 echo "ERROR: Config init failed for branch: \"${LOCAL_BRANCH}\""
       echo
       # mark as error because initialization is considered required
       EXIT_CODE=1
@@ -81,7 +62,7 @@ function destroy_clusters() {
     echo "Destroying cluster for branch: \"${LOCAL_BRANCH}\""
 
     if ! (rmk cluster switch); then
-      echo >&2 "Cluster doesn't exist for branch: \"${LOCAL_BRANCH}\""
+      echo "Cluster doesn't exist for branch: \"${LOCAL_BRANCH}\""
       echo
       continue
     fi
@@ -100,7 +81,7 @@ function destroy_clusters() {
     notify_slack "Success" "${LOCAL_BRANCH}" "Cluster has been destroyed"
   done
 
-  if [[ "${INPUT_CHECK_ORPHANED_CLUSTERS}" == true ]]; then
+  if [[ "${INPUT_CHECK_ORPHANED_CLUSTERS}" == "true" ]]; then
     #todo
     ORPHANED_CLUSTERS="$(aws eks list-clusters --output=json | jq -r '.clusters[] | select(. | test("^'"${TENANT}"'-(ffs|rc)-\\d+-eks$"))')"
     echo
@@ -111,7 +92,7 @@ function destroy_clusters() {
     fi
   fi
 
-  if [[ "${INPUT_CHECK_ORPHANED_VOLUMES}" == true ]]; then
+  if [[ "${INPUT_CHECK_ORPHANED_VOLUMES}" == "true" ]]; then
     # check all volumes in the region because there is no volume tag with a tenant name in AWS
     ORPHANED_VOLUMES="$(aws ec2 describe-volumes --output=json --filters "Name=status,Values=[available,error]" \
       | jq -r '.Volumes[] | (.CreateTime + " " + .AvailabilityZone + " " + .State + " " +  .VolumeId + " " + .VolumeType + " "  + (.Size | tostring) + "GiB")')"
@@ -125,27 +106,6 @@ function destroy_clusters() {
 
   exit ${EXIT_CODE}
 }
-
-if [[ "${INPUT_DESTROY_CLUSTERS}" == true ]]; then
-  if [[ "${INPUT_CLUSTER_PROVISIONER}" == true ]]; then
-    >&2 echo "ERROR: Inputs cluster_provisioner and destroy_clusters can't be provided simultaneously."
-    exit 1
-  fi
-
-  export AWS_REGION="${INPUT_CD_DEVELOP_AWS_REGION}"
-  export AWS_ACCESS_KEY_ID="${INPUT_CD_DEVELOP_AWS_ACCESS_KEY_ID}"
-  export AWS_SECRET_ACCESS_KEY="${INPUT_CD_DEVELOP_AWS_SECRET_ACCESS_KEY}"
-
-  destroy_clusters
-fi
-
-if [[ "${GITHUB_REF}" != refs/heads/* ]]; then
-  >&2 echo "ERROR: Only pushes to branches are supported. Check the workflow's on.push.* section."
-  exit 1
-fi
-
-GIT_BRANCH="${GITHUB_REF#refs/heads/}"
-ENVIRONMENT="${GIT_BRANCH}"
 
 function check_cluster_provision_command_valid() {
   if ! [[ "${INPUT_RMK_COMMAND}" =~ provision|destroy ]]; then
@@ -164,7 +124,7 @@ function check_release_cluster_not_exist() {
     git checkout "${LOCAL_BRANCH}"
 
     if ! (rmk config init --progress-bar=false 1> /dev/null); then
-      echo >&2 "Config init failed for branch: \"${LOCAL_BRANCH}\""
+      >&2 echo "ERROR: Config init failed for branch: \"${LOCAL_BRANCH}\""
       echo
       # mark as error because initialization is considered required
       EXIT_CODE=1
@@ -173,8 +133,8 @@ function check_release_cluster_not_exist() {
     fi
 
     if (rmk cluster switch 2> /dev/null); then
-      echo >&2 "Release cluster already exists for branch: \"${LOCAL_BRANCH}\""
-      echo >&2 "Destroy existing cluster and try again."
+      >&2 echo "ERROR: Release cluster already exists for branch: \"${LOCAL_BRANCH}\""
+      >&2 echo "ERROR: Destroy existing cluster and try again."
       exit 1
     fi
   done
@@ -183,6 +143,48 @@ function check_release_cluster_not_exist() {
 
   return ${EXIT_CODE}
 }
+
+echo
+echo "Initialize environment variables."
+echo
+echo "Install rmk and dependencies, initialize configuration, run CD."
+
+git config --global "user.name" "github-actions"
+git config --global "user.email" "github-actions@github.com"
+git config --global --add "safe.directory" "/github/workspace"
+
+# exports are required by the installer scripts and rmk
+export GITHUB_TOKEN="${INPUT_GITHUB_TOKEN_REPO_FULL_ACCESS}"
+export CLOUDFLARE_TOKEN="${INPUT_CLOUDFLARE_TOKEN}"
+export GITHUB_ORG="${GITHUB_REPOSITORY%%/*}"
+
+GIT_BRANCH="${GITHUB_REF#refs/heads/}"
+ENVIRONMENT="${GIT_BRANCH}"
+REPOSITORY_FULL_NAME="${INPUT_REPOSITORY_FULL_NAME}"
+VERSION="${INPUT_VERSION}"
+
+curl -sL "https://edenlabllc-rmk-tools-infra.s3.eu-north-1.amazonaws.com/rmk/s3-installer" | bash -s -- "${INPUT_RMK_VERSION}"
+rmk --version
+
+export TENANT=$(echo "${GITHUB_REPOSITORY}" | cut -d '/' -f2 | cut -d '.' -f1)
+
+if [[ "${INPUT_DESTROY_CLUSTERS}" == "true" ]]; then
+  if [[ "${INPUT_CLUSTER_PROVISIONER}" == "true" ]]; then
+    >&2 echo "ERROR: Inputs cluster_provisioner and destroy_clusters can't be provided simultaneously."
+    exit 1
+  fi
+
+  export AWS_REGION="${INPUT_CD_DEVELOP_AWS_REGION}"
+  export AWS_ACCESS_KEY_ID="${INPUT_CD_DEVELOP_AWS_ACCESS_KEY_ID}"
+  export AWS_SECRET_ACCESS_KEY="${INPUT_CD_DEVELOP_AWS_SECRET_ACCESS_KEY}"
+
+  destroy_clusters
+fi
+
+if [[ "${GITHUB_REF}" != refs/heads/* ]]; then
+  >&2 echo "ERROR: Only pushes to branches are supported. Check the workflow's on.push.* section."
+  exit 1
+fi
 
 if [[ "${INPUT_CLUSTER_PROVISIONER}" == "true" ]]; then
   case "${ENVIRONMENT}" in
@@ -205,9 +207,6 @@ elif [[ "${INPUT_RMK_COMMAND}" != "reindex" && "${INPUT_ROUTES_TEST}" != "true" 
     exit 1
   fi
 fi
-
-REPOSITORY_FULL_NAME="${INPUT_REPOSITORY_FULL_NAME}"
-VERSION="${INPUT_VERSION}"
 
 case "${ENVIRONMENT}" in
   develop|feature/FFS-*)
@@ -268,7 +267,7 @@ destroy)
   echo "Destroy cluster for branch: \"${ENVIRONMENT}\""
 
   if ! (rmk release list); then
-    echo >&2 "Failed to get list of releases for branch: \"${ENVIRONMENT}\""
+    >&2 echo "ERROR: Failed to get list of releases for branch: \"${ENVIRONMENT}\""
     exit 1
   fi
 
@@ -278,7 +277,7 @@ destroy)
   fi
 
   if ! (rmk cluster provision --plan); then
-    echo >&2 "Failed to prepare terraform plan for branch: \"${ENVIRONMENT}\""
+    >&2 echo "ERROR: Failed to prepare terraform plan for branch: \"${ENVIRONMENT}\""
     notify_slack "Failure" "${ENVIRONMENT}" "Failed to prepare terraform plan"
     exit 1
   fi
@@ -305,7 +304,7 @@ provision)
   fi
 
   if ! (rmk release list); then
-    echo >&2 "Failed to get list of releases for branch: \"${ENVIRONMENT}\""
+    >&2 echo "ERROR: Failed to get list of releases for branch: \"${ENVIRONMENT}\""
     notify_slack "Failure" "${ENVIRONMENT}" "Failed to get list of releases"
     exit 1
   fi
