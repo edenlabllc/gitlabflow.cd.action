@@ -37,7 +37,7 @@ function destroy_clusters() {
   local EXIT_CODE=0
 
   # grep should be case-insensitive and match the RMK's Golang regex ^[a-z]+-\d+
-  for REMOTE_BRANCH in $(git branch -r | grep -i "origin/feature/ffs-\d\+"); do
+  for REMOTE_BRANCH in $(git branch -r | grep -i "origin/feature/ffs-\d\+\|origin/release/rc-\d\+"); do
     local LOCAL_BRANCH="${REMOTE_BRANCH#origin/}"
 
     git checkout "${LOCAL_BRANCH}"
@@ -82,7 +82,6 @@ function destroy_clusters() {
   done
 
   if [[ "${INPUT_CHECK_ORPHANED_CLUSTERS}" == "true" ]]; then
-    #todo
     ORPHANED_CLUSTERS="$(aws eks list-clusters --output=json | jq -r '.clusters[] | select(. | test("^'"${TENANT}"'-(ffs|rc)-\\d+-eks$"))')"
     echo
     echo "Orphaned clusters:"
@@ -187,16 +186,16 @@ if [[ "${GITHUB_REF}" != refs/heads/* ]]; then
 fi
 
 if [[ "${INPUT_CLUSTER_PROVISIONER}" == "true" ]]; then
-  case "${ENVIRONMENT}" in
-    feature/FFS-*|release/RC-*)
+  # transform to lowercase for case-insensitive matching
+  case "${ENVIRONMENT,,}" in
+    feature/ffs-*|release/rc-*)
       echo
       echo "Skipped checking allowed environment."
       echo "Preparing feature cluster for branch: \"${ENVIRONMENT}\""
       check_cluster_provision_command_valid
       ;;
     *)
-      #todo
-      >&2 echo "ERROR: Provisioning temporary clusters is only allowed for the following branch prefixes: feature/FFS-* release/RC-*"
+      >&2 echo "ERROR: Provisioning temporary clusters is only allowed for the following branch prefixes (case-insensitive): feature/ffs-* release/rc-*"
       exit 1
       ;;
   esac
@@ -208,13 +207,14 @@ elif [[ "${INPUT_RMK_COMMAND}" != "reindex" && "${INPUT_ROUTES_TEST}" != "true" 
   fi
 fi
 
-case "${ENVIRONMENT}" in
-  develop|feature/FFS-*)
+# transform to lowercase for case-insensitive matching
+case "${ENVIRONMENT,,}" in
+  develop|feature/ffs-*)
     export AWS_REGION="${INPUT_CD_DEVELOP_AWS_REGION}"
     export AWS_ACCESS_KEY_ID="${INPUT_CD_DEVELOP_AWS_ACCESS_KEY_ID}"
     export AWS_SECRET_ACCESS_KEY="${INPUT_CD_DEVELOP_AWS_SECRET_ACCESS_KEY}"
     ;;
-  staging|release/RC-*)
+  staging|release/rc-*)
     export AWS_REGION="${INPUT_CD_STAGING_AWS_REGION}"
     export AWS_ACCESS_KEY_ID="${INPUT_CD_STAGING_AWS_ACCESS_KEY_ID}"
     export AWS_SECRET_ACCESS_KEY="${INPUT_CD_STAGING_AWS_SECRET_ACCESS_KEY}"
@@ -294,7 +294,8 @@ case "${INPUT_RMK_COMMAND}" in
     echo
     echo "Provision cluster for branch: \"${ENVIRONMENT}\""
 
-    if [[ "${ENVIRONMENT}" =~ release\/RC-* ]]; then
+    # transform to lowercase for case-insensitive matching
+    if [[ "${ENVIRONMENT,,}" =~ release\/rc-* ]]; then
       check_release_cluster_not_exist
     fi
 
