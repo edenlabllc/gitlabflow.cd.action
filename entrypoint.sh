@@ -262,104 +262,104 @@ if [[ "${INPUT_ROUTES_TEST}" == "true" ]]; then
 fi
 
 case "${INPUT_RMK_COMMAND}" in
-destroy)
-  echo
-  echo "Destroy cluster for branch: \"${ENVIRONMENT}\""
+  destroy)
+    echo
+    echo "Destroy cluster for branch: \"${ENVIRONMENT}\""
 
-  if ! (rmk release list); then
-    >&2 echo "ERROR: Failed to get list of releases for branch: \"${ENVIRONMENT}\""
-    exit 1
-  fi
+    if ! (rmk release list); then
+      >&2 echo "ERROR: Failed to get list of releases for branch: \"${ENVIRONMENT}\""
+      exit 1
+    fi
 
-  if ! (rmk release destroy); then
-    notify_slack "Failure" "${ENVIRONMENT}" "Destroying releases failed"
-    exit 1
-  fi
+    if ! (rmk release destroy); then
+      notify_slack "Failure" "${ENVIRONMENT}" "Destroying releases failed"
+      exit 1
+    fi
 
-  if ! (rmk cluster provision --plan); then
-    >&2 echo "ERROR: Failed to prepare terraform plan for branch: \"${ENVIRONMENT}\""
-    notify_slack "Failure" "${ENVIRONMENT}" "Failed to prepare terraform plan"
-    exit 1
-  fi
+    if ! (rmk cluster provision --plan); then
+      >&2 echo "ERROR: Failed to prepare terraform plan for branch: \"${ENVIRONMENT}\""
+      notify_slack "Failure" "${ENVIRONMENT}" "Failed to prepare terraform plan"
+      exit 1
+    fi
 
-  if ! (rmk cluster destroy); then
-    notify_slack "Failure" "${ENVIRONMENT}" "Destroying cluster failed"
-    exit 1
-  fi
+    if ! (rmk cluster destroy); then
+      notify_slack "Failure" "${ENVIRONMENT}" "Destroying cluster failed"
+      exit 1
+    fi
 
-  echo "Cluster has been destroyed for branch: \"${ENVIRONMENT}\""
-  notify_slack "Success" "${ENVIRONMENT}" "Cluster has been destroyed"
-  ;;
-provision)
-  echo
-  echo "Provision cluster for branch: \"${ENVIRONMENT}\""
+    echo "Cluster has been destroyed for branch: \"${ENVIRONMENT}\""
+    notify_slack "Success" "${ENVIRONMENT}" "Cluster has been destroyed"
+    ;;
+  provision)
+    echo
+    echo "Provision cluster for branch: \"${ENVIRONMENT}\""
 
-  if [[ "${ENVIRONMENT}" =~ release\/RC-* ]]; then
-    check_release_cluster_not_exist
-  fi
+    if [[ "${ENVIRONMENT}" =~ release\/RC-* ]]; then
+      check_release_cluster_not_exist
+    fi
 
-  if ! (rmk cluster provision); then
-    notify_slack "Failure" "${ENVIRONMENT}" "Cluster provisioning failed"
-    exit 1
-  fi
+    if ! (rmk cluster provision); then
+      notify_slack "Failure" "${ENVIRONMENT}" "Cluster provisioning failed"
+      exit 1
+    fi
 
-  if ! (rmk release list); then
-    >&2 echo "ERROR: Failed to get list of releases for branch: \"${ENVIRONMENT}\""
-    notify_slack "Failure" "${ENVIRONMENT}" "Failed to get list of releases"
-    exit 1
-  fi
+    if ! (rmk release list); then
+      >&2 echo "ERROR: Failed to get list of releases for branch: \"${ENVIRONMENT}\""
+      notify_slack "Failure" "${ENVIRONMENT}" "Failed to get list of releases"
+      exit 1
+    fi
 
-  if [[ "${INPUT_MONGODB_RESTORE}" == "true" ]]; then
-    export MONGODB_TOOLS_ENABLED="true"
-  fi
+    if [[ "${INPUT_MONGODB_RESTORE}" == "true" ]]; then
+      export MONGODB_TOOLS_ENABLED="true"
+    fi
 
-  if ! (rmk release sync); then
-    notify_slack "Failure" "${ENVIRONMENT}" "Release sync failed"
-    exit 1
-  fi
+    if ! (rmk release sync); then
+      notify_slack "Failure" "${ENVIRONMENT}" "Release sync failed"
+      exit 1
+    fi
 
-  notify_slack "Success" "${ENVIRONMENT}" "Cluster has been provisioned"
-  ;;
-sync)
-  FLAGS_SKIP_DEPS=""
-  if [[ "${INPUT_RMK_SYNC_SKIP_DEPS}" == "true" ]]; then
-    FLAGS_SKIP_DEPS="--skip-deps"
-  fi
+    notify_slack "Success" "${ENVIRONMENT}" "Cluster has been provisioned"
+    ;;
+  sync)
+    FLAGS_SKIP_DEPS=""
+    if [[ "${INPUT_RMK_SYNC_SKIP_DEPS}" == "true" ]]; then
+      FLAGS_SKIP_DEPS="--skip-deps"
+    fi
 
-  FLAGS_LABELS=""
-  if [[ "${INPUT_RMK_SYNC_LABELS}" != "" ]]; then
-    for LABEL in ${INPUT_RMK_SYNC_LABELS}; do
-      FLAGS_LABELS="${FLAGS_LABELS} -l ${LABEL}"
-    done
-  fi
+    FLAGS_LABELS=""
+    if [[ "${INPUT_RMK_SYNC_LABELS}" != "" ]]; then
+      for LABEL in ${INPUT_RMK_SYNC_LABELS}; do
+        FLAGS_LABELS="${FLAGS_LABELS} -l ${LABEL}"
+      done
+    fi
 
-  rmk release -- ${FLAGS_LABELS} sync ${FLAGS_SKIP_DEPS}
-  ;;
-update)
-  if [[ "${INPUT_RMK_UPDATE_HELMFILE_REPOS_COMMAND}" != "" ]]; then
-    rmk release "${INPUT_RMK_UPDATE_HELMFILE_REPOS_COMMAND}"
-  fi
+    rmk release -- ${FLAGS_LABELS} sync ${FLAGS_SKIP_DEPS}
+    ;;
+  update)
+    if [[ "${INPUT_RMK_UPDATE_HELMFILE_REPOS_COMMAND}" != "" ]]; then
+      rmk release "${INPUT_RMK_UPDATE_HELMFILE_REPOS_COMMAND}"
+    fi
 
-  if [[ "${INPUT_RMK_UPDATE_SKIP_DEPLOY}" == "true" ]]; then
-    FLAGS_COMMIT_DEPLOY="--skip-context-switch --commit"
-  else
-    FLAGS_COMMIT_DEPLOY="--deploy"
-  fi
+    if [[ "${INPUT_RMK_UPDATE_SKIP_DEPLOY}" == "true" ]]; then
+      FLAGS_COMMIT_DEPLOY="--skip-context-switch --commit"
+    else
+      FLAGS_COMMIT_DEPLOY="--deploy"
+    fi
 
-  rmk release update --repository "${REPOSITORY_FULL_NAME}" --tag "${VERSION}" --skip-actions ${FLAGS_COMMIT_DEPLOY}
-  ;;
-reindex)
-  export FHIR_SERVER_SEARCH_REINDEXER_ENABLED="true"
-  if [[ "${INPUT_REINDEXER_COLLECTIONS}" != "" ]]; then
-    COLLECTIONS_SET="--set env.COLLECTIONS=${INPUT_REINDEXER_COLLECTIONS}"
-  fi
-  
-  if ! (rmk release -- -l name="${INPUT_REINDEXER_RELEASE_NAME}" sync ${COLLECTIONS_SET}); then
-    notify_slack "Failure" "${ENVIRONMENT}" "Reindexer job failed"
-    exit 1
-  fi
-  notify_slack "Success" ${ENVIRONMENT} "Reindexer job complete"
-  ;;
+    rmk release update --repository "${REPOSITORY_FULL_NAME}" --tag "${VERSION}" --skip-actions ${FLAGS_COMMIT_DEPLOY}
+    ;;
+  reindex)
+    export FHIR_SERVER_SEARCH_REINDEXER_ENABLED="true"
+    if [[ "${INPUT_REINDEXER_COLLECTIONS}" != "" ]]; then
+      COLLECTIONS_SET="--set env.COLLECTIONS=${INPUT_REINDEXER_COLLECTIONS}"
+    fi
+
+    if ! (rmk release -- -l name="${INPUT_REINDEXER_RELEASE_NAME}" sync ${COLLECTIONS_SET}); then
+      notify_slack "Failure" "${ENVIRONMENT}" "Reindexer job failed"
+      exit 1
+    fi
+    notify_slack "Success" ${ENVIRONMENT} "Reindexer job complete"
+    ;;
 esac
 
 # always output action variables, description by link https://github.blog/changelog/2022-10-11-github-actions-deprecating-save-state-and-set-output-commands/
