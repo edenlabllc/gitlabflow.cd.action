@@ -123,7 +123,6 @@ inputs:
   reindexer_collections:
     description: Collections to reindex (if empty, then reindex all from values).
     required: false
-
 outputs:
   git_branch:
     description: Git branch.

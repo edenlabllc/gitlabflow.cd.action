@@ -145,8 +145,6 @@ function check_release_cluster_not_exist() {
 
 echo
 echo "Initialize environment variables."
-echo
-echo "Install rmk and dependencies, initialize configuration, run CD."
 
 git config --global "user.name" "github-actions"
 git config --global "user.email" "github-actions@github.com"
@@ -162,6 +160,8 @@ ENVIRONMENT="${GIT_BRANCH}"
 REPOSITORY_FULL_NAME="${INPUT_REPOSITORY_FULL_NAME}"
 VERSION="${INPUT_VERSION}"
 
+echo
+echo "Install RMK."
 curl -sL "https://edenlabllc-rmk-tools-infra.s3.eu-north-1.amazonaws.com/rmk/s3-installer" | bash -s -- "${INPUT_RMK_VERSION}"
 rmk --version
 
@@ -190,8 +190,8 @@ if [[ "${INPUT_CLUSTER_PROVISIONER}" == "true" ]]; then
   case "${ENVIRONMENT,,}" in
     feature/ffs-*|release/rc-*)
       echo
-      echo "Skipped checking allowed environment."
-      echo "Preparing feature cluster for branch: \"${ENVIRONMENT}\""
+      echo "Skipped checking allowed environments."
+      echo "Preparing temporary cluster for branch: \"${ENVIRONMENT}\""
       check_cluster_provision_command_valid
       ;;
     *)
