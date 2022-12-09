@@ -242,17 +242,6 @@ else
   rmk config init --progress-bar=false
 fi
 
-if [[ "${INPUT_MONGODB_BACKUP}" == "true" ]]; then
-  export MONGODB_TOOLS_ENABLED="true"
-
-  if ! (rmk release -- -l name=mongodb-tools sync --set "env.ACTION=backup"); then
-    notify_slack "Failure" "${ENVIRONMENT}" "MongoDB backup failed"
-    exit 1
-  fi
-
-  exit 0
-fi
-
 if [[ "${INPUT_ROUTES_TEST}" == "true" ]]; then
   git clone "https://${GITHUB_TOKEN}@github.com/${GITHUB_ORG}/fhir.routes.tests.git"
   ENV_DOMAIN="https://$(rmk --lf=json config view | jq -r '.config.RootDomain')"
@@ -311,10 +300,6 @@ case "${INPUT_RMK_COMMAND}" in
       exit 1
     fi
 
-    if [[ "${INPUT_MONGODB_RESTORE}" == "true" ]]; then
-      export MONGODB_TOOLS_ENABLED="true"
-    fi
-
     if ! (rmk release sync); then
       notify_slack "Failure" "${ENVIRONMENT}" "Release sync failed"
       exit 1
@@ -323,11 +308,6 @@ case "${INPUT_RMK_COMMAND}" in
     notify_slack "Success" "${ENVIRONMENT}" "Cluster has been provisioned"
     ;;
   sync)
-    FLAGS_SKIP_DEPS=""
-    if [[ "${INPUT_RMK_SYNC_SKIP_DEPS}" == "true" ]]; then
-      FLAGS_SKIP_DEPS="--skip-deps"
-    fi
-
     FLAGS_LABELS=""
     if [[ "${INPUT_RMK_SYNC_LABELS}" != "" ]]; then
       for LABEL in ${INPUT_RMK_SYNC_LABELS}; do
@@ -335,7 +315,7 @@ case "${INPUT_RMK_COMMAND}" in
       done
     fi
 
-    rmk release -- ${FLAGS_LABELS} sync ${FLAGS_SKIP_DEPS}
+    rmk release -- ${FLAGS_LABELS} sync
     ;;
   update)
     if [[ "${INPUT_RMK_UPDATE_HELMFILE_REPOS_COMMAND}" != "" ]]; then
