@@ -14,15 +14,15 @@ function notify_slack() {
   local ICON_URL="https://img.icons8.com/ios-filled/50/000000/0-degrees.png"
 
   case "${STATUS}" in
-    Success)
-      ICON_URL="https://img.icons8.com/doodle/48/000000/add.png"
-      ;;
-    Failure)
-      ICON_URL="https://img.icons8.com/office/40/000000/minus.png"
-      ;;
-    Skip)
-      ICON_URL="https://img.icons8.com/ios-filled/50/000000/0-degrees.png"
-      ;;
+  Success)
+    ICON_URL="https://img.icons8.com/doodle/48/000000/add.png"
+    ;;
+  Failure)
+    ICON_URL="https://img.icons8.com/office/40/000000/minus.png"
+    ;;
+  Skip)
+    ICON_URL="https://img.icons8.com/ios-filled/50/000000/0-degrees.png"
+    ;;
   esac
 
   curl \
@@ -189,16 +189,16 @@ fi
 if [[ "${INPUT_CLUSTER_PROVISIONER}" == "true" ]]; then
   # transform to lowercase for case-insensitive matching
   case "${ENVIRONMENT,,}" in
-    feature/ffs-*|release/rc-*)
-      echo
-      echo "Skipped checking allowed environments."
-      echo "Preparing temporary cluster for branch: \"${ENVIRONMENT}\""
-      check_cluster_provision_command_valid
-      ;;
-    *)
-      >&2 echo "ERROR: Provisioning temporary clusters is only allowed for the following branch prefixes (case-insensitive): feature/ffs-* release/rc-*"
-      exit 1
-      ;;
+  feature/ffs-*|release/rc-*)
+    echo
+    echo "Skipped checking allowed environments."
+    echo "Preparing temporary cluster for branch: \"${ENVIRONMENT}\""
+    check_cluster_provision_command_valid
+    ;;
+  *)
+    >&2 echo "ERROR: Provisioning temporary clusters is only allowed for the following branch prefixes (case-insensitive): feature/ffs-* release/rc-*"
+    exit 1
+    ;;
   esac
 elif [[ "${INPUT_RMK_COMMAND}" != "reindex" && "${INPUT_ROUTES_TEST}" != "true" ]]; then
   ALLOWED_ENVIRONMENTS=("${INPUT_ALLOWED_ENVIRONMENTS/,/ }")
@@ -210,16 +210,16 @@ fi
 
 # transform to lowercase for case-insensitive matching
 case "${ENVIRONMENT,,}" in
-  develop|feature/ffs-*)
-    export AWS_REGION="${INPUT_CD_DEVELOP_AWS_REGION}"
-    export AWS_ACCESS_KEY_ID="${INPUT_CD_DEVELOP_AWS_ACCESS_KEY_ID}"
-    export AWS_SECRET_ACCESS_KEY="${INPUT_CD_DEVELOP_AWS_SECRET_ACCESS_KEY}"
-    ;;
-  staging|release/rc-*)
-    export AWS_REGION="${INPUT_CD_STAGING_AWS_REGION}"
-    export AWS_ACCESS_KEY_ID="${INPUT_CD_STAGING_AWS_ACCESS_KEY_ID}"
-    export AWS_SECRET_ACCESS_KEY="${INPUT_CD_STAGING_AWS_SECRET_ACCESS_KEY}"
-    ;;
+develop|feature/ffs-*)
+  export AWS_REGION="${INPUT_CD_DEVELOP_AWS_REGION}"
+  export AWS_ACCESS_KEY_ID="${INPUT_CD_DEVELOP_AWS_ACCESS_KEY_ID}"
+  export AWS_SECRET_ACCESS_KEY="${INPUT_CD_DEVELOP_AWS_SECRET_ACCESS_KEY}"
+  ;;
+staging|release/rc-*)
+  export AWS_REGION="${INPUT_CD_STAGING_AWS_REGION}"
+  export AWS_ACCESS_KEY_ID="${INPUT_CD_STAGING_AWS_ACCESS_KEY_ID}"
+  export AWS_SECRET_ACCESS_KEY="${INPUT_CD_STAGING_AWS_SECRET_ACCESS_KEY}"
+  ;;
 esac
 
 # Slack notification
@@ -252,96 +252,96 @@ if [[ "${INPUT_ROUTES_TEST}" == "true" ]]; then
 fi
 
 case "${INPUT_RMK_COMMAND}" in
-  destroy)
-    echo
-    echo "Destroy cluster for branch: \"${ENVIRONMENT}\""
+destroy)
+  echo
+  echo "Destroy cluster for branch: \"${ENVIRONMENT}\""
 
-    if ! (rmk release list); then
-      >&2 echo "ERROR: Failed to get list of releases for branch: \"${ENVIRONMENT}\""
-      exit 1
-    fi
+  if ! (rmk release list); then
+    >&2 echo "ERROR: Failed to get list of releases for branch: \"${ENVIRONMENT}\""
+    exit 1
+  fi
 
-    if ! (rmk release destroy); then
-      notify_slack "Failure" "${ENVIRONMENT}" "Destroying releases failed"
-      exit 1
-    fi
+  if ! (rmk release destroy); then
+    notify_slack "Failure" "${ENVIRONMENT}" "Destroying releases failed"
+    exit 1
+  fi
 
-    if ! (rmk cluster provision --plan); then
-      >&2 echo "ERROR: Failed to prepare terraform plan for branch: \"${ENVIRONMENT}\""
-      notify_slack "Failure" "${ENVIRONMENT}" "Failed to prepare terraform plan"
-      exit 1
-    fi
+  if ! (rmk cluster provision --plan); then
+    >&2 echo "ERROR: Failed to prepare terraform plan for branch: \"${ENVIRONMENT}\""
+    notify_slack "Failure" "${ENVIRONMENT}" "Failed to prepare terraform plan"
+    exit 1
+  fi
 
-    if ! (rmk cluster destroy); then
-      notify_slack "Failure" "${ENVIRONMENT}" "Destroying cluster failed"
-      exit 1
-    fi
+  if ! (rmk cluster destroy); then
+    notify_slack "Failure" "${ENVIRONMENT}" "Destroying cluster failed"
+    exit 1
+  fi
 
-    echo "Cluster has been destroyed for branch: \"${ENVIRONMENT}\""
-    notify_slack "Success" "${ENVIRONMENT}" "Cluster has been destroyed"
-    ;;
-  provision)
-    echo
-    echo "Provision cluster for branch: \"${ENVIRONMENT}\""
+  echo "Cluster has been destroyed for branch: \"${ENVIRONMENT}\""
+  notify_slack "Success" "${ENVIRONMENT}" "Cluster has been destroyed"
+  ;;
+provision)
+  echo
+  echo "Provision cluster for branch: \"${ENVIRONMENT}\""
 
-    # transform to lowercase for case-insensitive matching
-    if [[ "${ENVIRONMENT,,}" =~ release\/rc-* ]]; then
-      check_release_cluster_not_exist
-    fi
+  # transform to lowercase for case-insensitive matching
+  if [[ "${ENVIRONMENT,,}" =~ release\/rc-* ]]; then
+    check_release_cluster_not_exist
+  fi
 
-    if ! (rmk cluster provision); then
-      notify_slack "Failure" "${ENVIRONMENT}" "Cluster provisioning failed"
-      exit 1
-    fi
+  if ! (rmk cluster provision); then
+    notify_slack "Failure" "${ENVIRONMENT}" "Cluster provisioning failed"
+    exit 1
+  fi
 
-    if ! (rmk release list); then
-      >&2 echo "ERROR: Failed to get list of releases for branch: \"${ENVIRONMENT}\""
-      notify_slack "Failure" "${ENVIRONMENT}" "Failed to get list of releases"
-      exit 1
-    fi
+  if ! (rmk release list); then
+    >&2 echo "ERROR: Failed to get list of releases for branch: \"${ENVIRONMENT}\""
+    notify_slack "Failure" "${ENVIRONMENT}" "Failed to get list of releases"
+    exit 1
+  fi
 
-    if ! (rmk release sync); then
-      notify_slack "Failure" "${ENVIRONMENT}" "Release sync failed"
-      exit 1
-    fi
+  if ! (rmk release sync); then
+    notify_slack "Failure" "${ENVIRONMENT}" "Release sync failed"
+    exit 1
+  fi
 
-    notify_slack "Success" "${ENVIRONMENT}" "Cluster has been provisioned"
-    ;;
-  sync)
-    FLAGS_LABELS=""
-    if [[ "${INPUT_RMK_SYNC_LABELS}" != "" ]]; then
-      for LABEL in ${INPUT_RMK_SYNC_LABELS}; do
-        FLAGS_LABELS="${FLAGS_LABELS} -l ${LABEL}"
-      done
-    fi
+  notify_slack "Success" "${ENVIRONMENT}" "Cluster has been provisioned"
+  ;;
+sync)
+  FLAGS_LABELS=""
+  if [[ "${INPUT_RMK_SYNC_LABELS}" != "" ]]; then
+    for LABEL in ${INPUT_RMK_SYNC_LABELS}; do
+      FLAGS_LABELS="${FLAGS_LABELS} -l ${LABEL}"
+    done
+  fi
 
-    rmk release -- ${FLAGS_LABELS} sync
-    ;;
-  update)
-    if [[ "${INPUT_RMK_UPDATE_HELMFILE_REPOS_COMMAND}" != "" ]]; then
-      rmk release "${INPUT_RMK_UPDATE_HELMFILE_REPOS_COMMAND}"
-    fi
+  rmk release -- ${FLAGS_LABELS} sync
+  ;;
+update)
+  if [[ "${INPUT_RMK_UPDATE_HELMFILE_REPOS_COMMAND}" != "" ]]; then
+    rmk release "${INPUT_RMK_UPDATE_HELMFILE_REPOS_COMMAND}"
+  fi
 
-    if [[ "${INPUT_RMK_UPDATE_SKIP_DEPLOY}" == "true" ]]; then
-      FLAGS_COMMIT_DEPLOY="--skip-context-switch --commit"
-    else
-      FLAGS_COMMIT_DEPLOY="--deploy"
-    fi
+  if [[ "${INPUT_RMK_UPDATE_SKIP_DEPLOY}" == "true" ]]; then
+    FLAGS_COMMIT_DEPLOY="--skip-context-switch --commit"
+  else
+    FLAGS_COMMIT_DEPLOY="--deploy"
+  fi
 
-    rmk release update --repository "${REPOSITORY_FULL_NAME}" --tag "${VERSION}" --skip-actions ${FLAGS_COMMIT_DEPLOY}
-    ;;
-  reindex)
-    export FHIR_SERVER_SEARCH_REINDEXER_ENABLED="true"
-    if [[ "${INPUT_REINDEXER_COLLECTIONS}" != "" ]]; then
-      COLLECTIONS_SET="--set env.COLLECTIONS=${INPUT_REINDEXER_COLLECTIONS}"
-    fi
+  rmk release update --repository "${REPOSITORY_FULL_NAME}" --tag "${VERSION}" --skip-actions ${FLAGS_COMMIT_DEPLOY}
+  ;;
+reindex)
+  export FHIR_SERVER_SEARCH_REINDEXER_ENABLED="true"
+  if [[ "${INPUT_REINDEXER_COLLECTIONS}" != "" ]]; then
+    COLLECTIONS_SET="--set env.COLLECTIONS=${INPUT_REINDEXER_COLLECTIONS}"
+  fi
 
-    if ! (rmk release -- -l name="${INPUT_REINDEXER_RELEASE_NAME}" sync ${COLLECTIONS_SET}); then
-      notify_slack "Failure" "${ENVIRONMENT}" "Reindexer job failed"
-      exit 1
-    fi
-    notify_slack "Success" ${ENVIRONMENT} "Reindexer job complete"
-    ;;
+  if ! (rmk release -- -l name="${INPUT_REINDEXER_RELEASE_NAME}" sync ${COLLECTIONS_SET}); then
+    notify_slack "Failure" "${ENVIRONMENT}" "Reindexer job failed"
+    exit 1
+  fi
+  notify_slack "Success" ${ENVIRONMENT} "Reindexer job complete"
+  ;;
 esac
 
 # always output action variables, description by link https://github.blog/changelog/2022-10-11-github-actions-deprecating-save-state-and-set-output-commands/
