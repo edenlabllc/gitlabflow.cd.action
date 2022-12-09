@@ -74,7 +74,7 @@ inputs:
     required: false
     default: false
   rmk_sync_skip_deps:
-    description: [DEPRECATED] Whether to skip running "helm repo update" and "helm dependency build" when running sync in rmk (only if rmk_command=sync).
+    description: DEPRECATED Whether to skip running "helm repo update" and "helm dependency build" when running sync in rmk (only if rmk_command=sync).
     required: false
     default: false
   rmk_sync_labels:
@@ -105,11 +105,11 @@ inputs:
     required: false
     default: false
   mongodb_backup:
-    description: [DEPRECATED] Make new backup of MongoDB databases.
+    description: DEPRECATED Make new backup of MongoDB databases.
     required: false
     default: false
   mongodb_restore:
-    description: [DEPRECATED] Restore backup of MongoDB databases.
+    description: DEPRECATED Restore backup of MongoDB databases.
     required: false
     default: false
   routes_test:
