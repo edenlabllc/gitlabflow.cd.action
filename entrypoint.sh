@@ -95,7 +95,7 @@ function destroy_clusters() {
   if [[ "${INPUT_CHECK_ORPHANED_VOLUMES}" == "true" ]]; then
     # check all volumes in the region because there is no volume tag with a tenant name in AWS
     ORPHANED_VOLUMES="$(aws ec2 describe-volumes --output=json --filters "Name=status,Values=[available,error]" \
-      | jq -r '.Volumes[] | (.CreateTime + " " + .AvailabilityZone + " " + .State + " " +  .VolumeId + " " + .VolumeType + " "  + (.Size | tostring) + "GiB")')"
+      | jq -r '.Volumes[] | (.CreateTime + " " + .AvailabilityZone + " " +  .VolumeId + " " + (.Tags | map(select(.Key=="Name" or .Key=="kubernetes.io/created-for/pvc/name") | .Value) | join(" ")) + " " + .State + " " + .VolumeType + " "  + (.Size | tostring) + "GiB")')"
     echo
     echo "Orphaned volumes:"
     echo "${ORPHANED_VOLUMES}"
