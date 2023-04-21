@@ -33,11 +33,27 @@ function notify_slack() {
     "${INPUT_RMK_SLACK_WEBHOOK}"
 }
 
+# constants for selecting branches
+readonly SEMVER_REGEXP_DEVELOP="v\d\+.\d\+.\d\+-develop"
+readonly SEMVER_REGEXP_STAGING="v\d\+.\d\+.\d\+-staging"
+
+readonly PREFIX_FEATURE_BRANCH="feature"
+readonly PREFIX_RELEASE_BRANCH="release"
+
+readonly SELECT_FEATURE_BRANCHES="${PREFIX_FEATURE_BRANCH}/ffs-\d\+\|${PREFIX_FEATURE_BRANCH}/${SEMVER_REGEXP_DEVELOP}"
+readonly SELECT_RELEASE_BRANCHES="${PREFIX_RELEASE_BRANCH}/rc-\d\+\|${PREFIX_RELEASE_BRANCH}/${SEMVER_REGEXP_STAGING}"
+
+readonly SELECT_ORIGIN_FEATURE_BRANCHES="origin/${PREFIX_FEATURE_BRANCH}/ffs-\d\+\|origin/${PREFIX_FEATURE_BRANCH}/${SEMVER_REGEXP_DEVELOP}"
+readonly SELECT_ORIGIN_RELEASE_BRANCHES="origin/${PREFIX_RELEASE_BRANCH}/rc-\d\+\|origin/${PREFIX_RELEASE_BRANCH}/${SEMVER_REGEXP_STAGING}"
+
+readonly SELECT_ALL_BRANCHES="${SELECT_FEATURE_BRANCHES}\|${SELECT_RELEASE_BRANCHES}"
+readonly SELECT_ORIGIN_ALL_BRANCHES="${SELECT_ORIGIN_FEATURE_BRANCHES}\|${SELECT_ORIGIN_RELEASE_BRANCHES}"
+
 function destroy_clusters() {
   local EXIT_CODE=0
 
-  # grep should be case-insensitive and match the RMK's Golang regex ^[a-z]+-\d+
-  for REMOTE_BRANCH in $(git branch -r | grep -i "origin/feature/ffs-\d\+\|origin/release/rc-\d\+"); do
+  # grep should be case-insensitive and match the RMK's Golang regex ^[a-z]+-\d+; ^v\d+\.\d+\.\d+-
+  for REMOTE_BRANCH in $(git branch -r | grep -i "\^${SELECT_ORIGIN_ALL_BRANCHES}\$"); do
     local LOCAL_BRANCH="${REMOTE_BRANCH#origin/}"
 
     git checkout "${LOCAL_BRANCH}"
@@ -117,8 +133,8 @@ function check_cluster_provision_command_valid() {
 function check_release_cluster_not_exist() {
   local EXIT_CODE=0
 
-  # grep should be case-insensitive and match the RMK's Golang regex ^[a-z]+-\d+
-  for REMOTE_BRANCH in $(git branch -r | grep -i "origin/release/rc-\d\+"); do
+  # grep should be case-insensitive and match the RMK's Golang regex ^[a-z]+-\d+; ^v\d+\.\d+\.\d+-
+  for REMOTE_BRANCH in $(git branch -r | grep -i "^${SELECT_ORIGIN_RELEASE_BRANCHES}\$"); do
     local LOCAL_BRANCH="${REMOTE_BRANCH#origin/}"
 
     git checkout "${LOCAL_BRANCH}"
@@ -188,18 +204,15 @@ fi
 
 if [[ "${INPUT_CLUSTER_PROVISIONER}" == "true" ]]; then
   # transform to lowercase for case-insensitive matching
-  case "${ENVIRONMENT,,}" in
-  feature/ffs-*|release/rc-*)
+  if echo "${ENVIRONMENT}" | grep -i "^${SELECT_ALL_BRANCHES}\$" &> /dev/null; then
     echo
     echo "Skipped checking allowed environments."
     echo "Preparing temporary cluster for branch: \"${ENVIRONMENT}\""
     check_cluster_provision_command_valid
-    ;;
-  *)
+  else
     >&2 echo "ERROR: Provisioning temporary clusters is only allowed for the following branch prefixes (case-insensitive): feature/ffs-* release/rc-*"
     exit 1
-    ;;
-  esac
+  fi
 elif [[ "${INPUT_RMK_COMMAND}" != "reindex" && "${INPUT_ROUTES_TEST}" != "true" ]]; then
   ALLOWED_ENVIRONMENTS=("${INPUT_ALLOWED_ENVIRONMENTS/,/ }")
   if [[ ! " ${ALLOWED_ENVIRONMENTS[*]} " =~ " ${ENVIRONMENT} " ]]; then
@@ -209,18 +222,15 @@ elif [[ "${INPUT_RMK_COMMAND}" != "reindex" && "${INPUT_ROUTES_TEST}" != "true" 
 fi
 
 # transform to lowercase for case-insensitive matching
-case "${ENVIRONMENT,,}" in
-develop|feature/ffs-*)
+if echo "${ENVIRONMENT}" | grep -i "^develop\|${SELECT_FEATURE_BRANCHES}\$" &> /dev/null; then
   export AWS_REGION="${INPUT_CD_DEVELOP_AWS_REGION}"
   export AWS_ACCESS_KEY_ID="${INPUT_CD_DEVELOP_AWS_ACCESS_KEY_ID}"
   export AWS_SECRET_ACCESS_KEY="${INPUT_CD_DEVELOP_AWS_SECRET_ACCESS_KEY}"
-  ;;
-staging|release/rc-*)
+elif echo "${ENVIRONMENT}" | grep -i "^staging\|${SELECT_RELEASE_BRANCHES}\$" &> /dev/null; then
   export AWS_REGION="${INPUT_CD_STAGING_AWS_REGION}"
   export AWS_ACCESS_KEY_ID="${INPUT_CD_STAGING_AWS_ACCESS_KEY_ID}"
   export AWS_SECRET_ACCESS_KEY="${INPUT_CD_STAGING_AWS_SECRET_ACCESS_KEY}"
-  ;;
-esac
+fi
 
 # Slack notification
 if [[ "${INPUT_RMK_SLACK_NOTIFICATIONS}" == "true" ]]; then
