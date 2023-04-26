@@ -53,7 +53,7 @@ function destroy_clusters() {
   local EXIT_CODE=0
 
   # grep should be case-insensitive and match the RMK's Golang regex ^[a-z]+-\d+; ^v\d+\.\d+\.\d+-
-  for REMOTE_BRANCH in $(git branch -r | grep -i "\^${SELECT_ORIGIN_ALL_BRANCHES}\$"); do
+  for REMOTE_BRANCH in $(git branch -r | grep -i "^${SELECT_ORIGIN_ALL_BRANCHES}\$"); do
     local LOCAL_BRANCH="${REMOTE_BRANCH#origin/}"
 
     git checkout "${LOCAL_BRANCH}"
