@@ -53,7 +53,7 @@ function destroy_clusters() {
   local EXIT_CODE=0
 
   # grep should be case-insensitive and match the RMK's Golang regex ^[a-z]+-\d+; ^v\d+\.\d+\.\d+-
-  for REMOTE_BRANCH in $(git branch -r | grep -i "^${SELECT_ORIGIN_ALL_BRANCHES}\$"); do
+  for REMOTE_BRANCH in $(git branch -r | grep -i "${SELECT_ORIGIN_ALL_BRANCHES}"); do
     local LOCAL_BRANCH="${REMOTE_BRANCH#origin/}"
 
     git checkout "${LOCAL_BRANCH}"
@@ -134,7 +134,7 @@ function check_release_cluster_not_exist() {
   local EXIT_CODE=0
 
   # grep should be case-insensitive and match the RMK's Golang regex ^[a-z]+-\d+; ^v\d+\.\d+\.\d+-
-  for REMOTE_BRANCH in $(git branch -r | grep -i "^${SELECT_ORIGIN_RELEASE_BRANCHES}\$"); do
+  for REMOTE_BRANCH in $(git branch -r | grep -i "${SELECT_ORIGIN_RELEASE_BRANCHES}"); do
     local LOCAL_BRANCH="${REMOTE_BRANCH#origin/}"
 
     git checkout "${LOCAL_BRANCH}"
@@ -204,7 +204,7 @@ fi
 
 if [[ "${INPUT_CLUSTER_PROVISIONER}" == "true" ]]; then
   # transform to lowercase for case-insensitive matching
-  if echo "${ENVIRONMENT}" | grep -i "^${SELECT_ALL_BRANCHES}\$" &> /dev/null; then
+  if echo "${ENVIRONMENT}" | grep -i "${SELECT_ALL_BRANCHES}" &> /dev/null; then
     echo
     echo "Skipped checking allowed environments."
     echo "Preparing temporary cluster for branch: \"${ENVIRONMENT}\""
@@ -222,11 +222,11 @@ elif [[ "${INPUT_RMK_COMMAND}" != "reindex" && "${INPUT_ROUTES_TEST}" != "true" 
 fi
 
 # transform to lowercase for case-insensitive matching
-if echo "${ENVIRONMENT}" | grep -i "^develop\|${SELECT_FEATURE_BRANCHES}\$" &> /dev/null; then
+if echo "${ENVIRONMENT}" | grep -i "develop\|${SELECT_FEATURE_BRANCHES}" &> /dev/null; then
   export AWS_REGION="${INPUT_CD_DEVELOP_AWS_REGION}"
   export AWS_ACCESS_KEY_ID="${INPUT_CD_DEVELOP_AWS_ACCESS_KEY_ID}"
   export AWS_SECRET_ACCESS_KEY="${INPUT_CD_DEVELOP_AWS_SECRET_ACCESS_KEY}"
-elif echo "${ENVIRONMENT}" | grep -i "^staging\|${SELECT_RELEASE_BRANCHES}\$" &> /dev/null; then
+elif echo "${ENVIRONMENT}" | grep -i "staging\|${SELECT_RELEASE_BRANCHES}" &> /dev/null; then
   export AWS_REGION="${INPUT_CD_STAGING_AWS_REGION}"
   export AWS_ACCESS_KEY_ID="${INPUT_CD_STAGING_AWS_ACCESS_KEY_ID}"
   export AWS_SECRET_ACCESS_KEY="${INPUT_CD_STAGING_AWS_SECRET_ACCESS_KEY}"
