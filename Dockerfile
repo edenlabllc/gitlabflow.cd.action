@@ -8,7 +8,8 @@ RUN apk --no-cache add \
     python3 \
     py3-pip \
     bind-tools \
-    && pip3 install awscli
+    && pip3 install awscli \
+    && pip3 install --upgrade urllib3
 
 # install manually to pass image scanning, see https://github.com/stedolan/jq/issues/1406#issuecomment-672270758
 ARG JQ_VERSION=1.6
