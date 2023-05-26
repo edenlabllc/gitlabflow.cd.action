@@ -130,12 +130,17 @@ function check_cluster_provision_command_valid() {
   fi
 }
 
-function check_release_cluster_not_exist() {
+function check_another_release_cluster_not_exist() {
   local EXIT_CODE=0
 
   # grep should be case-insensitive and match the RMK's Golang regex ^[a-z]+-\d+; ^v\d+\.\d+\.\d+-
   for REMOTE_BRANCH in $(git branch -r | grep -i "${SELECT_ORIGIN_RELEASE_BRANCHES}"); do
     local LOCAL_BRANCH="${REMOTE_BRANCH#origin/}"
+
+    # skip current cluster
+    if [[ "${LOCAL_BRANCH}" == "${ENVIRONMENT}" ]]; then
+      continue
+    fi
 
     git checkout "${LOCAL_BRANCH}"
 
@@ -149,8 +154,8 @@ function check_release_cluster_not_exist() {
     fi
 
     if (rmk cluster switch 2> /dev/null); then
-      >&2 echo "ERROR: Release cluster already exists for branch: \"${LOCAL_BRANCH}\""
-      >&2 echo "ERROR: Destroy existing cluster and try again."
+      >&2 echo "ERROR: Another release cluster already exists for branch: \"${LOCAL_BRANCH}\""
+      >&2 echo "ERROR: Destroy one of the clusters and try again."
       exit 1
     fi
   done
@@ -296,7 +301,7 @@ provision)
 
   # transform to lowercase for case-insensitive matching
   if [[ "${ENVIRONMENT,,}" =~ release\/rc-* ]]; then
-    check_release_cluster_not_exist
+    check_another_release_cluster_not_exist
   fi
 
   if ! (rmk cluster provision); then
