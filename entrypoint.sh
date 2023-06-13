@@ -34,20 +34,64 @@ function notify_slack() {
 }
 
 # constants for selecting branches
-readonly SEMVER_REGEXP_DEVELOP="v\d\+.\d\+.\d\+-develop"
-readonly SEMVER_REGEXP_STAGING="v\d\+.\d\+.\d\+-staging"
+readonly TASK_NUM_REGEXP="[a-z]\+-\d\+"
+readonly SEMVER_REGEXP="v\d\+.\d\+.\d\+\(-rc\)\?\$"
 
 readonly PREFIX_FEATURE_BRANCH="feature"
 readonly PREFIX_RELEASE_BRANCH="release"
 
-readonly SELECT_FEATURE_BRANCHES="${PREFIX_FEATURE_BRANCH}/ffs-\d\+\|${PREFIX_FEATURE_BRANCH}/${SEMVER_REGEXP_DEVELOP}"
-readonly SELECT_RELEASE_BRANCHES="${PREFIX_RELEASE_BRANCH}/rc-\d\+\|${PREFIX_RELEASE_BRANCH}/${SEMVER_REGEXP_STAGING}"
+readonly SELECT_FEATURE_BRANCHES="${PREFIX_FEATURE_BRANCH}/${TASK_NUM_REGEXP}"
+readonly SELECT_RELEASE_BRANCHES="${PREFIX_RELEASE_BRANCH}/${TASK_NUM_REGEXP}\|${PREFIX_RELEASE_BRANCH}/${SEMVER_REGEXP}"
 
-readonly SELECT_ORIGIN_FEATURE_BRANCHES="origin/${PREFIX_FEATURE_BRANCH}/ffs-\d\+\|origin/${PREFIX_FEATURE_BRANCH}/${SEMVER_REGEXP_DEVELOP}"
-readonly SELECT_ORIGIN_RELEASE_BRANCHES="origin/${PREFIX_RELEASE_BRANCH}/rc-\d\+\|origin/${PREFIX_RELEASE_BRANCH}/${SEMVER_REGEXP_STAGING}"
+readonly SELECT_ORIGIN_FEATURE_BRANCHES="origin/${PREFIX_FEATURE_BRANCH}/${TASK_NUM_REGEXP}"
+readonly SELECT_ORIGIN_RELEASE_BRANCHES="origin/${PREFIX_RELEASE_BRANCH}/${TASK_NUM_REGEXP}\|origin/${PREFIX_RELEASE_BRANCH}/${SEMVER_REGEXP}"
 
 readonly SELECT_ALL_BRANCHES="${SELECT_FEATURE_BRANCHES}\|${SELECT_RELEASE_BRANCHES}"
 readonly SELECT_ORIGIN_ALL_BRANCHES="${SELECT_ORIGIN_FEATURE_BRANCHES}\|${SELECT_ORIGIN_RELEASE_BRANCHES}"
+
+# Define a set of credentials for a specific environment
+function aws_credentials() {
+    case "${1}" in
+    develop)
+      export AWS_REGION="${INPUT_CD_DEVELOP_AWS_REGION}"
+      export AWS_ACCESS_KEY_ID="${INPUT_CD_DEVELOP_AWS_ACCESS_KEY_ID}"
+      export AWS_SECRET_ACCESS_KEY="${INPUT_CD_DEVELOP_AWS_SECRET_ACCESS_KEY}"
+      ;;
+    staging)
+      export AWS_REGION="${INPUT_CD_STAGING_AWS_REGION}"
+      export AWS_ACCESS_KEY_ID="${INPUT_CD_STAGING_AWS_ACCESS_KEY_ID}"
+      export AWS_SECRET_ACCESS_KEY="${INPUT_CD_STAGING_AWS_SECRET_ACCESS_KEY}"
+      ;;
+    production)
+      export AWS_REGION="${INPUT_CD_PRODUCTION_AWS_REGION}"
+      export AWS_ACCESS_KEY_ID="${INPUT_CD_PRODUCTION_AWS_ACCESS_KEY_ID}"
+      export AWS_SECRET_ACCESS_KEY="${INPUT_CD_PRODUCTION_AWS_SECRET_ACCESS_KEY}"
+      ;;
+    esac
+}
+
+# Define environment by a specific branch name
+function select_environment() {
+  if echo "${1}" | grep -i "develop\|${SELECT_FEATURE_BRANCHES}" &> /dev/null; then
+    aws_credentials develop
+    return 0
+  fi
+
+  if echo "${1}" | grep -i "staging\|${SELECT_RELEASE_BRANCHES}" &> /dev/null; then
+    if echo "${1}" | grep -i "${SEMVER_REGEXP}" &> /dev/null; then
+      if echo "${1}" | grep -i "\-rc" &> /dev/null; then
+        aws_credentials staging
+        return 0
+      else
+        aws_credentials production
+        return 0
+      fi
+    fi
+
+    aws_credentials staging
+    return 0
+  fi
+}
 
 function destroy_clusters() {
   local EXIT_CODE=0
@@ -64,6 +108,8 @@ function destroy_clusters() {
       echo
       continue
     fi
+
+    select_environment "${LOCAL_BRANCH}"
 
     if ! (rmk config init --progress-bar=false); then
       >&2 echo "ERROR: Config init failed for branch: \"${LOCAL_BRANCH}\""
@@ -99,7 +145,7 @@ function destroy_clusters() {
 
   if [[ "${INPUT_CHECK_ORPHANED_CLUSTERS}" == "true" ]]; then
     # match EKS clusters (case-insensitive)
-    ORPHANED_CLUSTERS="$(aws eks list-clusters --output=json | jq -r '.clusters[] | select(. | test("^'"${TENANT}"'-(ffs|rc)-\\d+-eks$"; "i"))')"
+    ORPHANED_CLUSTERS="$(aws eks list-clusters --output=json | jq -r '.clusters[] | select(. | test("^'"${TENANT}"'-([a-z]+-\\d+|v\\d+\.\\d+\.\\d+(-rc)?)-eks$"; "i"))')"
     echo
     echo "Orphaned clusters:"
     echo "${ORPHANED_CLUSTERS}"
@@ -133,7 +179,7 @@ function check_cluster_provision_command_valid() {
 function check_another_release_cluster_not_exist() {
   local EXIT_CODE=0
 
-  # grep should be case-insensitive and match the RMK's Golang regex ^[a-z]+-\d+; ^v\d+\.\d+\.\d+-
+  # grep should be case-insensitive and match the RMK's Golang regex ^[a-z]+-\d+; ^v\d+\.\d+\.\d+(-rc)?$
   for REMOTE_BRANCH in $(git branch -r | grep -i "${SELECT_ORIGIN_RELEASE_BRANCHES}"); do
     local LOCAL_BRANCH="${REMOTE_BRANCH#origin/}"
 
@@ -195,10 +241,6 @@ if [[ "${INPUT_DESTROY_CLUSTERS}" == "true" ]]; then
     exit 1
   fi
 
-  export AWS_REGION="${INPUT_CD_DEVELOP_AWS_REGION}"
-  export AWS_ACCESS_KEY_ID="${INPUT_CD_DEVELOP_AWS_ACCESS_KEY_ID}"
-  export AWS_SECRET_ACCESS_KEY="${INPUT_CD_DEVELOP_AWS_SECRET_ACCESS_KEY}"
-
   destroy_clusters
 fi
 
@@ -215,7 +257,8 @@ if [[ "${INPUT_CLUSTER_PROVISIONER}" == "true" ]]; then
     echo "Preparing temporary cluster for branch: \"${ENVIRONMENT}\""
     check_cluster_provision_command_valid
   else
-    >&2 echo "ERROR: Provisioning temporary clusters is only allowed for the following branch prefixes (case-insensitive): feature/ffs-* release/rc-*"
+    >&2 echo "ERROR: Provisioning temporary clusters is only allowed for the following branch prefixes
+      (case-insensitive): feature/ffs-* release/rc-* release/vX.X.X-rc release/vX.X.X"
     exit 1
   fi
 elif [[ "${INPUT_RMK_COMMAND}" != "reindex" && "${INPUT_ROUTES_TEST}" != "true" ]]; then
@@ -226,16 +269,7 @@ elif [[ "${INPUT_RMK_COMMAND}" != "reindex" && "${INPUT_ROUTES_TEST}" != "true" 
   fi
 fi
 
-# transform to lowercase for case-insensitive matching
-if echo "${ENVIRONMENT}" | grep -i "develop\|${SELECT_FEATURE_BRANCHES}" &> /dev/null; then
-  export AWS_REGION="${INPUT_CD_DEVELOP_AWS_REGION}"
-  export AWS_ACCESS_KEY_ID="${INPUT_CD_DEVELOP_AWS_ACCESS_KEY_ID}"
-  export AWS_SECRET_ACCESS_KEY="${INPUT_CD_DEVELOP_AWS_SECRET_ACCESS_KEY}"
-elif echo "${ENVIRONMENT}" | grep -i "staging\|${SELECT_RELEASE_BRANCHES}" &> /dev/null; then
-  export AWS_REGION="${INPUT_CD_STAGING_AWS_REGION}"
-  export AWS_ACCESS_KEY_ID="${INPUT_CD_STAGING_AWS_ACCESS_KEY_ID}"
-  export AWS_SECRET_ACCESS_KEY="${INPUT_CD_STAGING_AWS_SECRET_ACCESS_KEY}"
-fi
+select_environment "${ENVIRONMENT}"
 
 # Slack notification
 if [[ "${INPUT_RMK_SLACK_NOTIFICATIONS}" == "true" ]]; then
@@ -300,7 +334,7 @@ provision)
   echo "Provision cluster for branch: \"${ENVIRONMENT}\""
 
   # transform to lowercase for case-insensitive matching
-  if [[ "${ENVIRONMENT,,}" =~ release\/rc-* ]]; then
+  if [[ "${ENVIRONMENT,,}" =~ ^release\/[a-z]+\-[0-9]+|^release\/(v[0-9]+\.[0-9]+\.[0-9]+(-rc)?)$ ]]; then
     check_another_release_cluster_not_exist
   fi
 
