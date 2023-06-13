@@ -25,6 +25,15 @@ inputs:
   cd_staging_aws_secret_access_key:
     description: AWS secret access key of the AWS account deploying applications to EKS for staging.
     required: false
+  cd_production_aws_region:
+    description: AWS region of the AWS account deploying applications to EKS for production.
+    required: false
+  cd_production_aws_access_key_id:
+    description: AWS access key ID of the AWS account deploying applications to EKS for production.
+    required: false
+  cd_production_aws_secret_access_key:
+    description: AWS secret access key of the AWS account deploying applications to EKS for production.
+    required: false
   allowed_environments:
     description: Allowed environments participating in releases for rmk commands update & sync.
     required: true
