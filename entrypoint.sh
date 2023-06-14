@@ -75,8 +75,9 @@ function export_aws_credentials() {
     export AWS_SECRET_ACCESS_KEY="${INPUT_CD_PRODUCTION_AWS_SECRET_ACCESS_KEY}"
     ;;
   esac
-
+  
   check_aws_credentials "${1}"
+  echo "Selected AWS credentials for ${1}"
 }
 
 # Define environment by a specific branch name
