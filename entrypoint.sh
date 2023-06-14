@@ -49,46 +49,55 @@ readonly SELECT_ORIGIN_RELEASE_BRANCHES="origin/${PREFIX_RELEASE_BRANCH}/${TASK_
 readonly SELECT_ALL_BRANCHES="${SELECT_FEATURE_BRANCHES}\|${SELECT_RELEASE_BRANCHES}"
 readonly SELECT_ORIGIN_ALL_BRANCHES="${SELECT_ORIGIN_FEATURE_BRANCHES}\|${SELECT_ORIGIN_RELEASE_BRANCHES}"
 
+function check_aws_credentials() {
+  if [[ -z "${AWS_REGION}" || -z "${AWS_ACCESS_KEY_ID}" || -z "${AWS_SECRET_ACCESS_KEY}" ]]; then
+    >&2 echo "ERROR: For environment ${1} AWS credentials are not configured"
+    exit 1
+  fi
+}
+
 # Define a set of credentials for a specific environment
-function aws_credentials() {
-    case "${1}" in
-    develop)
-      export AWS_REGION="${INPUT_CD_DEVELOP_AWS_REGION}"
-      export AWS_ACCESS_KEY_ID="${INPUT_CD_DEVELOP_AWS_ACCESS_KEY_ID}"
-      export AWS_SECRET_ACCESS_KEY="${INPUT_CD_DEVELOP_AWS_SECRET_ACCESS_KEY}"
-      ;;
-    staging)
-      export AWS_REGION="${INPUT_CD_STAGING_AWS_REGION}"
-      export AWS_ACCESS_KEY_ID="${INPUT_CD_STAGING_AWS_ACCESS_KEY_ID}"
-      export AWS_SECRET_ACCESS_KEY="${INPUT_CD_STAGING_AWS_SECRET_ACCESS_KEY}"
-      ;;
-    production)
-      export AWS_REGION="${INPUT_CD_PRODUCTION_AWS_REGION}"
-      export AWS_ACCESS_KEY_ID="${INPUT_CD_PRODUCTION_AWS_ACCESS_KEY_ID}"
-      export AWS_SECRET_ACCESS_KEY="${INPUT_CD_PRODUCTION_AWS_SECRET_ACCESS_KEY}"
-      ;;
-    esac
+function export_aws_credentials() {
+  case "${1}" in
+  develop)
+    export AWS_REGION="${INPUT_CD_DEVELOP_AWS_REGION}"
+    export AWS_ACCESS_KEY_ID="${INPUT_CD_DEVELOP_AWS_ACCESS_KEY_ID}"
+    export AWS_SECRET_ACCESS_KEY="${INPUT_CD_DEVELOP_AWS_SECRET_ACCESS_KEY}"
+    ;;
+  staging)
+    export AWS_REGION="${INPUT_CD_STAGING_AWS_REGION}"
+    export AWS_ACCESS_KEY_ID="${INPUT_CD_STAGING_AWS_ACCESS_KEY_ID}"
+    export AWS_SECRET_ACCESS_KEY="${INPUT_CD_STAGING_AWS_SECRET_ACCESS_KEY}"
+    ;;
+  production)
+    export AWS_REGION="${INPUT_CD_PRODUCTION_AWS_REGION}"
+    export AWS_ACCESS_KEY_ID="${INPUT_CD_PRODUCTION_AWS_ACCESS_KEY_ID}"
+    export AWS_SECRET_ACCESS_KEY="${INPUT_CD_PRODUCTION_AWS_SECRET_ACCESS_KEY}"
+    ;;
+  esac
+
+  check_aws_credentials "${1}"
 }
 
 # Define environment by a specific branch name
 function select_environment() {
   if echo "${1}" | grep -i "develop\|${SELECT_FEATURE_BRANCHES}" &> /dev/null; then
-    aws_credentials develop
+    export_aws_credentials develop
     return 0
   fi
 
   if echo "${1}" | grep -i "staging\|${SELECT_RELEASE_BRANCHES}" &> /dev/null; then
     if echo "${1}" | grep -i "${SEMVER_REGEXP}" &> /dev/null; then
       if echo "${1}" | grep -i "\-rc" &> /dev/null; then
-        aws_credentials staging
+        export_aws_credentials staging
         return 0
       else
-        aws_credentials production
+        export_aws_credentials production
         return 0
       fi
     fi
 
-    aws_credentials staging
+    export_aws_credentials staging
     return 0
   fi
 }
