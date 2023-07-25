@@ -198,6 +198,8 @@ function check_another_release_cluster_not_exist() {
       continue
     fi
 
+    echo
+    echo "Checking whether another release cluster exists for branch: \"${LOCAL_BRANCH}\""
     git checkout "${LOCAL_BRANCH}"
 
     if ! (rmk config init --progress-bar=false 1> /dev/null); then
