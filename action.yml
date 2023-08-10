@@ -47,7 +47,7 @@ inputs:
     required: false
     default: fhir-server-search-reindexer
   rmk_version:
-    description: rmk version. Default value is "latest".
+    description: rmk version.
     required: false
     default: v2.10.0
   rmk_slack_notifications:
