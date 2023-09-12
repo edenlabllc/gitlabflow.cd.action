@@ -49,7 +49,7 @@ inputs:
   rmk_version:
     description: rmk version.
     required: false
-    default: v2.10.0
+    default: latest
   rmk_slack_notifications:
     description: Enable slack notifications.
     required: false
