@@ -186,42 +186,43 @@ function check_cluster_provision_command_valid() {
   fi
 }
 
-function check_another_release_cluster_not_exist() {
-  local EXIT_CODE=0
-
-  # grep should be case-insensitive and match the RMK's Golang regex ^[a-z]+-\d+; ^v\d+\.\d+\.\d+(-rc)?$
-  for REMOTE_BRANCH in $(git branch -r | grep -i "${SELECT_ORIGIN_RELEASE_BRANCHES}"); do
-    local LOCAL_BRANCH="${REMOTE_BRANCH#origin/}"
-
-    # skip current cluster
-    if [[ "${LOCAL_BRANCH}" == "${ENVIRONMENT}" ]]; then
-      continue
-    fi
-
-    echo
-    echo "Checking whether another release cluster exists for branch: \"${LOCAL_BRANCH}\""
-    git checkout "${LOCAL_BRANCH}"
-
-    if ! (rmk config init --progress-bar=false 1> /dev/null); then
-      >&2 echo "ERROR: Config init failed for branch: \"${LOCAL_BRANCH}\""
-      echo
-      # mark as error because initialization is considered required
-      EXIT_CODE=1
-      # continue to search available release cluster
-      continue
-    fi
-
-    if (rmk cluster switch 2> /dev/null); then
-      >&2 echo "ERROR: Another release cluster already exists for branch: \"${LOCAL_BRANCH}\""
-      >&2 echo "ERROR: Destroy one of the clusters and try again."
-      exit 1
-    fi
-  done
-
-  git checkout "${GIT_BRANCH}"
-
-  return ${EXIT_CODE}
-}
+# TODO: disabled check another release cluster because not needed for current time
+#function check_another_release_cluster_not_exist() {
+#  local EXIT_CODE=0
+#
+#  # grep should be case-insensitive and match the RMK's Golang regex ^[a-z]+-\d+; ^v\d+\.\d+\.\d+(-rc)?$
+#  for REMOTE_BRANCH in $(git branch -r | grep -i "${SELECT_ORIGIN_RELEASE_BRANCHES}"); do
+#    local LOCAL_BRANCH="${REMOTE_BRANCH#origin/}"
+#
+#    # skip current cluster
+#    if [[ "${LOCAL_BRANCH}" == "${ENVIRONMENT}" ]]; then
+#      continue
+#    fi
+#
+#    echo
+#    echo "Checking whether another release cluster exists for branch: \"${LOCAL_BRANCH}\""
+#    git checkout "${LOCAL_BRANCH}"
+#
+#    if ! (rmk config init --progress-bar=false 1> /dev/null); then
+#      >&2 echo "ERROR: Config init failed for branch: \"${LOCAL_BRANCH}\""
+#      echo
+#      # mark as error because initialization is considered required
+#      EXIT_CODE=1
+#      # continue to search available release cluster
+#      continue
+#    fi
+#
+#    if (rmk cluster switch 2> /dev/null); then
+#      >&2 echo "ERROR: Another release cluster already exists for branch: \"${LOCAL_BRANCH}\""
+#      >&2 echo "ERROR: Destroy one of the clusters and try again."
+#      exit 1
+#    fi
+#  done
+#
+#  git checkout "${GIT_BRANCH}"
+#
+#  return ${EXIT_CODE}
+#}
 
 echo
 echo "Initialize environment variables."
@@ -345,10 +346,11 @@ provision)
   echo
   echo "Provision cluster for branch: \"${ENVIRONMENT}\""
 
-  # transform to lowercase for case-insensitive matching
-  if [[ "${ENVIRONMENT,,}" =~ ^release\/[a-z]+\-[0-9]+|^release\/(v[0-9]+\.[0-9]+\.[0-9]+(-rc)?)$ ]]; then
-    check_another_release_cluster_not_exist
-  fi
+# TODO: disabled check another release cluster because not needed for current time
+#   transform to lowercase for case-insensitive matching
+#  if [[ "${ENVIRONMENT,,}" =~ ^release\/[a-z]+\-[0-9]+|^release\/(v[0-9]+\.[0-9]+\.[0-9]+(-rc)?)$ ]]; then
+#    check_another_release_cluster_not_exist
+#  fi
 
   if ! (rmk cluster provision); then
     notify_slack "Failure" "${ENVIRONMENT}" "Cluster provisioning failed"
