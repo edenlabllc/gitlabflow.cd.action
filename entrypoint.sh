@@ -25,11 +25,29 @@ function notify_slack() {
     ;;
   esac
 
+  select_environment "${BRANCH}"
+
+  if [[ -n "${GITHUB_ACTOR}" ]]; then
+    readonly ACTION_RUN_BY="${GITHUB_ACTOR}"
+  fi
+
+  if [[ -n "${AWS_REGION}" ]]; then
+    readonly AWS_EKS_CLUSTERS_LIST="https://${AWS_REGION}.console.aws.amazon.com/eks/home?region=${AWS_REGION}#/clusters"
+  fi
+
+  if (aws sts get-caller-identity --output json &>/dev/null); then
+    readonly AWS_ACCOUNT_ID="$(aws sts get-caller-identity --output json | jq -r '.Account')"
+  fi
+
+  if (aws eks list-clusters --no-paginate --output json &>/dev/null); then
+    readonly AWS_EKS_CLUSTERS_COUNT="$(aws eks list-clusters --no-paginate --output json | jq -r '.clusters | length')"
+  fi
+
   curl \
     -s \
     -X POST \
     -H 'Content-Type: application/json' \
-    --data '{"username":"GitLabFlow Action","icon_url":"'${ICON_URL}'","text":"*Tenant*: '"${TENANT}"'\n*Status*: '"${STATUS}"'\n*Message*: '"${MESSAGE}"'\n'"*Branch*: ${BRANCH}"'"}' \
+    --data '{"username":"GitLabFlow Action","icon_url":"'${ICON_URL}'","text":"*Action run by*: '"${ACTION_RUN_BY}"'\n*Tenant*: '"${TENANT}"'\n*Branch*: '"${BRANCH}"'\n*Status*: '"${STATUS}"'\n*Message*: '"${MESSAGE}"'\n*AWS account ID*: '"${AWS_ACCOUNT_ID}"'\n*AWS region*: '"${AWS_REGION}"'\n*AWS EKS clusters count*: '"${AWS_EKS_CLUSTERS_COUNT}"'\n*AWS EKS clusters list*: '"${AWS_EKS_CLUSTERS_LIST}"'\n"}' \
     "${INPUT_RMK_SLACK_WEBHOOK}"
 }
 
@@ -186,44 +204,6 @@ function check_cluster_provision_command_valid() {
   fi
 }
 
-# TODO: disabled check another release cluster because not needed for current time
-#function check_another_release_cluster_not_exist() {
-#  local EXIT_CODE=0
-#
-#  # grep should be case-insensitive and match the RMK's Golang regex ^[a-z]+-\d+; ^v\d+\.\d+\.\d+(-rc)?$
-#  for REMOTE_BRANCH in $(git branch -r | grep -i "${SELECT_ORIGIN_RELEASE_BRANCHES}"); do
-#    local LOCAL_BRANCH="${REMOTE_BRANCH#origin/}"
-#
-#    # skip current cluster
-#    if [[ "${LOCAL_BRANCH}" == "${ENVIRONMENT}" ]]; then
-#      continue
-#    fi
-#
-#    echo
-#    echo "Checking whether another release cluster exists for branch: \"${LOCAL_BRANCH}\""
-#    git checkout "${LOCAL_BRANCH}"
-#
-#    if ! (rmk config init --progress-bar=false 1> /dev/null); then
-#      >&2 echo "ERROR: Config init failed for branch: \"${LOCAL_BRANCH}\""
-#      echo
-#      # mark as error because initialization is considered required
-#      EXIT_CODE=1
-#      # continue to search available release cluster
-#      continue
-#    fi
-#
-#    if (rmk cluster switch 2> /dev/null); then
-#      >&2 echo "ERROR: Another release cluster already exists for branch: \"${LOCAL_BRANCH}\""
-#      >&2 echo "ERROR: Destroy one of the clusters and try again."
-#      exit 1
-#    fi
-#  done
-#
-#  git checkout "${GIT_BRANCH}"
-#
-#  return ${EXIT_CODE}
-#}
-
 echo
 echo "Initialize environment variables."
 
@@ -346,12 +326,6 @@ provision)
   echo
   echo "Provision cluster for branch: \"${ENVIRONMENT}\""
 
-# TODO: disabled check another release cluster because not needed for current time
-#   transform to lowercase for case-insensitive matching
-#  if [[ "${ENVIRONMENT,,}" =~ ^release\/[a-z]+\-[0-9]+|^release\/(v[0-9]+\.[0-9]+\.[0-9]+(-rc)?)$ ]]; then
-#    check_another_release_cluster_not_exist
-#  fi
-
   if ! (rmk cluster provision); then
     notify_slack "Failure" "${ENVIRONMENT}" "Cluster provisioning failed"
     exit 1
@@ -403,6 +377,7 @@ reindex)
     notify_slack "Failure" "${ENVIRONMENT}" "Reindexer job failed"
     exit 1
   fi
+
   notify_slack "Success" ${ENVIRONMENT} "Reindexer job complete"
   ;;
 esac
