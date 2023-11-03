@@ -36,7 +36,7 @@ function notify_slack() {
   fi
 
   if (aws sts get-caller-identity --output json &>/dev/null); then
-    readonly AWS_ACC_ID="$(aws sts get-caller-identity --output json | jq -r '.Account')"
+    readonly AWS_ACCOUNT_ID="$(aws sts get-caller-identity --output json | jq -r '.Account')"
   fi
 
   if (aws eks list-clusters --no-paginate --output json &>/dev/null); then
@@ -47,7 +47,7 @@ function notify_slack() {
     -s \
     -X POST \
     -H 'Content-Type: application/json' \
-    --data '{"username":"GitLabFlow Action","icon_url":"'${ICON_URL}'","text":"*Action run by*: '"${ACTION_RUN_BY}"'\n*Tenant*: '"${TENANT}"'\n*Branch*: '"${BRANCH}"'\n*Status*: '"${STATUS}"'\n*Message*: '"${MESSAGE}"'\n*AWS acc. ID*: '"${AWS_ACC_ID}"'\n*AWS region*: '"${AWS_REGION}"'\n*AWS EKS clusters count*: '"${AWS_EKS_CLUSTERS_COUNT}"'\n*AWS EKS clusters list*: '"${AWS_EKS_CLUSTERS_LIST}"'\n"}' \
+    --data '{"username":"GitLabFlow Action","icon_url":"'${ICON_URL}'","text":"*Action run by*: '"${ACTION_RUN_BY}"'\n*Tenant*: '"${TENANT}"'\n*Branch*: '"${BRANCH}"'\n*Status*: '"${STATUS}"'\n*Message*: '"${MESSAGE}"'\n*AWS account ID*: '"${AWS_ACCOUNT_ID}"'\n*AWS region*: '"${AWS_REGION}"'\n*AWS EKS clusters count*: '"${AWS_EKS_CLUSTERS_COUNT}"'\n*AWS EKS clusters list*: '"${AWS_EKS_CLUSTERS_LIST}"'\n"}' \
     "${INPUT_RMK_SLACK_WEBHOOK}"
 }
 
