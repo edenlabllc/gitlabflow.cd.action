@@ -28,9 +28,9 @@ function notify_slack() {
   select_environment "${BRANCH}"
 
   if [[ -n "${GITHUB_ACTOR}" && "${GITHUB_EVENT_NAME}" == "workflow_dispatch" ]]; then
-    readonly ACTION_RUN_BY="${GITHUB_ACTOR}"
+    ACTION_RUN_BY="${GITHUB_ACTOR}"
   else
-    readonly ACTION_RUN_BY="ci-cd-fhir-user"
+    ACTION_RUN_BY="ci-cd-fhir-user"
   fi
 
   if [[ -n "${AWS_REGION}" ]]; then
