@@ -13,6 +13,13 @@ function notify_slack() {
 
   local ICON_URL="https://img.icons8.com/ios-filled/50/000000/0-degrees.png"
 
+  ACTION_JOB_ID="$(curl -sL \
+    -H 'Accept: application/vnd.github+json' \
+    -H 'Authorization: Bearer '"${GITHUB_TOKEN}" \
+    -H 'X-GitHub-Api-Version: 2022-11-28' \
+    "${GITHUB_API_URL}"/repos/"${GITHUB_REPOSITORY}"/actions/runs/"${GITHUB_RUN_ID}"/attempts/"${GITHUB_RUN_ATTEMPT}"/jobs | jq .jobs[].id)"
+  local ACTION_JOB_URL="${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}/job/${ACTION_JOB_ID}"
+
   case "${STATUS}" in
   Success)
     ICON_URL="https://img.icons8.com/doodle/48/000000/add.png"
@@ -49,7 +56,7 @@ function notify_slack() {
     -s \
     -X POST \
     -H 'Content-Type: application/json' \
-    --data '{"username":"GitLabFlow Action","icon_url":"'${ICON_URL}'","text":"*Action run by*: '"${ACTION_RUN_BY}"'\n*Tenant*: '"${TENANT}"'\n*Branch*: '"${BRANCH}"'\n*Status*: '"${STATUS}"'\n*Message*: '"${MESSAGE}"'\n*AWS account ID*: '"${AWS_ACCOUNT_ID}"'\n*AWS region*: '"${AWS_REGION}"'\n*AWS EKS clusters count*: '"${AWS_EKS_CLUSTERS_COUNT}"'\n*AWS EKS clusters list*: '"${AWS_EKS_CLUSTERS_LIST}"'\n"}' \
+    --data '{"username":"GitLabFlow Action","icon_url":"'${ICON_URL}'","text":"*Action run by*: '"${ACTION_RUN_BY}"'\n*Action job url*: '"${ACTION_JOB_URL}"'\n*Tenant*: '"${TENANT}"'\n*Branch*: '"${BRANCH}"'\n*Status*: '"${STATUS}"'\n*Message*: '"${MESSAGE}"'\n*AWS account ID*: '"${AWS_ACCOUNT_ID}"'\n*AWS region*: '"${AWS_REGION}"'\n*AWS EKS clusters count*: '"${AWS_EKS_CLUSTERS_COUNT}"'\n*AWS EKS clusters list*: '"${AWS_EKS_CLUSTERS_LIST}"'\n"}' \
     "${INPUT_RMK_SLACK_WEBHOOK}"
 }
 
