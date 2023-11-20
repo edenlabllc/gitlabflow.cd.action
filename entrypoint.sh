@@ -13,11 +13,12 @@ function notify_slack() {
 
   local ICON_URL="https://img.icons8.com/ios-filled/50/000000/0-degrees.png"
 
-  ACTION_JOB_ID="$(curl -sL \
+  local ACTION_JOB_API_URL="${GITHUB_API_URL}/repos/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}/attempts/${GITHUB_RUN_ATTEMPT}/jobs"
+  local ACTION_JOB_ID="$(curl -sL \
     -H 'Accept: application/vnd.github+json' \
     -H 'Authorization: Bearer '"${GITHUB_TOKEN}" \
     -H 'X-GitHub-Api-Version: 2022-11-28' \
-    "${GITHUB_API_URL}"/repos/"${GITHUB_REPOSITORY}"/actions/runs/"${GITHUB_RUN_ID}"/attempts/"${GITHUB_RUN_ATTEMPT}"/jobs | jq .jobs[].id)"
+    "${ACTION_JOB_API_URL}" | jq .jobs[].id)"
   local ACTION_JOB_URL="${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}/job/${ACTION_JOB_ID}"
 
   case "${STATUS}" in
