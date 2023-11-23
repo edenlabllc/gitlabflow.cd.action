@@ -42,15 +42,15 @@ function notify_slack() {
   fi
 
   if [[ -n "${AWS_REGION}" ]]; then
-    readonly AWS_EKS_CLUSTERS_LIST="https://${AWS_REGION}.console.aws.amazon.com/eks/home?region=${AWS_REGION}#/clusters"
+    local AWS_EKS_CLUSTERS_LIST="https://${AWS_REGION}.console.aws.amazon.com/eks/home?region=${AWS_REGION}#/clusters"
   fi
 
   if (aws sts get-caller-identity --output json &>/dev/null); then
-    readonly AWS_ACCOUNT_ID="$(aws sts get-caller-identity --output json | jq -r '.Account')"
+    local AWS_ACCOUNT_ID="$(aws sts get-caller-identity --output json | jq -r '.Account')"
   fi
 
   if (aws eks list-clusters --no-paginate --output json &>/dev/null); then
-    readonly AWS_EKS_CLUSTERS_COUNT="$(aws eks list-clusters --no-paginate --output json | jq -r '.clusters | length')"
+    local AWS_EKS_CLUSTERS_COUNT="$(aws eks list-clusters --no-paginate --output json | jq -r '.clusters | length')"
   fi
 
   curl \
