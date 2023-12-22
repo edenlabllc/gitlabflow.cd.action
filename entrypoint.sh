@@ -110,7 +110,7 @@ function export_aws_credentials() {
 
 # Define environment by a specific branch name
 function select_environment() {
-  if echo "${1}" | grep -i "develop|staging|production" &> /dev/null; then
+  if echo "${1}" | grep -i "develop\|staging\|production" &> /dev/null; then
     export_aws_credentials "${1}"
     return 0
   fi
