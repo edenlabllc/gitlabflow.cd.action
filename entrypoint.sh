@@ -110,12 +110,17 @@ function export_aws_credentials() {
 
 # Define environment by a specific branch name
 function select_environment() {
-  if echo "${1}" | grep -i "develop\|${SELECT_FEATURE_BRANCHES}" &> /dev/null; then
+  if echo "${1}" | grep -i "develop|staging|production" &> /dev/null; then
+    export_aws_credentials "${1}"
+    return 0
+  fi
+
+  if echo "${1}" | grep -i "${SELECT_FEATURE_BRANCHES}" &> /dev/null; then
     export_aws_credentials develop
     return 0
   fi
 
-  if echo "${1}" | grep -i "staging\|${SELECT_RELEASE_BRANCHES}" &> /dev/null; then
+  if echo "${1}" | grep -i "${SELECT_RELEASE_BRANCHES}" &> /dev/null; then
     if echo "${1}" | grep -i "${SEMVER_REGEXP}" &> /dev/null; then
       if echo "${1}" | grep -i "\-rc" &> /dev/null; then
         export_aws_credentials staging
@@ -125,10 +130,10 @@ function select_environment() {
         return 0
       fi
     fi
-
-    export_aws_credentials staging
-    return 0
   fi
+
+  >&2 echo "ERROR: Environment \"${1}\" not allowed for environment selection."
+  return 1
 }
 
 function destroy_clusters() {
