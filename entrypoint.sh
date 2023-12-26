@@ -125,11 +125,14 @@ function select_environment() {
       if echo "${1}" | grep -i "\-rc" &> /dev/null; then
         export_aws_credentials staging
         return 0
-      else
-        export_aws_credentials production
-        return 0
       fi
+
+      export_aws_credentials production
+      return 0
     fi
+
+    export_aws_credentials staging
+    return 0
   fi
 
   >&2 echo "ERROR: Environment \"${1}\" not allowed for environment selection."
