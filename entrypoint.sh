@@ -57,7 +57,7 @@ function notify_slack() {
     -s \
     -X POST \
     -H 'Content-Type: application/json' \
-    --data '{"username":"GitLabFlow Action","icon_url":"'${ICON_URL}'","text":"*Action run by*: '"${ACTION_RUN_BY}"'\n*Action job url*: '"${ACTION_JOB_URL}"'\n*Tenant*: '"${TENANT}"'\n*Branch*: '"${BRANCH}"'\n*Status*: '"${STATUS}"'\n*Message*: '"${MESSAGE}"'\n*AWS account ID*: '"${AWS_ACCOUNT_ID}"'\n*AWS region*: '"${AWS_REGION}"'\n*AWS EKS clusters count*: '"${AWS_EKS_CLUSTERS_COUNT}"'\n*AWS EKS clusters list*: '"${AWS_EKS_CLUSTERS_LIST}"'\n"}' \
+    --data '{"username":"GitLabFlow Action","icon_url":"'${ICON_URL}'","text":"*Action run by*: '"${ACTION_RUN_BY}"'\n*Action job URL*: '"${ACTION_JOB_URL}"'\n*Tenant*: '"${TENANT}"'\n*Branch*: '"${BRANCH}"'\n*Status*: '"${STATUS}"'\n*Message*: '"${MESSAGE}"'\n*AWS account ID*: '"${AWS_ACCOUNT_ID}"'\n*AWS region*: '"${AWS_REGION}"'\n*AWS EKS clusters count*: '"${AWS_EKS_CLUSTERS_COUNT}"'\n*AWS EKS clusters list*: '"${AWS_EKS_CLUSTERS_LIST}"'\n"}' \
     "${INPUT_RMK_SLACK_WEBHOOK}"
 }
 
