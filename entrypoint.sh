@@ -86,18 +86,22 @@ function check_aws_credentials() {
 
 # Define a set of credentials for a specific environment
 function export_aws_credentials() {
+  # AWS SDKs of different languages might use either AWS_DEFAULT_REGION or AWS_REGION
   case "${1}" in
   develop)
+    export AWS_DEFAULT_REGION="${INPUT_CD_DEVELOP_AWS_REGION}"
     export AWS_REGION="${INPUT_CD_DEVELOP_AWS_REGION}"
     export AWS_ACCESS_KEY_ID="${INPUT_CD_DEVELOP_AWS_ACCESS_KEY_ID}"
     export AWS_SECRET_ACCESS_KEY="${INPUT_CD_DEVELOP_AWS_SECRET_ACCESS_KEY}"
     ;;
   staging)
+    export AWS_DEFAULT_REGION="${INPUT_CD_STAGING_AWS_REGION}"
     export AWS_REGION="${INPUT_CD_STAGING_AWS_REGION}"
     export AWS_ACCESS_KEY_ID="${INPUT_CD_STAGING_AWS_ACCESS_KEY_ID}"
     export AWS_SECRET_ACCESS_KEY="${INPUT_CD_STAGING_AWS_SECRET_ACCESS_KEY}"
     ;;
   production)
+    export AWS_DEFAULT_REGION="${INPUT_CD_PRODUCTION_AWS_REGION}"
     export AWS_REGION="${INPUT_CD_PRODUCTION_AWS_REGION}"
     export AWS_ACCESS_KEY_ID="${INPUT_CD_PRODUCTION_AWS_ACCESS_KEY_ID}"
     export AWS_SECRET_ACCESS_KEY="${INPUT_CD_PRODUCTION_AWS_SECRET_ACCESS_KEY}"
