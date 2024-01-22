@@ -301,8 +301,12 @@ if [[ "${INPUT_RMK_SLACK_NOTIFICATIONS}" == "true" ]]; then
     IFS="${OLDIFS}"
   fi
 
+  echo "AWS_REGION: ${AWS_REGION}"
+  echo "AWS_DEFAULT_REGION: ${AWS_DEFAULT_REGION}"
   eval rmk config init --progress-bar=false --slack-notifications ${FLAGS_SLACK_MESSAGE_DETAILS}
 else
+  echo "AWS_REGION: ${AWS_REGION}"
+  echo "AWS_DEFAULT_REGION: ${AWS_DEFAULT_REGION}"
   rmk config init --progress-bar=false
 fi
 
