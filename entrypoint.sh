@@ -122,6 +122,7 @@ function export_aws_credentials() {
 
 # Define environment by a specific branch name
 function select_environment() {
+  set -x
   if echo "${1}" | grep -i "develop\|staging\|production" &> /dev/null; then
     export_aws_credentials "${1}"
     return 0
@@ -146,6 +147,8 @@ function select_environment() {
     export_aws_credentials staging
     return 0
   fi
+
+  set +x
 
   >&2 echo "ERROR: Environment \"${1}\" not allowed for environment selection."
   return 1
