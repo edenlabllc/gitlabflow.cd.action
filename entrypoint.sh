@@ -91,26 +91,18 @@ function export_aws_credentials() {
   develop)
     export AWS_DEFAULT_REGION="${INPUT_CD_DEVELOP_AWS_REGION}"
     export AWS_REGION="${INPUT_CD_DEVELOP_AWS_REGION}"
-    echo "AWS_REGION: ${AWS_REGION}"
-    echo "AWS_DEFAULT_REGION: ${AWS_DEFAULT_REGION}"
     export AWS_ACCESS_KEY_ID="${INPUT_CD_DEVELOP_AWS_ACCESS_KEY_ID}"
     export AWS_SECRET_ACCESS_KEY="${INPUT_CD_DEVELOP_AWS_SECRET_ACCESS_KEY}"
     ;;
   staging)
     export AWS_DEFAULT_REGION="${INPUT_CD_STAGING_AWS_REGION}"
     export AWS_REGION="${INPUT_CD_STAGING_AWS_REGION}"
-    echo "AWS_REGION: ${AWS_REGION}"
-    echo "AWS_DEFAULT_REGION: ${AWS_DEFAULT_REGION}"
-    echo "AWS_REGION - INPUT_CD_STAGING_AWS_REGION: ${INPUT_CD_STAGING_AWS_REGION}"
-    echo "AWS_DEFAULT_REGION - INPUT_CD_STAGING_AWS_REGION: ${INPUT_CD_STAGING_AWS_REGION}"
     export AWS_ACCESS_KEY_ID="${INPUT_CD_STAGING_AWS_ACCESS_KEY_ID}"
     export AWS_SECRET_ACCESS_KEY="${INPUT_CD_STAGING_AWS_SECRET_ACCESS_KEY}"
     ;;
   production)
     export AWS_DEFAULT_REGION="${INPUT_CD_PRODUCTION_AWS_REGION}"
     export AWS_REGION="${INPUT_CD_PRODUCTION_AWS_REGION}"
-    echo "AWS_REGION: ${AWS_REGION}"
-    echo "AWS_DEFAULT_REGION: ${AWS_DEFAULT_REGION}"
     export AWS_ACCESS_KEY_ID="${INPUT_CD_PRODUCTION_AWS_ACCESS_KEY_ID}"
     export AWS_SECRET_ACCESS_KEY="${INPUT_CD_PRODUCTION_AWS_SECRET_ACCESS_KEY}"
     ;;
@@ -123,7 +115,7 @@ function export_aws_credentials() {
 # Define environment by a specific branch name
 function select_environment() {
   set -x
-  if echo "${1}" | grep -i "develop\|staging\|production" &> /dev/null; then
+  if echo "${1}" | grep -i "^\(develop\|staging\|production\)\$" &> /dev/null; then
     export_aws_credentials "${1}"
     return 0
   fi
