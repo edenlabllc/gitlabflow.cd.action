@@ -107,9 +107,11 @@ function export_aws_credentials() {
     export AWS_SECRET_ACCESS_KEY="${INPUT_CD_PRODUCTION_AWS_SECRET_ACCESS_KEY}"
     ;;
   esac
-  
+
   check_aws_credentials "${1}"
   echo "Selected AWS credentials for ${1}"
+  echo "AWS_REGION: ${AWS_REGION}"
+  echo "AWS_DEFAULT_REGION: ${AWS_DEFAULT_REGION}"
 }
 
 # Define environment by a specific branch name
@@ -301,12 +303,8 @@ if [[ "${INPUT_RMK_SLACK_NOTIFICATIONS}" == "true" ]]; then
     IFS="${OLDIFS}"
   fi
 
-  echo "AWS_REGION: ${AWS_REGION}"
-  echo "AWS_DEFAULT_REGION: ${AWS_DEFAULT_REGION}"
   eval rmk config init --progress-bar=false --slack-notifications ${FLAGS_SLACK_MESSAGE_DETAILS}
 else
-  echo "AWS_REGION: ${AWS_REGION}"
-  echo "AWS_DEFAULT_REGION: ${AWS_DEFAULT_REGION}"
   rmk config init --progress-bar=false
 fi
 
