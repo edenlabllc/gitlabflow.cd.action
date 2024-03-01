@@ -33,6 +33,8 @@ function notify_slack() {
     ;;
   esac
 
+  select_environment "${BRANCH}"
+
   if [[ -n "${GITHUB_ACTOR}" && "${GITHUB_EVENT_NAME}" == "workflow_dispatch" ]]; then
     ACTION_RUN_BY="${GITHUB_ACTOR}"
   else
