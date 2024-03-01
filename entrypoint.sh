@@ -105,14 +105,14 @@ function export_aws_credentials() {
     export AWS_SECRET_ACCESS_KEY="${INPUT_CD_PRODUCTION_AWS_SECRET_ACCESS_KEY}"
     ;;
   esac
-  
+
   check_aws_credentials "${1}"
   echo "Selected AWS credentials for ${1}"
 }
 
 # Define environment by a specific branch name
 function select_environment() {
-  if echo "${1}" | grep -i "develop\|staging\|production" &> /dev/null; then
+  if echo "${1}" | grep -i "^\(develop\|staging\|production\)\$" &> /dev/null; then
     export_aws_credentials "${1}"
     return 0
   fi

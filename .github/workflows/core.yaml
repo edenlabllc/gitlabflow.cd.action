@@ -15,7 +15,7 @@ env:
 jobs:
   gitlabflow:
     name: Checkout main and gitlabflow action repositories, run gitlabflow action
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-22.04
     steps:
       - name: Initialize environment variables
         run: |
@@ -30,22 +30,22 @@ jobs:
           echo "VERSION=${VERSION}" >> ${GITHUB_ENV}
 
       - name: Checkout main repository
-        uses: actions/checkout@v2
+        uses: actions/checkout@v4
         with:
           ref: ${{ github.ref }}
 
       - name: Configure AWS credentials
-        uses: aws-actions/configure-aws-credentials@v1
+        uses: aws-actions/configure-aws-credentials@v4
         with:
           aws-region: ${{ env.CORE_AWS_REGION }}
           aws-access-key-id: ${{ secrets.CORE_AWS_ACCESS_KEY_ID }}
           aws-secret-access-key: ${{ secrets.CORE_AWS_SECRET_ACCESS_KEY }}
 
       - name: Login to AWS ECR
-        uses: aws-actions/amazon-ecr-login@v1
+        uses: aws-actions/amazon-ecr-login@v2
 
       - name: Build and push image to AWS ECR
-        uses: docker/build-push-action@v3
+        uses: docker/build-push-action@v5
         with:
           context: .
           push: true
