@@ -33,8 +33,6 @@ function notify_slack() {
     ;;
   esac
 
-  select_environment "${BRANCH}"
-
   if [[ -n "${GITHUB_ACTOR}" && "${GITHUB_EVENT_NAME}" == "workflow_dispatch" ]]; then
     ACTION_RUN_BY="${GITHUB_ACTOR}"
   else
@@ -193,26 +191,28 @@ function destroy_clusters() {
     notify_slack "Success" "${LOCAL_BRANCH}" "Cluster has been destroyed"
   done
 
-  if [[ "${INPUT_CHECK_ORPHANED_CLUSTERS}" == "true" ]]; then
-    # match EKS clusters (case-insensitive)
-    ORPHANED_CLUSTERS="$(aws eks list-clusters --output=json | jq -r '.clusters[] | select(. | test("^'"${TENANT}"'-([a-z]+-\\d+|v\\d+\\.\\d+\\.\\d+(-rc)?)-eks$"; "i"))')"
-    echo
-    echo "Orphaned clusters:"
-    echo "${ORPHANED_CLUSTERS}"
-    if [[ "${ORPHANED_CLUSTERS}" != "" ]]; then
-      notify_slack "Failure" "N/A" "Orphaned clusters:\n${ORPHANED_CLUSTERS}"
+  if [[ -n "${LOCAL_BRANCH}" ]]; then
+    if [[ "${INPUT_CHECK_ORPHANED_CLUSTERS}" == "true" ]]; then
+      # match EKS clusters (case-insensitive)
+      ORPHANED_CLUSTERS="$(aws eks list-clusters --output=json | jq -r '.clusters[] | select(. | test("^'"${TENANT}"'-([a-z]+-\\d+|v\\d+\\.\\d+\\.\\d+(-rc)?)-eks$"; "i"))')"
+      echo
+      echo "Orphaned clusters:"
+      echo "${ORPHANED_CLUSTERS}"
+      if [[ "${ORPHANED_CLUSTERS}" != "" ]]; then
+        notify_slack "Failure" "${LOCAL_BRANCH}" "Orphaned clusters:\n${ORPHANED_CLUSTERS}"
+      fi
     fi
-  fi
 
-  if [[ "${INPUT_CHECK_ORPHANED_VOLUMES}" == "true" ]]; then
-    # check all volumes in the region because there is no volume tag with a tenant name in AWS
-    ORPHANED_VOLUMES="$(aws ec2 describe-volumes --output=json --filters "Name=status,Values=[available,error]" \
-      | jq -r '.Volumes[] | (.CreateTime + " " + .AvailabilityZone + " " +  .VolumeId + " " + (.Tags | map(select(.Key=="Name" or .Key=="kubernetes.io/created-for/pvc/name") | .Value) | join(" ")) + " " + .State + " " + .VolumeType + " "  + (.Size | tostring) + "GiB")')"
-    echo
-    echo "Orphaned volumes:"
-    echo "${ORPHANED_VOLUMES}"
-    if [[ "${ORPHANED_VOLUMES}" != "" ]]; then
-      notify_slack "Failure" "N/A" "Orphaned volumes:\n${ORPHANED_VOLUMES}" "N/A"
+    if [[ "${INPUT_CHECK_ORPHANED_VOLUMES}" == "true" ]]; then
+      # check all volumes in the region because there is no volume tag with a tenant name in AWS
+      ORPHANED_VOLUMES="$(aws ec2 describe-volumes --output=json --filters "Name=status,Values=[available,error]" \
+        | jq -r '.Volumes[] | (.CreateTime + " " + .AvailabilityZone + " " +  .VolumeId + " " + (.Tags | map(select(.Key=="Name" or .Key=="kubernetes.io/created-for/pvc/name") | .Value) | join(" ")) + " " + .State + " " + .VolumeType + " "  + (.Size | tostring) + "GiB")')"
+      echo
+      echo "Orphaned volumes:"
+      echo "${ORPHANED_VOLUMES}"
+      if [[ "${ORPHANED_VOLUMES}" != "" ]]; then
+        notify_slack "Failure" "${LOCAL_BRANCH}" "Orphaned volumes:\n${ORPHANED_VOLUMES}" "N/A"
+      fi
     fi
   fi
 
