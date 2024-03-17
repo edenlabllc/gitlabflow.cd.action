@@ -248,7 +248,9 @@ VERSION="${INPUT_VERSION}"
 echo
 echo "Install RMK."
 curl -sL "https://edenlabllc-rmk-tools-infra.s3.eu-north-1.amazonaws.com/rmk/s3-installer" | bash -s -- "${INPUT_RMK_VERSION}"
-rmk --version
+RMK_VERSION="$(rmk --version | cut -d ' ' -f3)"
+RMK_MAJOR_VERSION=$(echo "${RMK_VERSION}" | cut -d '.' -f1 | cut -d 'v' -f2)
+echo "rmk version ${RMK_VERSION}"
 
 export TENANT=$(echo "${GITHUB_REPOSITORY}" | cut -d '/' -f2 | cut -d '.' -f1)
 
@@ -376,7 +378,11 @@ sync)
     done
   fi
 
-  rmk release -- ${FLAGS_LABELS} sync
+  if [[ "${RMK_MAJOR_VERSION}" -lt "4" ]]; then
+    rmk release -- ${FLAGS_LABELS} sync
+  else
+    rmk release sync ${FLAGS_LABELS}
+  fi
   ;;
 update)
   if [[ "${INPUT_RMK_UPDATE_HELMFILE_REPOS_COMMAND}" != "" ]]; then
@@ -395,14 +401,40 @@ reindex)
   export FHIR_SERVER_SEARCH_REINDEXER_ENABLED="true"
   if [[ "${INPUT_REINDEXER_COLLECTIONS}" != "" ]]; then
     COLLECTIONS_SET="--set env.COLLECTIONS=${INPUT_REINDEXER_COLLECTIONS}"
+    COLLECTIONS_SET_ARGS="--helmfile-args \"${COLLECTIONS_SET}\""
   fi
 
-  if ! (rmk release -- -l name="${INPUT_REINDEXER_RELEASE_NAME}" sync ${COLLECTIONS_SET}); then
-    notify_slack "Failure" "${ENVIRONMENT}" "Reindexer job failed"
-    exit 1
+  if [[ "${RMK_MAJOR_VERSION}" -lt "4" ]]; then
+    if ! (rmk release -- -l name="${INPUT_REINDEXER_RELEASE_NAME}" sync ${COLLECTIONS_SET}); then
+      notify_slack "Failure" "${ENVIRONMENT}" "Reindexer job failed"
+      exit 1
+    fi
+  else
+    if ! (rmk release sync -l name="${INPUT_REINDEXER_RELEASE_NAME}" ${COLLECTIONS_SET_ARGS}); then
+      notify_slack "Failure" "${ENVIRONMENT}" "Reindexer job failed"
+      exit 1
+    fi
   fi
 
   notify_slack "Success" ${ENVIRONMENT} "Reindexer job complete"
+  ;;
+project)
+  if [[ -z "${INPUT_PROJECT_DEPENDENCY_NAME}" ]]; then
+    >&2 echo "ERROR: For project dependency update, the dependency name is not configured."
+    exit 1
+  fi
+
+  if [[ -z "${INPUT_PROJECT_DEPENDENCY_VERSION}" ]]; then
+    >&2 echo "ERROR: For project dependency update, the dependency version is not configured."
+    exit 1
+  fi
+
+  if [[ "${RMK_MAJOR_VERSION}" -lt "4" ]]; then
+    >&2 echo "ERROR: To update project dependencies, rmk version must be at least 4.x.x."
+    exit 1
+  fi
+
+  rmk project update --dependency "${INPUT_PROJECT_DEPENDENCY_NAME}" --version "${INPUT_PROJECT_DEPENDENCY_VERSION}"
   ;;
 esac
 

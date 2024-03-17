@@ -72,7 +72,7 @@ inputs:
     required: false
     default: ""
   rmk_command:
-    description: Command to run CD in rmk. Allowed values are "update", "sync", "provision", "reindex", "destroy".
+    description: Command to run CD in rmk. Allowed values are "update", "sync", "provision", "reindex", "destroy", "project".
     required: false
   rmk_update_helmfile_repos_command:
     description: Helmfile command to update repos when running update in rmk. Allowed values are "" (do nothing), "repos", "fetch" (only if rmk_command=update).
@@ -121,6 +121,12 @@ inputs:
     description: DEPRECATED Restore backup of MongoDB databases.
     required: false
     default: false
+  project_dependency_name:
+    description: Dependency name. Allows using a set of rmk commands to project dependency version update to project.yaml file (only if rmk_command=project).
+    required: false
+  project_dependency_version:
+    description: Dependency version. Allows using a set of rmk commands to project dependency version update to project.yaml file (only if rmk_command=project).
+    required: false
   routes_test:
     description: Execute routes test.
     required: false
