@@ -248,8 +248,8 @@ VERSION="${INPUT_VERSION}"
 echo
 echo "Install RMK."
 curl -sL "https://edenlabllc-rmk-tools-infra.s3.eu-north-1.amazonaws.com/rmk/s3-installer" | bash -s -- "${INPUT_RMK_VERSION}"
-RMK_VERSION="$(rmk --version | cut -d ' ' -f3)"
-RMK_MAJOR_VERSION=$(echo "${RMK_VERSION}" | cut -d '.' -f1 | cut -d 'v' -f2)
+RMK_VERSION=$(rmk --version | sed -E "s/^.*\s(.*)$/\1/")
+RMK_MAJOR_VERSION=$(echo "${RMK_VERSION}" | sed -E "s/^[^0-9]*([0-9]+)\..*$/\1/")
 echo "rmk version ${RMK_VERSION}"
 
 export TENANT=$(echo "${GITHUB_REPOSITORY}" | cut -d '/' -f2 | cut -d '.' -f1)
@@ -384,7 +384,7 @@ sync)
     rmk release sync ${FLAGS_LABELS}
   fi
   ;;
-update)
+update | release_update)
   if [[ "${INPUT_RMK_UPDATE_HELMFILE_REPOS_COMMAND}" != "" ]]; then
     rmk release "${INPUT_RMK_UPDATE_HELMFILE_REPOS_COMMAND}"
   fi
@@ -418,7 +418,7 @@ reindex)
 
   notify_slack "Success" ${ENVIRONMENT} "Reindexer job complete"
   ;;
-project)
+project_update)
   if [[ -z "${INPUT_PROJECT_DEPENDENCY_NAME}" ]]; then
     >&2 echo "ERROR: For project dependency update, the dependency name is not configured."
     exit 1
