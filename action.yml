@@ -35,7 +35,7 @@ inputs:
     description: AWS secret access key of the AWS account deploying applications to EKS for production.
     required: false
   allowed_environments:
-    description: Allowed environments participating in releases for rmk commands release_update & sync.
+    description: Allowed environments participating in releases for rmk commands "destroy", "project_update", "provision", "release_update", "sync".
     required: true
     default: develop,staging
   cluster_provisioner:
@@ -72,7 +72,7 @@ inputs:
     required: false
     default: ""
   rmk_command:
-    description: Command to run CD in rmk. Allowed values are "release_update", "sync", "provision", "reindex", "destroy", "project_update".
+    description: Command to run CD in rmk. Allowed values are "destroy", "project_update", "provision", "reindex", "release_update", "sync".
     required: false
   rmk_update_helmfile_repos_command:
     description: Helmfile command to update repos when running release update in rmk. Allowed values are "" (do nothing), "repos", "fetch" (only if rmk_command=release_update).
