@@ -235,7 +235,7 @@ git config --global "user.name" "github-actions"
 git config --global "user.email" "github-actions@github.com"
 git config --global --add "safe.directory" "/github/workspace"
 
-# exports are required by the installer scripts and rmk
+# exports are required by the installer scripts and RMK
 export GITHUB_TOKEN="${INPUT_GITHUB_TOKEN_REPO_FULL_ACCESS}"
 export CLOUDFLARE_TOKEN="${INPUT_CLOUDFLARE_TOKEN}"
 export GITHUB_ORG="${GITHUB_REPOSITORY%%/*}"
@@ -248,9 +248,9 @@ VERSION="${INPUT_VERSION}"
 echo
 echo "Install RMK."
 curl -sL "https://edenlabllc-rmk-tools-infra.s3.eu-north-1.amazonaws.com/rmk/s3-installer" | bash -s -- "${INPUT_RMK_VERSION}"
-RMK_VERSION=$(rmk --version | sed -E "s/^.*\s(.*)$/\1/")
-RMK_MAJOR_VERSION=$(echo "${RMK_VERSION}" | sed -E "s/^[^0-9]*([0-9]+)\..*$/\1/")
-echo "rmk version ${RMK_VERSION}"
+RMK_VERSION="$(rmk --version | sed -E 's/^.*\s(.*)$/\1/')"
+RMK_MAJOR_VERSION="$(echo ${RMK_VERSION} | sed -E 's/^[^0-9]*([0-9]+)\..*$/\1/')"
+echo "RMK version ${RMK_VERSION}"
 
 export TENANT=$(echo "${GITHUB_REPOSITORY}" | cut -d '/' -f2 | cut -d '.' -f1)
 
@@ -430,7 +430,7 @@ project_update)
   fi
 
   if [[ "${RMK_MAJOR_VERSION}" -lt "4" ]]; then
-    >&2 echo "ERROR: To update project dependencies, rmk version must be at least 4.x.x."
+    >&2 echo "ERROR: To update project dependencies, RMK version must be at least v4.x.x."
     exit 1
   fi
 
