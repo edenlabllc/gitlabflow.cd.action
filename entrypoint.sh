@@ -300,7 +300,7 @@ if [[ "${INPUT_RMK_SLACK_NOTIFICATIONS}" == "true" ]]; then
     OLDIFS="${IFS}"
     IFS=$'\n'
     for DETAIL in ${INPUT_RMK_SLACK_MESSAGE_DETAILS}; do
-      FLAGS_SLACK_MESSAGE_DETAILS="${FLAGS_SLACK_MESSAGE_DETAILS} --smd=\"${DETAIL}\""
+      FLAGS_SLACK_MESSAGE_DETAILS="${FLAGS_SLACK_MESSAGE_DETAILS} --slack-message-details=\"${DETAIL}\""
     done
     IFS="${OLDIFS}"
   fi
@@ -312,7 +312,7 @@ fi
 
 if [[ "${INPUT_ROUTES_TEST}" == "true" ]]; then
   git clone "https://${GITHUB_TOKEN}@github.com/${GITHUB_ORG}/fhir.routes.tests.git"
-  ENV_DOMAIN="https://$(rmk --lf=json config view | jq -r '.config.RootDomain')"
+  ENV_DOMAIN="https://$(rmk --log-format=json config view | jq -r '.config.RootDomain')"
   cd fhir.routes.tests && git checkout "${INPUT_ROUTES_TEST_BRANCH}" && docker build -t testing .
   docker run testing -D url="${ENV_DOMAIN}"
 
@@ -374,7 +374,7 @@ sync)
   FLAGS_LABELS=""
   if [[ "${INPUT_RMK_SYNC_LABELS}" != "" ]]; then
     for LABEL in ${INPUT_RMK_SYNC_LABELS}; do
-      FLAGS_LABELS="${FLAGS_LABELS} -l ${LABEL}"
+      FLAGS_LABELS="${FLAGS_LABELS} --selector ${LABEL}"
     done
   fi
 
@@ -385,8 +385,10 @@ sync)
   fi
   ;;
 update | release_update)
-  if [[ "${INPUT_RMK_UPDATE_HELMFILE_REPOS_COMMAND}" != "" ]]; then
-    rmk release "${INPUT_RMK_UPDATE_HELMFILE_REPOS_COMMAND}"
+  if [[ "${RMK_MAJOR_VERSION}" -lt "4" ]]; then
+    if [[ "${INPUT_RMK_UPDATE_HELMFILE_REPOS_COMMAND}" != "" ]]; then
+      rmk release "${INPUT_RMK_UPDATE_HELMFILE_REPOS_COMMAND}"
+    fi
   fi
 
   if [[ "${INPUT_RMK_UPDATE_SKIP_DEPLOY}" == "true" ]]; then
@@ -395,7 +397,11 @@ update | release_update)
     FLAGS_COMMIT_DEPLOY="--deploy"
   fi
 
-  rmk release update --repository "${REPOSITORY_FULL_NAME}" --tag "${VERSION}" --skip-actions ${FLAGS_COMMIT_DEPLOY}
+  if [[ "${RMK_MAJOR_VERSION}" -lt "4" ]]; then
+    rmk release update --repository "${REPOSITORY_FULL_NAME}" --tag "${VERSION}" --skip-actions ${FLAGS_COMMIT_DEPLOY}
+  else
+    rmk release update --repository "${REPOSITORY_FULL_NAME}" --tag "${VERSION}" --skip-ci ${FLAGS_COMMIT_DEPLOY}
+  fi
   ;;
 reindex)
   export FHIR_SERVER_SEARCH_REINDEXER_ENABLED="true"
@@ -405,12 +411,12 @@ reindex)
   fi
 
   if [[ "${RMK_MAJOR_VERSION}" -lt "4" ]]; then
-    if ! (rmk release -- -l name="${INPUT_REINDEXER_RELEASE_NAME}" sync ${COLLECTIONS_SET}); then
+    if ! (rmk release -- --selector name="${INPUT_REINDEXER_RELEASE_NAME}" sync ${COLLECTIONS_SET}); then
       notify_slack "Failure" "${ENVIRONMENT}" "Reindexer job failed"
       exit 1
     fi
   else
-    if ! (rmk release sync -l name="${INPUT_REINDEXER_RELEASE_NAME}" ${COLLECTIONS_SET_ARGS}); then
+    if ! (rmk release sync --selector name="${INPUT_REINDEXER_RELEASE_NAME}" ${COLLECTIONS_SET_ARGS}); then
       notify_slack "Failure" "${ENVIRONMENT}" "Reindexer job failed"
       exit 1
     fi
