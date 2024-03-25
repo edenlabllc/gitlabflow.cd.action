@@ -75,7 +75,7 @@ inputs:
     description: Command to run CD in RMK. Allowed values are "destroy", "project_update", "provision", "reindex", "release_update", "sync".
     required: false
   rmk_update_helmfile_repos_command:
-    description: Helmfile command to update repos when running release update in RMK. Allowed values are "" (do nothing), "repos", "fetch" (only if rmk_command=release_update).
+    description: Helmfile command to update repos when running release update in RMK. Allowed values are "" (do nothing), "repos", "fetch" (only if rmk_command=release_update and only for RMK version v3.x.x).
     required: false
     default: ""
   rmk_update_skip_deploy:
