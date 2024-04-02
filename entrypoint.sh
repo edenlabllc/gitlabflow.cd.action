@@ -236,6 +236,7 @@ git config --global "user.email" "github-actions@github.com"
 git config --global --add "safe.directory" "/github/workspace"
 
 # exports are required by the installer scripts and RMK
+export GITHUB_TOKEN="${INPUT_GITHUB_TOKEN_REPO_FULL_ACCESS}"
 export RMK_GITHUB_TOKEN="${INPUT_GITHUB_TOKEN_REPO_FULL_ACCESS}"
 export RMK_CLOUDFLARE_TOKEN="${INPUT_CLOUDFLARE_TOKEN}"
 export GITHUB_ORG="${GITHUB_REPOSITORY%%/*}"
