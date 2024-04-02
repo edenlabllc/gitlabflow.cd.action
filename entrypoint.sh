@@ -237,7 +237,8 @@ git config --global --add "safe.directory" "/github/workspace"
 
 # exports are required by the installer scripts and RMK
 export GITHUB_TOKEN="${INPUT_GITHUB_TOKEN_REPO_FULL_ACCESS}"
-export CLOUDFLARE_TOKEN="${INPUT_CLOUDFLARE_TOKEN}"
+export RMK_GITHUB_TOKEN="${INPUT_GITHUB_TOKEN_REPO_FULL_ACCESS}"
+export RMK_CLOUDFLARE_TOKEN="${INPUT_CLOUDFLARE_TOKEN}"
 export GITHUB_ORG="${GITHUB_REPOSITORY%%/*}"
 
 GIT_BRANCH="${GITHUB_REF#refs/heads/}"
@@ -292,8 +293,8 @@ select_environment "${ENVIRONMENT}"
 
 # Slack notification
 if [[ "${INPUT_RMK_SLACK_NOTIFICATIONS}" == "true" ]]; then
-  export SLACK_WEBHOOK=${INPUT_RMK_SLACK_WEBHOOK}
-  export SLACK_CHANNEL=${INPUT_RMK_SLACK_CHANNEL}
+  export RMK_SLACK_WEBHOOK=${INPUT_RMK_SLACK_WEBHOOK}
+  export RMK_SLACK_CHANNEL=${INPUT_RMK_SLACK_CHANNEL}
 
   FLAGS_SLACK_MESSAGE_DETAILS=""
   if [[ "${INPUT_RMK_SLACK_MESSAGE_DETAILS}" != "" ]]; then
