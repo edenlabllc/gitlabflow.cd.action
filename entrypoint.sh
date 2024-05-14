@@ -196,6 +196,7 @@ function destroy_clusters() {
   if [[ -n "${LOCAL_BRANCH}" ]]; then
     if [[ "${INPUT_CHECK_ORPHANED_CLUSTERS}" == "true" ]]; then
       # match EKS clusters (case-insensitive)
+      echo Before ORPHANED_CLUSTERS && aws eks list-clusters --output=json
       ORPHANED_CLUSTERS="$(aws eks list-clusters --output=json | jq -r '.clusters[] | select(. | test("^'"${TENANT}"'-([a-z]+-\\d+|v\\d+\\.\\d+\\.\\d+(-rc)?)-eks$"; "i"))')"
       echo
       echo "Orphaned clusters:"
