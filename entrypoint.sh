@@ -196,7 +196,6 @@ function destroy_clusters() {
   if [[ -n "${LOCAL_BRANCH}" ]]; then
     if [[ "${INPUT_CHECK_ORPHANED_CLUSTERS}" == "true" ]]; then
       # match EKS clusters (case-insensitive)
-      echo Before ORPHANED_CLUSTERS && aws eks list-clusters --output=json
       ORPHANED_CLUSTERS="$(aws eks list-clusters --output=json | jq -r '.clusters[] | select(. | test("^'"${TENANT}"'-([a-z]+-\\d+|v\\d+\\.\\d+\\.\\d+(-rc)?)-eks$"; "i"))')"
       echo
       echo "Orphaned clusters:"
@@ -208,6 +207,7 @@ function destroy_clusters() {
 
     if [[ "${INPUT_CHECK_ORPHANED_VOLUMES}" == "true" ]]; then
       # check all volumes in the region because there is no volume tag with a tenant name in AWS
+      echo Before ORPHANED_VOLUMES && aws ec2 describe-volumes --output=json && aws ec2 describe-volumes --output=json --filters "Name=status,Values=[available,error]"
       ORPHANED_VOLUMES="$(aws ec2 describe-volumes --output=json --filters "Name=status,Values=[available,error]" \
         | jq -r '.Volumes[] | (.CreateTime + " " + .AvailabilityZone + " " +  .VolumeId + " " + (.Tags | map(select(.Key=="Name" or .Key=="kubernetes.io/created-for/pvc/name") | .Value) | join(" ")) + " " + .State + " " + .VolumeType + " "  + (.Size | tostring) + "GiB")')"
       echo
