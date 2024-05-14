@@ -236,9 +236,10 @@ git config --global "user.name" "github-actions"
 git config --global "user.email" "github-actions@github.com"
 git config --global --add "safe.directory" "/github/workspace"
 
-# exports are required by the installer scripts and rmk
+# exports are required by the installer scripts and RMK
 export GITHUB_TOKEN="${INPUT_GITHUB_TOKEN_REPO_FULL_ACCESS}"
-export CLOUDFLARE_TOKEN="${INPUT_CLOUDFLARE_TOKEN}"
+export RMK_GITHUB_TOKEN="${INPUT_GITHUB_TOKEN_REPO_FULL_ACCESS}"
+export RMK_CLOUDFLARE_TOKEN="${INPUT_CLOUDFLARE_TOKEN}"
 export GITHUB_ORG="${GITHUB_REPOSITORY%%/*}"
 
 GIT_BRANCH="${GITHUB_REF#refs/heads/}"
@@ -249,7 +250,9 @@ VERSION="${INPUT_VERSION}"
 echo
 echo "Install RMK."
 curl -sL "https://edenlabllc-rmk-tools-infra.s3.eu-north-1.amazonaws.com/rmk/s3-installer" | bash -s -- "${INPUT_RMK_VERSION}"
-rmk --version
+RMK_VERSION="$(rmk --version | sed -E 's/^.*\s(.*)$/\1/')"
+RMK_MAJOR_VERSION="$(echo ${RMK_VERSION} | sed -E 's/^[^0-9]*([0-9]+)\..*$/\1/')"
+echo "RMK version ${RMK_VERSION}"
 
 export TENANT=$(echo "${GITHUB_REPOSITORY}" | cut -d '/' -f2 | cut -d '.' -f1)
 
@@ -291,15 +294,15 @@ select_environment "${ENVIRONMENT}"
 
 # Slack notification
 if [[ "${INPUT_RMK_SLACK_NOTIFICATIONS}" == "true" ]]; then
-  export SLACK_WEBHOOK=${INPUT_RMK_SLACK_WEBHOOK}
-  export SLACK_CHANNEL=${INPUT_RMK_SLACK_CHANNEL}
+  export RMK_SLACK_WEBHOOK=${INPUT_RMK_SLACK_WEBHOOK}
+  export RMK_SLACK_CHANNEL=${INPUT_RMK_SLACK_CHANNEL}
 
   FLAGS_SLACK_MESSAGE_DETAILS=""
   if [[ "${INPUT_RMK_SLACK_MESSAGE_DETAILS}" != "" ]]; then
     OLDIFS="${IFS}"
     IFS=$'\n'
     for DETAIL in ${INPUT_RMK_SLACK_MESSAGE_DETAILS}; do
-      FLAGS_SLACK_MESSAGE_DETAILS="${FLAGS_SLACK_MESSAGE_DETAILS} --smd=\"${DETAIL}\""
+      FLAGS_SLACK_MESSAGE_DETAILS="${FLAGS_SLACK_MESSAGE_DETAILS} --slack-message-details=\"${DETAIL}\""
     done
     IFS="${OLDIFS}"
   fi
@@ -311,7 +314,7 @@ fi
 
 if [[ "${INPUT_ROUTES_TEST}" == "true" ]]; then
   git clone "https://${GITHUB_TOKEN}@github.com/${GITHUB_ORG}/fhir.routes.tests.git"
-  ENV_DOMAIN="https://$(rmk --lf=json config view | jq -r '.config.RootDomain')"
+  ENV_DOMAIN="https://$(rmk --log-format=json config view | jq -r '.config.RootDomain')"
   cd fhir.routes.tests && git checkout "${INPUT_ROUTES_TEST_BRANCH}" && docker build -t testing .
   docker run testing -D url="${ENV_DOMAIN}"
 
@@ -373,15 +376,21 @@ sync)
   FLAGS_LABELS=""
   if [[ "${INPUT_RMK_SYNC_LABELS}" != "" ]]; then
     for LABEL in ${INPUT_RMK_SYNC_LABELS}; do
-      FLAGS_LABELS="${FLAGS_LABELS} -l ${LABEL}"
+      FLAGS_LABELS="${FLAGS_LABELS} --selector ${LABEL}"
     done
   fi
 
-  rmk release -- ${FLAGS_LABELS} sync
+  if [[ "${RMK_MAJOR_VERSION}" -lt "4" ]]; then
+    rmk release -- ${FLAGS_LABELS} sync
+  else
+    rmk release sync ${FLAGS_LABELS}
+  fi
   ;;
-update)
-  if [[ "${INPUT_RMK_UPDATE_HELMFILE_REPOS_COMMAND}" != "" ]]; then
-    rmk release "${INPUT_RMK_UPDATE_HELMFILE_REPOS_COMMAND}"
+update | release_update)
+  if [[ "${RMK_MAJOR_VERSION}" -lt "4" ]]; then
+    if [[ "${INPUT_RMK_UPDATE_HELMFILE_REPOS_COMMAND}" != "" ]]; then
+      rmk release "${INPUT_RMK_UPDATE_HELMFILE_REPOS_COMMAND}"
+    fi
   fi
 
   if [[ "${INPUT_RMK_UPDATE_SKIP_DEPLOY}" == "true" ]]; then
@@ -390,20 +399,50 @@ update)
     FLAGS_COMMIT_DEPLOY="--deploy"
   fi
 
-  rmk release update --repository "${REPOSITORY_FULL_NAME}" --tag "${VERSION}" --skip-actions ${FLAGS_COMMIT_DEPLOY}
+  if [[ "${RMK_MAJOR_VERSION}" -lt "4" ]]; then
+    rmk release update --repository "${REPOSITORY_FULL_NAME}" --tag "${VERSION}" --skip-actions ${FLAGS_COMMIT_DEPLOY}
+  else
+    rmk release update --repository "${REPOSITORY_FULL_NAME}" --tag "${VERSION}" --skip-ci ${FLAGS_COMMIT_DEPLOY}
+  fi
   ;;
 reindex)
   export FHIR_SERVER_SEARCH_REINDEXER_ENABLED="true"
   if [[ "${INPUT_REINDEXER_COLLECTIONS}" != "" ]]; then
     COLLECTIONS_SET="--set env.COLLECTIONS=${INPUT_REINDEXER_COLLECTIONS}"
+    COLLECTIONS_SET_ARGS="--helmfile-args \"${COLLECTIONS_SET}\""
   fi
 
-  if ! (rmk release -- -l name="${INPUT_REINDEXER_RELEASE_NAME}" sync ${COLLECTIONS_SET}); then
-    notify_slack "Failure" "${ENVIRONMENT}" "Reindexer job failed"
-    exit 1
+  if [[ "${RMK_MAJOR_VERSION}" -lt "4" ]]; then
+    if ! (rmk release -- --selector name="${INPUT_REINDEXER_RELEASE_NAME}" sync ${COLLECTIONS_SET}); then
+      notify_slack "Failure" "${ENVIRONMENT}" "Reindexer job failed"
+      exit 1
+    fi
+  else
+    if ! (rmk release sync --selector name="${INPUT_REINDEXER_RELEASE_NAME}" ${COLLECTIONS_SET_ARGS}); then
+      notify_slack "Failure" "${ENVIRONMENT}" "Reindexer job failed"
+      exit 1
+    fi
   fi
 
   notify_slack "Success" ${ENVIRONMENT} "Reindexer job complete"
+  ;;
+project_update)
+  if [[ -z "${INPUT_PROJECT_DEPENDENCY_NAME}" ]]; then
+    >&2 echo "ERROR: For project dependency update, the dependency name is not configured."
+    exit 1
+  fi
+
+  if [[ -z "${INPUT_PROJECT_DEPENDENCY_VERSION}" ]]; then
+    >&2 echo "ERROR: For project dependency update, the dependency version is not configured."
+    exit 1
+  fi
+
+  if [[ "${RMK_MAJOR_VERSION}" -lt "4" ]]; then
+    >&2 echo "ERROR: To update project dependencies, RMK version must be at least v4.x.x."
+    exit 1
+  fi
+
+  rmk project update --dependency "${INPUT_PROJECT_DEPENDENCY_NAME}" --version "${INPUT_PROJECT_DEPENDENCY_VERSION}"
   ;;
 esac
 

@@ -2,10 +2,10 @@ name: GitLab flow action for tenant bootstrap repositories
 description: |
 inputs:
   github_token_repo_full_access:
-    description: GitHub token with full access permissions to repositories (used by installer script and rmk).
+    description: GitHub token with full access permissions to repositories (used by installer script and RMK).
     required: true
   cloudflare_token:
-    description: Cloudflare token for DNS provisioning (used by rmk).
+    description: Cloudflare token for DNS provisioning (used by RMK).
     required: true
   cd_develop_aws_region:
     description: AWS region of the AWS account deploying applications to EKS for develop.
@@ -35,11 +35,11 @@ inputs:
     description: AWS secret access key of the AWS account deploying applications to EKS for production.
     required: false
   allowed_environments:
-    description: Allowed environments participating in releases for rmk commands update & sync.
+    description: Allowed environments participating in releases for RMK commands "destroy", "project_update", "provision", "release_update", "sync".
     required: true
     default: develop,staging
   cluster_provisioner:
-    description: Allows using a set of rmk commands to provision cluster according to the specification tenant repositories.
+    description: Allows using a set of RMK commands to provision cluster according to the specification tenant repositories.
     required: true
     default: false
   reindexer_release_name:
@@ -47,7 +47,7 @@ inputs:
     required: false
     default: fhir-server-search-reindexer
   rmk_version:
-    description: rmk version.
+    description: RMK version.
     required: false
     default: latest
   rmk_slack_notifications:
@@ -72,23 +72,23 @@ inputs:
     required: false
     default: ""
   rmk_command:
-    description: Command to run CD in rmk. Allowed values are "update", "sync", "provision", "reindex", "destroy".
+    description: Command to run CD in RMK. Allowed values are "destroy", "project_update", "provision", "reindex", "release_update", "sync".
     required: false
   rmk_update_helmfile_repos_command:
-    description: Helmfile command to update repos when running update in rmk. Allowed values are "" (do nothing), "repos", "fetch" (only if rmk_command=update).
+    description: Helmfile command to update repos when running release update in RMK. Allowed values are "" (do nothing), "repos", "fetch" (only if rmk_command=release_update and only for RMK version v3.x.x).
     required: false
     default: ""
   rmk_update_skip_deploy:
-    description: Whether to skip deploy and commit only when running update in rmk (only if rmk_command=update).
+    description: Whether to skip deploy and commit only when running release update in RMK (only if rmk_command=release_update).
     required: false
     default: false
   rmk_sync_skip_deps:
-    description: DEPRECATED Whether to skip running "helm repo update" and "helm dependency build" when running sync in rmk (only if rmk_command=sync).
+    description: DEPRECATED Whether to skip running "helm repo update" and "helm dependency build" when running sync in RMK (only if rmk_command=sync).
     required: false
     default: false
   rmk_sync_labels:
     description: |
-      List of labels when running sync in rmk (only if rmk_command=sync).
+      List of labels when running sync in RMK (only if rmk_command=sync).
       Example:
       rmk_sync_labels: |
         scope=kodjin
@@ -96,10 +96,10 @@ inputs:
     required: false
     default: ""
   repository_full_name:
-    description: Image repository full name of application (includes registry URL and repository_name, only if rmk_command=update).
+    description: Image repository full name of application (includes registry URL and repository_name, only if rmk_command=release_update).
     required: false
   version:
-    description: Current application version (only if rmk_command=update).
+    description: Current application version (only if rmk_command=release_update).
     required: false
   destroy_clusters:
     description: Destroy all clusters by feature/ffs-\d+ and release/rc-\d+ branch patterns (case-insensitive).
@@ -121,6 +121,12 @@ inputs:
     description: DEPRECATED Restore backup of MongoDB databases.
     required: false
     default: false
+  project_dependency_name:
+    description: Dependency name. Allows using a set of rmk commands to project dependency version update to project.yaml file (only if rmk_command=project_update).
+    required: false
+  project_dependency_version:
+    description: Dependency version. Allows using a set of rmk commands to project dependency version update to project.yaml file (only if rmk_command=project_update).
+    required: false
   routes_test:
     description: Execute routes test.
     required: false
