@@ -53,10 +53,8 @@ inputs:
   rmk_download_url:
     description: |
       URL for downloading script and installing RMK.
-      Example full URL:
+      Example:
         rmk_download_url: https://edenlabllc-rmk.s3.eu-north-1.amazonaws.com/rmk/s3-installer
-      Example short URL:
-        rmk_download_url: edenlabllc-rmk.s3.eu-north-1.amazonaws.com
     required: false
     default: edenlabllc-rmk.s3.eu-north-1.amazonaws.com
   rmk_slack_notifications:

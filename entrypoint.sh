@@ -246,14 +246,9 @@ ENVIRONMENT="${GIT_BRANCH}"
 REPOSITORY_FULL_NAME="${INPUT_REPOSITORY_FULL_NAME}"
 VERSION="${INPUT_VERSION}"
 
-RMK_DOWNLOAD_URL="${INPUT_RMK_DOWNLOAD_URL}"
-if ! [[ "${RMK_DOWNLOAD_URL}" =~ ^https://.*$ ]]; then
-  RMK_DOWNLOAD_URL="https://${RMK_DOWNLOAD_URL}/rmk/s3-installer"
-fi
-
 echo
 echo "Install RMK."
-curl -sL "${RMK_DOWNLOAD_URL}" | bash -s -- "${INPUT_RMK_VERSION}"
+curl -sL "${INPUT_RMK_DOWNLOAD_URL}" | bash -s -- "${INPUT_RMK_VERSION}"
 RMK_VERSION="$(rmk --version | sed -E 's/^.*\s(.*)$/\1/')"
 RMK_MAJOR_VERSION="$(echo ${RMK_VERSION} | sed -E 's/^[^0-9]*([0-9]+)\..*$/\1/')"
 echo "RMK version ${RMK_VERSION}"
