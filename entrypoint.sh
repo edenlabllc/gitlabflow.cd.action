@@ -246,12 +246,22 @@ ENVIRONMENT="${GIT_BRANCH}"
 REPOSITORY_FULL_NAME="${INPUT_REPOSITORY_FULL_NAME}"
 VERSION="${INPUT_VERSION}"
 
+RMK_DOWNLOAD_URL="${INPUT_RMK_DOWNLOAD_URL}"
+if ! [[ "${RMK_DOWNLOAD_URL}" =~ ^https://.*$ ]]; then
+  RMK_DOWNLOAD_URL="https://${RMK_DOWNLOAD_URL}/rmk/s3-installer"
+fi
+
 echo
 echo "Install RMK."
-curl -sL "https://edenlabllc-rmk-tools-infra.s3.eu-north-1.amazonaws.com/rmk/s3-installer" | bash -s -- "${INPUT_RMK_VERSION}"
+curl -sL "${RMK_DOWNLOAD_URL}" | bash -s -- "${INPUT_RMK_VERSION}"
 RMK_VERSION="$(rmk --version | sed -E 's/^.*\s(.*)$/\1/')"
 RMK_MAJOR_VERSION="$(echo ${RMK_VERSION} | sed -E 's/^[^0-9]*([0-9]+)\..*$/\1/')"
 echo "RMK version ${RMK_VERSION}"
+
+RMK_OLD_VERSION_OF_PROJECT_STRUCTURE="false"
+if [[ "${RMK_MAJOR_VERSION}" -eq "3" ]]; then
+  RMK_OLD_VERSION_OF_PROJECT_STRUCTURE="true"
+fi
 
 export TENANT=$(echo "${GITHUB_REPOSITORY}" | cut -d '/' -f2 | cut -d '.' -f1)
 
@@ -379,14 +389,14 @@ sync)
     done
   fi
 
-  if [[ "${RMK_MAJOR_VERSION}" -lt "4" ]]; then
+  if [[ "${RMK_OLD_VERSION_OF_PROJECT_STRUCTURE}" == "true" ]]; then
     rmk release -- ${FLAGS_LABELS} sync
   else
     rmk release sync ${FLAGS_LABELS}
   fi
   ;;
 update | release_update)
-  if [[ "${RMK_MAJOR_VERSION}" -lt "4" ]]; then
+  if [[ "${RMK_OLD_VERSION_OF_PROJECT_STRUCTURE}" == "true" ]]; then
     if [[ "${INPUT_RMK_UPDATE_HELMFILE_REPOS_COMMAND}" != "" ]]; then
       rmk release "${INPUT_RMK_UPDATE_HELMFILE_REPOS_COMMAND}"
     fi
@@ -398,7 +408,7 @@ update | release_update)
     FLAGS_COMMIT_DEPLOY="--deploy"
   fi
 
-  if [[ "${RMK_MAJOR_VERSION}" -lt "4" ]]; then
+  if [[ "${RMK_OLD_VERSION_OF_PROJECT_STRUCTURE}" == "true" ]]; then
     rmk release update --repository "${REPOSITORY_FULL_NAME}" --tag "${VERSION}" --skip-actions ${FLAGS_COMMIT_DEPLOY}
   else
     rmk release update --repository "${REPOSITORY_FULL_NAME}" --tag "${VERSION}" --skip-ci ${FLAGS_COMMIT_DEPLOY}
@@ -411,7 +421,7 @@ reindex)
     COLLECTIONS_SET_ARGS="--helmfile-args \"${COLLECTIONS_SET}\""
   fi
 
-  if [[ "${RMK_MAJOR_VERSION}" -lt "4" ]]; then
+  if [[ "${RMK_OLD_VERSION_OF_PROJECT_STRUCTURE}" == "true" ]]; then
     if ! (rmk release -- --selector name="${INPUT_REINDEXER_RELEASE_NAME}" sync ${COLLECTIONS_SET}); then
       notify_slack "Failure" "${ENVIRONMENT}" "Reindexer job failed"
       exit 1
@@ -436,8 +446,8 @@ project_update)
     exit 1
   fi
 
-  if [[ "${RMK_MAJOR_VERSION}" -lt "4" ]]; then
-    >&2 echo "ERROR: To update project dependencies, RMK version must be at least v4.x.x."
+  if [[ "${RMK_OLD_VERSION_OF_PROJECT_STRUCTURE}" == "true" ]]; then
+    >&2 echo "ERROR: To update project dependencies, RMK version must be at least v0.41.x and download from edenlabllc-rmk.s3.eu-north-1.amazonaws.com URL"
     exit 1
   fi
 
