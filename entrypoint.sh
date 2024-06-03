@@ -442,7 +442,7 @@ project_update)
   fi
 
   if [[ "${RMK_OLD_VERSION_OF_PROJECT_STRUCTURE}" == "true" ]]; then
-    >&2 echo "ERROR: To update project dependencies, RMK version must be at least v0.41.x and download from \"https://edenlabllc-rmk.s3.eu-north-1.amazonaws.com/rmk/s3-installer\" URL"
+    >&2 echo "ERROR: To update project dependencies, the RMK version must be at least v0.41.x and downloaded from the \"https://edenlabllc-rmk.s3.eu-north-1.amazonaws.com/rmk/s3-installer\" URL"
     exit 1
   fi
 

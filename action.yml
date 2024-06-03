@@ -52,7 +52,7 @@ inputs:
     default: latest
   rmk_download_url:
     description: |
-      URL for downloading script and installing RMK.
+      URL of the download script for RMK installation.
       Example:
         rmk_download_url: https://edenlabllc-rmk.s3.eu-north-1.amazonaws.com/rmk/s3-installer
     required: false
