@@ -325,6 +325,19 @@ if [[ "${INPUT_ROUTES_TEST}" == "true" ]]; then
   exit 0
 fi
 
+if [[ "${INPUT_TEMPLATS_TEST}" == "true" ]]; then
+  echo
+  echo "Execute templates test for branch: \"${ENVIRONMENT}\""
+  if [[ "${RMK_OLD_VERSION_OF_PROJECT_STRUCTURE}" == "true" ]]; then
+    rmk release --skip-context-switch -- build 1> /dev/null
+    rmk release --skip-context-switch -- template 1> /dev/null
+  else
+    rmk release build --skip-context-switch 1> /dev/null
+    rmk release template --skip-context-switch 1> /dev/null
+  fi
+  exit 0
+fi
+
 case "${INPUT_RMK_COMMAND}" in
 destroy)
   echo
