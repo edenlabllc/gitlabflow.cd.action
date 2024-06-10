@@ -149,6 +149,10 @@ inputs:
     description: Execute templates test.
     required: false
     default: false
+  templates_test_head_ref_branch:
+    description: Head branch name (only if templates_test=true).
+    required: false
+    default: ""
 outputs:
   git_branch:
     description: Git branch.

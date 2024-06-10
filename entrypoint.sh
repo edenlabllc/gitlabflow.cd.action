@@ -272,9 +272,13 @@ fi
 if [[ "${INPUT_TEMPLATES_TEST}" == "true" ]]; then
   HEAD_REF_BRANCH="${GITHUB_REF}"
 
-  echo "Local branch 2 : ${HEAD_REF_BRANCH}"
+  echo "Local branch 1 : ${HEAD_REF_BRANCH}"
   if [[ "${HEAD_REF_BRANCH}" != refs/heads/* ]]; then
-    HEAD_REF_BRANCH="${{ github.head_ref }}"
+    HEAD_REF_BRANCH="${INPUT_TEMPLATES_TEST_HEAD_REF_BRANCH}"
+    if [[ "${HEAD_REF_BRANCH}" != refs/heads/* ]]; then
+      >&2 echo "ERROR: Head branch name is incorrect. Check the workflow's templates_test_head_ref_branch input"
+      exit 1
+    fi
     # git checkout "${HEAD_REF_BRANCH}"
   fi
 
