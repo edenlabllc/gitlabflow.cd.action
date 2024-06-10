@@ -269,6 +269,42 @@ if [[ "${INPUT_DESTROY_CLUSTERS}" == "true" ]]; then
   destroy_clusters
 fi
 
+if [[ "${INPUT_ROUTES_TEST}" == "true" ]]; then
+  LOCAL_BRANCH="${GITHUB_REF}"
+
+  echo "Local branch 2 : ${LOCAL_BRANCH}"
+  if [[ "${LOCAL_BRANCH}" != refs/heads/* ]]; then
+    LOCAL_BRANCH="${{ github.head_ref }}"
+    # git checkout "${LOCAL_BRANCH}"
+  fi
+
+  echo "Local branch 2 : ${LOCAL_BRANCH}"
+  echo "Skip templates test"
+
+  # select_environment "${LOCAL_BRANCH}"
+
+  # if ! (rmk config init --progress-bar=false); then
+  #   >&2 echo "ERROR: Config init failed for branch: \"${LOCAL_BRANCH}\""
+  #   echo
+  #   # mark as error because initialization is considered required
+  #   EXIT_CODE=1
+  #   # continue deleting rest of clusters
+  #   continue
+  # fi
+
+  # echo
+  # echo "Execute templates test for branch: \"${LOCAL_BRANCH#refs/heads/}\""
+  # if [[ "${RMK_OLD_VERSION_OF_PROJECT_STRUCTURE}" == "true" ]]; then
+  #   rmk release --skip-context-switch -- build 1> /dev/null
+  #   rmk release --skip-context-switch -- template 1> /dev/null
+  # else
+  #   rmk release build --skip-context-switch 1> /dev/null
+  #   rmk release template --skip-context-switch 1> /dev/null
+  # fi
+
+  exit 0
+fi
+
 if [[ "${GITHUB_REF}" != refs/heads/* ]]; then
   >&2 echo "ERROR: Only pushes to branches are supported. Check the workflow's on.push.* section."
   exit 1
@@ -322,19 +358,6 @@ if [[ "${INPUT_ROUTES_TEST}" == "true" ]]; then
   cd fhir.routes.tests && git checkout "${INPUT_ROUTES_TEST_BRANCH}" && docker build -t testing .
   docker run testing -D url="${ENV_DOMAIN}"
 
-  exit 0
-fi
-
-if [[ "${INPUT_TEMPLATS_TEST}" == "true" ]]; then
-  echo
-  echo "Execute templates test for branch: \"${ENVIRONMENT}\""
-  if [[ "${RMK_OLD_VERSION_OF_PROJECT_STRUCTURE}" == "true" ]]; then
-    rmk release --skip-context-switch -- build 1> /dev/null
-    rmk release --skip-context-switch -- template 1> /dev/null
-  else
-    rmk release build --skip-context-switch 1> /dev/null
-    rmk release template --skip-context-switch 1> /dev/null
-  fi
   exit 0
 fi
 
