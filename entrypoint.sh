@@ -272,39 +272,31 @@ fi
 if [[ "${INPUT_TEMPLATES_TEST}" == "true" ]]; then
   HEAD_REF_BRANCH="${GITHUB_REF}"
 
-  echo "Local branch 1 : ${HEAD_REF_BRANCH}"
   if [[ "${HEAD_REF_BRANCH}" != refs/heads/* ]]; then
     HEAD_REF_BRANCH="${INPUT_TEMPLATES_TEST_HEAD_REF_BRANCH}"
     if [[ -z "${HEAD_REF_BRANCH}" ]]; then
       >&2 echo "ERROR: Head branch name is incorrect. Check the workflow's templates_test_head_ref_branch input"
       exit 1
     fi
-    # git checkout "${HEAD_REF_BRANCH}"
+    git checkout "${HEAD_REF_BRANCH}"
   fi
-
-  echo "Local branch 2 : ${HEAD_REF_BRANCH}"
-  echo "Skip templates test"
 
   select_environment "${HEAD_REF_BRANCH}"
 
-  # if ! (rmk config init --progress-bar=false); then
-  #   >&2 echo "ERROR: Config init failed for branch: \"${HEAD_REF_BRANCH}\""
-  #   echo
-  #   # mark as error because initialization is considered required
-  #   EXIT_CODE=1
-  #   # continue deleting rest of clusters
-  #   continue
-  # fi
+  if ! (rmk config init --progress-bar=false); then
+    >&2 echo "ERROR: Config init failed for branch: \"${HEAD_REF_BRANCH}\""
+    exit 1
+  fi
 
-  # echo
-  # echo "Execute templates test for branch: \"${HEAD_REF_BRANCH#refs/heads/}\""
-  # if [[ "${RMK_OLD_VERSION_OF_PROJECT_STRUCTURE}" == "true" ]]; then
-  #   rmk release --skip-context-switch -- build 1> /dev/null
-  #   rmk release --skip-context-switch -- template 1> /dev/null
-  # else
-  #   rmk release build --skip-context-switch 1> /dev/null
-  #   rmk release template --skip-context-switch 1> /dev/null
-  # fi
+  echo
+  echo "Execute templates test for branch: \"${HEAD_REF_BRANCH}\""
+  if [[ "${RMK_OLD_VERSION_OF_PROJECT_STRUCTURE}" == "true" ]]; then
+    rmk release --skip-context-switch -- build 1> /dev/null
+    rmk release --skip-context-switch -- template 1> /dev/null
+  else
+    rmk release build --skip-context-switch 1> /dev/null
+    rmk release template --skip-context-switch 1> /dev/null
+  fi
 
   exit 0
 fi
