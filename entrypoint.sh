@@ -291,13 +291,18 @@ if [[ "${INPUT_TEMPLATES_TEST}" == "true" ]]; then
   echo
   echo "Execute templates test for branch: \"${HEAD_REF_BRANCH}\""
   if [[ "${RMK_OLD_VERSION_OF_PROJECT_STRUCTURE}" == "true" ]]; then
+    echo "Execute release build."
     rmk release --skip-context-switch -- build 1> /dev/null
+    echo "Execute release template."
     rmk release --skip-context-switch -- template 1> /dev/null
   else
+    echo "Execute release build."
     rmk release build --skip-context-switch 1> /dev/null
+    echo "Execute release template."
     rmk release template --skip-context-switch 1> /dev/null
   fi
 
+  echo "Templates test completed."
   exit 0
 fi
 
