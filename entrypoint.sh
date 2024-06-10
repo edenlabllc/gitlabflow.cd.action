@@ -275,7 +275,7 @@ if [[ "${INPUT_TEMPLATES_TEST}" == "true" ]]; then
   echo "Local branch 1 : ${HEAD_REF_BRANCH}"
   if [[ "${HEAD_REF_BRANCH}" != refs/heads/* ]]; then
     HEAD_REF_BRANCH="${INPUT_TEMPLATES_TEST_HEAD_REF_BRANCH}"
-    if [[ "${HEAD_REF_BRANCH}" != refs/heads/* ]]; then
+    if [[ -z "${HEAD_REF_BRANCH}" ]]; then
       >&2 echo "ERROR: Head branch name is incorrect. Check the workflow's templates_test_head_ref_branch input"
       exit 1
     fi
@@ -285,7 +285,7 @@ if [[ "${INPUT_TEMPLATES_TEST}" == "true" ]]; then
   echo "Local branch 2 : ${HEAD_REF_BRANCH}"
   echo "Skip templates test"
 
-  # select_environment "${HEAD_REF_BRANCH}"
+  select_environment "${HEAD_REF_BRANCH}"
 
   # if ! (rmk config init --progress-bar=false); then
   #   >&2 echo "ERROR: Config init failed for branch: \"${HEAD_REF_BRANCH}\""
