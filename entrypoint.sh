@@ -269,22 +269,22 @@ if [[ "${INPUT_DESTROY_CLUSTERS}" == "true" ]]; then
   destroy_clusters
 fi
 
-if [[ "${INPUT_ROUTES_TEST}" == "true" ]]; then
-  LOCAL_BRANCH="${GITHUB_REF}"
+if [[ "${INPUT_TEMPLATES_TEST}" == "true" ]]; then
+  HEAD_REF_BRANCH="${GITHUB_REF}"
 
-  echo "Local branch 2 : ${LOCAL_BRANCH}"
-  if [[ "${LOCAL_BRANCH}" != refs/heads/* ]]; then
-    LOCAL_BRANCH="${{ github.head_ref }}"
-    # git checkout "${LOCAL_BRANCH}"
+  echo "Local branch 2 : ${HEAD_REF_BRANCH}"
+  if [[ "${HEAD_REF_BRANCH}" != refs/heads/* ]]; then
+    HEAD_REF_BRANCH="${{ github.head_ref }}"
+    # git checkout "${HEAD_REF_BRANCH}"
   fi
 
-  echo "Local branch 2 : ${LOCAL_BRANCH}"
+  echo "Local branch 2 : ${HEAD_REF_BRANCH}"
   echo "Skip templates test"
 
-  # select_environment "${LOCAL_BRANCH}"
+  # select_environment "${HEAD_REF_BRANCH}"
 
   # if ! (rmk config init --progress-bar=false); then
-  #   >&2 echo "ERROR: Config init failed for branch: \"${LOCAL_BRANCH}\""
+  #   >&2 echo "ERROR: Config init failed for branch: \"${HEAD_REF_BRANCH}\""
   #   echo
   #   # mark as error because initialization is considered required
   #   EXIT_CODE=1
@@ -293,7 +293,7 @@ if [[ "${INPUT_ROUTES_TEST}" == "true" ]]; then
   # fi
 
   # echo
-  # echo "Execute templates test for branch: \"${LOCAL_BRANCH#refs/heads/}\""
+  # echo "Execute templates test for branch: \"${HEAD_REF_BRANCH#refs/heads/}\""
   # if [[ "${RMK_OLD_VERSION_OF_PROJECT_STRUCTURE}" == "true" ]]; then
   #   rmk release --skip-context-switch -- build 1> /dev/null
   #   rmk release --skip-context-switch -- template 1> /dev/null
