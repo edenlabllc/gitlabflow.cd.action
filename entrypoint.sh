@@ -269,13 +269,13 @@ if [[ "${INPUT_DESTROY_CLUSTERS}" == "true" ]]; then
   destroy_clusters
 fi
 
-if [[ "${INPUT_TEMPLATES_TEST}" == "true" ]]; then
+if [[ "${INPUT_HELMFILE_TEMPLATE_VALIDATE}" == "true" ]]; then
   HEAD_REF_BRANCH="${GITHUB_REF}"
 
   if [[ "${HEAD_REF_BRANCH}" != refs/heads/* ]]; then
-    HEAD_REF_BRANCH="${INPUT_TEMPLATES_TEST_HEAD_REF_BRANCH}"
+    HEAD_REF_BRANCH="${INPUT_HELMFILE_TEMPLATE_HEAD_REF_BRANCH}"
     if [[ -z "${HEAD_REF_BRANCH}" ]]; then
-      >&2 echo "ERROR: Head branch name is incorrect. Check the workflow's templates_test_head_ref_branch input"
+      >&2 echo "ERROR: Head branch name is incorrect. Check the workflow's \"helmfile_template_head_ref_branch\" input"
       exit 1
     fi
     git checkout "${HEAD_REF_BRANCH}"
@@ -289,7 +289,7 @@ if [[ "${INPUT_TEMPLATES_TEST}" == "true" ]]; then
   fi
 
   echo
-  echo "Execute templates test for branch: \"${HEAD_REF_BRANCH}\""
+  echo "Validates helmfile templates for branch: \"${HEAD_REF_BRANCH}\""
   if [[ "${RMK_OLD_VERSION_OF_PROJECT_STRUCTURE}" == "true" ]]; then
     echo "Execute release build."
     rmk release --skip-context-switch -- build 1> /dev/null
@@ -302,7 +302,7 @@ if [[ "${INPUT_TEMPLATES_TEST}" == "true" ]]; then
     rmk release template --skip-context-switch 1> /dev/null
   fi
 
-  echo "Templates test completed."
+  echo "The helmfile templates have been validated."
   exit 0
 fi
 

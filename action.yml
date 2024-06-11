@@ -145,12 +145,12 @@ inputs:
   reindexer_collections:
     description: Collections to reindex (if empty, then reindex all from values).
     required: false
-  templates_test:
-    description: Execute templates test.
+  helmfile_template_validate:
+    description: Validates helmfile templates.
     required: false
     default: false
-  templates_test_head_ref_branch:
-    description: Head branch name (only if templates_test=true).
+  helmfile_template_head_ref_branch:
+    description: Head branch name (only if helmfile_template_validate=true).
     required: false
     default: ""
 outputs:
