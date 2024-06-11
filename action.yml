@@ -145,6 +145,14 @@ inputs:
   reindexer_collections:
     description: Collections to reindex (if empty, then reindex all from values).
     required: false
+  helmfile_template_validate:
+    description: Validate helmfile templates.
+    required: false
+    default: false
+  helmfile_template_head_ref_branch:
+    description: Head branch name (only if helmfile_template_validate=true).
+    required: false
+    default: ""
 outputs:
   git_branch:
     description: Git branch.

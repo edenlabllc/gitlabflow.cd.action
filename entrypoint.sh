@@ -269,6 +269,43 @@ if [[ "${INPUT_DESTROY_CLUSTERS}" == "true" ]]; then
   destroy_clusters
 fi
 
+if [[ "${INPUT_HELMFILE_TEMPLATE_VALIDATE}" == "true" ]]; then
+  HEAD_REF_BRANCH="${GITHUB_REF}"
+
+  if [[ "${HEAD_REF_BRANCH}" != refs/heads/* ]]; then
+    HEAD_REF_BRANCH="${INPUT_HELMFILE_TEMPLATE_HEAD_REF_BRANCH}"
+    if [[ -z "${HEAD_REF_BRANCH}" ]]; then
+      >&2 echo "ERROR: Head branch name is incorrect. Check the workflow's \"helmfile_template_head_ref_branch\" input"
+      exit 1
+    fi
+    git checkout "${HEAD_REF_BRANCH}"
+  fi
+
+  select_environment "${HEAD_REF_BRANCH}"
+
+  if ! (rmk config init --progress-bar=false); then
+    >&2 echo "ERROR: Config init failed for branch: \"${HEAD_REF_BRANCH}\""
+    exit 1
+  fi
+
+  echo
+  echo "Validate helmfile templates for branch: \"${HEAD_REF_BRANCH}\""
+  if [[ "${RMK_OLD_VERSION_OF_PROJECT_STRUCTURE}" == "true" ]]; then
+    echo "Execute release build."
+    rmk release --skip-context-switch -- build 1> /dev/null
+    echo "Execute release template."
+    rmk release --skip-context-switch -- template 1> /dev/null
+  else
+    echo "Execute release build."
+    rmk release build --skip-context-switch 1> /dev/null
+    echo "Execute release template."
+    rmk release template --skip-context-switch 1> /dev/null
+  fi
+
+  echo "The helmfile templates have been validated."
+  exit 0
+fi
+
 if [[ "${GITHUB_REF}" != refs/heads/* ]]; then
   >&2 echo "ERROR: Only pushes to branches are supported. Check the workflow's on.push.* section."
   exit 1
