@@ -146,7 +146,7 @@ inputs:
     description: Collections to reindex (if empty, then reindex all from values).
     required: false
   helmfile_template_validate:
-    description: Validate helmfile templates.
+    description: Validate Helmfile templates.
     required: false
     default: false
   helmfile_template_head_ref_branch:

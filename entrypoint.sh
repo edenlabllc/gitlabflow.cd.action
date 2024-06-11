@@ -289,7 +289,7 @@ if [[ "${INPUT_HELMFILE_TEMPLATE_VALIDATE}" == "true" ]]; then
   fi
 
   echo
-  echo "Validate helmfile templates for branch: \"${HEAD_REF_BRANCH}\""
+  echo "Validate Helmfile templates for branch: \"${HEAD_REF_BRANCH}\""
   if [[ "${RMK_OLD_VERSION_OF_PROJECT_STRUCTURE}" == "true" ]]; then
     echo "Execute release build."
     rmk release --skip-context-switch -- build 1> /dev/null
@@ -302,7 +302,7 @@ if [[ "${INPUT_HELMFILE_TEMPLATE_VALIDATE}" == "true" ]]; then
     rmk release template --skip-context-switch 1> /dev/null
   fi
 
-  echo "The helmfile templates have been validated."
+  echo "The Helmfile templates have been validated."
   exit 0
 fi
 
