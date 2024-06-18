@@ -153,6 +153,40 @@ inputs:
     description: Head branch name (only if helmfile_template_validate=true).
     required: false
     default: ""
+  test_suites:
+    description: Enable the execution of Test Suites on the currently provisioned cluster.
+    required: false
+    default: false
+  test_suites_version:
+    description: Test Suites version.
+    required: false
+    default: ""
+  test_suites_skip_provisioning:
+    description: Execute Test Suites bypassing cluster provisioning.
+    required: false
+    default: false
+  test_suites_docker_image_name:
+    description: Test Suites Docker image name.
+    required: false
+    default: ""
+  test_suites_bucket_name_prefix:
+    description: Specify the prefix for the bucket name where Allure reports will be stored.
+    required: false
+    default: "allure-report-explorer"
+  test_suites_tags:
+    description: |
+      List of tags for running Test Suites (only if test_suites=true; if empty, then all Test Suites tags will be used).
+      Example:
+      test_suites_tags: foo bar
+    required: false
+    default: ""
+  test_suites_environment_variables:
+    description: |
+      List of environment variables for running Test Suites (only if test_suites=true).
+      Example:
+      test_suites_environment_variables: KEY_1=VALUE_1 KEY_2=VALUE_2
+    required: false
+    default: ""
 outputs:
   git_branch:
     description: Git branch.
