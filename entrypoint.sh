@@ -1,4 +1,5 @@
 #!/bin/bash
+
 set -e
 
 ################################
@@ -228,6 +229,59 @@ function check_cluster_provision_command_valid() {
   fi
 }
 
+function test_suites() {
+  if [[ "${INPUT_TEST_SUITES}" == "true" && -n "${INPUT_TEST_SUITES_VERSION}" ]]; then
+    export PATH="${HOME}/.local/bin:${PATH}"
+
+    local TAGS=""
+    if [[ -n "${INPUT_TEST_SUITES_TAGS}" ]]; then
+      TAGS="--no-skipped --tags=${INPUT_TEST_SUITES_TAGS// /,}"
+    fi
+
+    local BUCKET_NAME_PREFIX="${INPUT_TEST_SUITES_BUCKET_NAME_PREFIX}-${TENANT}"
+    mkdir -p "$(pwd)/environment_properties"
+
+    cat <<EOF > "$(pwd)/environment_properties/environment.properties"
+${TENANT}_branch = ${GIT_BRANCH}
+test_suites_version = ${INPUT_TEST_SUITES_VERSION}
+test_suites_launch_parameters = ${TAGS}
+EOF
+
+    if (docker images --filter reference="${INPUT_TEST_SUITES_DOCKER_IMAGE_NAME}:${INPUT_TEST_SUITES_VERSION}" | grep "${INPUT_TEST_SUITES_VERSION}"); then
+      echo "Execute Test Suites version: \"${INPUT_TEST_SUITES_VERSION}\""
+      local TEST_SUITES_DOCKER_CONTAINER_NAME="${INPUT_TEST_SUITES_DOCKER_IMAGE_NAME#*.}"
+
+      docker create --name "${TEST_SUITES_DOCKER_CONTAINER_NAME}" --tty \
+        --env KODJIN_ROOT_DOMAIN="$(rmk --log-format=json config view | yq '.config.RootDomain')" \
+        --env KODJIN_KEYCLOAK_USER="$(kubectl get secrets keycloak-cluster-initial-admin --namespace keycloak --output yaml | yq '.data.username | @base64d')" \
+        --env KODJIN_KEYCLOAK_PASSWORD="$(kubectl get secrets keycloak-cluster-initial-admin --namespace keycloak --output yaml | yq '.data.password | @base64d')" \
+        "${INPUT_TEST_SUITES_DOCKER_IMAGE_NAME}:${INPUT_TEST_SUITES_VERSION}" "${TAGS}"
+      docker cp "$(pwd)/environment_properties" "${TEST_SUITES_DOCKER_CONTAINER_NAME}:/home/tester/environment_properties"
+      docker start --attach "${TEST_SUITES_DOCKER_CONTAINER_NAME}"
+      docker cp "${TEST_SUITES_DOCKER_CONTAINER_NAME}:/home/tester/allure_reports" "${PWD}/allure_reports"
+      docker rm "${TEST_SUITES_DOCKER_CONTAINER_NAME}"
+
+      BUCKET_NAME="${BUCKET_NAME_PREFIX}-${GITHUB_RUN_NUMBER}"
+      aws s3 mb "s3://${BUCKET_NAME}" --region "${AWS_REGION}"
+      aws s3api put-public-access-block \
+        --bucket "${BUCKET_NAME}" \
+        --public-access-block-configuration "BlockPublicAcls=true,IgnorePublicAcls=true,BlockPublicPolicy=true,RestrictPublicBuckets=true"
+      cd "${PWD}"/allure_reports/*-html
+      echo "Sync Allure report to S3 bucket: \"${BUCKET_NAME}\""
+      aws s3 sync . "s3://${BUCKET_NAME}" --quiet
+
+      rm -rf "${PWD}/allure_reports"
+    else
+      >&2 echo "ERROR: Docker image for running Test Suites not found."
+      notify_slack "Failure" "${ENVIRONMENT}" "Docker image for running Test Suites not found"
+      exit 1
+    fi
+
+    notify_slack "Success" "${ENVIRONMENT}" "Cluster has been provisioned and and the Test Suites have been completed successfully"
+    exit 0
+  fi
+}
+
 echo
 echo "Initialize environment variables."
 
@@ -259,6 +313,17 @@ if [[ "${RMK_MAJOR_VERSION}" -eq "3" ]]; then
 fi
 
 export TENANT=$(echo "${GITHUB_REPOSITORY}" | cut -d '/' -f2 | cut -d '.' -f1)
+
+if [[ "${INPUT_TEST_SUITES}" == "true" && -n "${INPUT_TEST_SUITES_ENVIRONMENT_VARIABLES}" ]]; then
+  for TEST_SUITES_ENVIRONMENT_VARIABLE in ${INPUT_TEST_SUITES_ENVIRONMENT_VARIABLES}; do
+    TEST_SUITES_ENVIRONMENT_VARIABLE="${TEST_SUITES_ENVIRONMENT_VARIABLE/=/ }"
+    TEST_SUITES_ENVIRONMENT_VARIABLE=(${TEST_SUITES_ENVIRONMENT_VARIABLE})
+
+    export "${TEST_SUITES_ENVIRONMENT_VARIABLE[0]}=${TEST_SUITES_ENVIRONMENT_VARIABLE[1]}"
+  done
+
+  export TF_VAR_test_suites="${INPUT_TEST_SUITES}"
+fi
 
 if [[ "${INPUT_DESTROY_CLUSTERS}" == "true" ]]; then
   if [[ "${INPUT_CLUSTER_PROVISIONER}" == "true" ]]; then
@@ -392,6 +457,11 @@ destroy)
   notify_slack "Success" "${ENVIRONMENT}" "Cluster has been destroyed"
   ;;
 provision)
+  if [[ "${INPUT_TEST_SUITES_SKIP_PROVISIONING}" == "true" ]]; then
+    rmk cluster switch --force
+    test_suites
+  fi
+
   echo
   echo "Provision cluster for branch: \"${ENVIRONMENT}\""
 
@@ -411,6 +481,7 @@ provision)
     exit 1
   fi
 
+  test_suites
   notify_slack "Success" "${ENVIRONMENT}" "Cluster has been provisioned"
   ;;
 sync)
