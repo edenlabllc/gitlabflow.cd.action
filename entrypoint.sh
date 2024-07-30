@@ -261,23 +261,42 @@ EOF
       docker cp "${TEST_SUITES_DOCKER_CONTAINER_NAME}:/home/tester/allure_reports" "${PWD}/allure_reports"
       docker rm "${TEST_SUITES_DOCKER_CONTAINER_NAME}"
 
+      cat << EOF > "${PWD}/life-cycle-policy.json"
+{
+    "Rules": [
+        {
+            "Expiration": {
+                "Days": ${INPUT_TEST_SUITES_BUCKET_EXPIRATION_DAYS}
+            },
+            "ID": "auto delete objects",
+            "Filter": {},
+            "Status": "Enabled"
+        }
+    ]
+}
+EOF
+
       BUCKET_NAME="${BUCKET_NAME_PREFIX}-${GITHUB_RUN_NUMBER}"
       aws s3 mb "s3://${BUCKET_NAME}" --region "${AWS_REGION}"
       aws s3api put-public-access-block \
         --bucket "${BUCKET_NAME}" \
         --public-access-block-configuration "BlockPublicAcls=true,IgnorePublicAcls=true,BlockPublicPolicy=true,RestrictPublicBuckets=true"
+      aws s3api put-bucket-lifecycle-configuration \
+        --bucket ${BUCKET_NAME} \
+        --lifecycle-configuration "file://${PWD}/life-cycle-policy.json"
       cd "${PWD}"/allure_reports/*-html
       echo "Sync Allure report to S3 bucket: \"${BUCKET_NAME}\""
       aws s3 sync . "s3://${BUCKET_NAME}" --quiet
 
       rm -rf "${PWD}/allure_reports"
+      rm -f "${PWD}/life-cycle-policy.json"
     else
       >&2 echo "ERROR: Docker image for running Test Suites not found."
       notify_slack "Failure" "${ENVIRONMENT}" "Docker image for running Test Suites not found"
       exit 1
     fi
 
-    notify_slack "Success" "${ENVIRONMENT}" "Cluster has been provisioned and and the Test Suites have been completed successfully"
+    notify_slack "Success" "${ENVIRONMENT}" "Cluster has been provisioned and the Test Suites have been completed successfully"
     exit 0
   fi
 }
