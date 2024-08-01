@@ -266,7 +266,8 @@ EOF
       aws s3api put-public-access-block \
         --bucket "${BUCKET_NAME}" \
         --public-access-block-configuration "BlockPublicAcls=true,IgnorePublicAcls=true,BlockPublicPolicy=true,RestrictPublicBuckets=true"
-      echo "{\"Rules\":[{\"Expiration\":{\"Days\":${INPUT_TEST_SUITES_BUCKET_EXPIRATION_DAYS}},\"ID\":\"auto delete objects\",\"Filter\":{},\"Status\":\"Enabled\"}]}" > "${PWD}/life-cycle-policy.json"
+      yq --null-input '{"Rules":[{"Expiration":{"Days":3},"ID":"auto delete objects","Filter":{},"Status":"Enabled"}]} | .Rules[0].Expiration.Days = env(INPUT_TEST_SUITES_BUCKET_EXPIRATION_DAYS)' \
+        -o json > "${PWD}/life-cycle-policy.json"
       aws s3api put-bucket-lifecycle-configuration \
         --bucket ${BUCKET_NAME} \
         --lifecycle-configuration "file://${PWD}/life-cycle-policy.json"
