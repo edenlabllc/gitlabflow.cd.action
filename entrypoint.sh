@@ -261,26 +261,12 @@ EOF
       docker cp "${TEST_SUITES_DOCKER_CONTAINER_NAME}:/home/tester/allure_reports" "${PWD}/allure_reports"
       docker rm "${TEST_SUITES_DOCKER_CONTAINER_NAME}"
 
-      cat << EOF > "${PWD}/life-cycle-policy.json"
-{
-    "Rules": [
-        {
-            "Expiration": {
-                "Days": ${INPUT_TEST_SUITES_BUCKET_EXPIRATION_DAYS}
-            },
-            "ID": "auto delete objects",
-            "Filter": {},
-            "Status": "Enabled"
-        }
-    ]
-}
-EOF
-
       BUCKET_NAME="${BUCKET_NAME_PREFIX}-${GITHUB_RUN_NUMBER}"
       aws s3 mb "s3://${BUCKET_NAME}" --region "${AWS_REGION}"
       aws s3api put-public-access-block \
         --bucket "${BUCKET_NAME}" \
         --public-access-block-configuration "BlockPublicAcls=true,IgnorePublicAcls=true,BlockPublicPolicy=true,RestrictPublicBuckets=true"
+      echo "{\"Rules\":[{\"Expiration\":{\"Days\":${INPUT_TEST_SUITES_BUCKET_EXPIRATION_DAYS}},\"ID\":\"auto delete objects\",\"Filter\":{},\"Status\":\"Enabled\"}]}" > "${PWD}/life-cycle-policy.json"
       aws s3api put-bucket-lifecycle-configuration \
         --bucket ${BUCKET_NAME} \
         --lifecycle-configuration "file://${PWD}/life-cycle-policy.json"
