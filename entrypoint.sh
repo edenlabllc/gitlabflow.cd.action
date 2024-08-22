@@ -11,6 +11,7 @@ function notify_slack() {
   local BRANCH="${2}"
   local MESSAGE="${3}"
   local TENANT="${4:-${TENANT}}"
+  local MESSAGE_FOR_ORPHANED_CLUSTERS_OR_VOLUMES="${5:-false}"
 
   local ICON_URL="https://img.icons8.com/ios-filled/50/000000/0-degrees.png"
 
@@ -54,12 +55,21 @@ function notify_slack() {
     local AWS_EKS_CLUSTERS_COUNT="$(aws eks list-clusters --no-paginate --output json | jq -r '.clusters | length')"
   fi
 
-  curl \
-    -s \
-    -X POST \
-    -H 'Content-Type: application/json' \
-    --data '{"username":"GitLabFlow Action","icon_url":"'${ICON_URL}'","text":"*Action run by*: '"${ACTION_RUN_BY}"'\n*Action job URL*: '"${ACTION_JOB_URL}"'\n*Tenant*: '"${TENANT}"'\n*Branch*: '"${BRANCH}"'\n*Status*: '"${STATUS}"'\n*Message*: '"${MESSAGE}"'\n*AWS account ID*: '"${AWS_ACCOUNT_ID}"'\n*AWS region*: '"${AWS_REGION}"'\n*AWS EKS clusters count*: '"${AWS_EKS_CLUSTERS_COUNT}"'\n*AWS EKS clusters list*: '"${AWS_EKS_CLUSTERS_LIST}"'\n"}' \
-    "${INPUT_RMK_SLACK_WEBHOOK}"
+  if [[ "${MESSAGE_FOR_ORPHANED_CLUSTERS_OR_VOLUMES}" == "true" ]]; then
+    curl \
+      -s \
+      -X POST \
+      -H 'Content-Type: application/json' \
+      --data '{"username":"GitLabFlow Action","icon_url":"'${ICON_URL}'","text":"*Action run by*: '"${ACTION_RUN_BY}"'\n*Action job URL*: '"${ACTION_JOB_URL}"'\n*Tenant*: '"${TENANT}"'\n*Status*: '"${STATUS}"'\n'"${MESSAGE}"'\n*AWS account ID*: '"${AWS_ACCOUNT_ID}"'\n*AWS region*: '"${AWS_REGION}"'\n*AWS EKS clusters count*: '"${AWS_EKS_CLUSTERS_COUNT}"'\n*AWS EKS clusters list*: '"${AWS_EKS_CLUSTERS_LIST}"'\n"}' \
+      "${INPUT_RMK_SLACK_WEBHOOK}"
+  else
+    curl \
+      -s \
+      -X POST \
+      -H 'Content-Type: application/json' \
+      --data '{"username":"GitLabFlow Action","icon_url":"'${ICON_URL}'","text":"*Action run by*: '"${ACTION_RUN_BY}"'\n*Action job URL*: '"${ACTION_JOB_URL}"'\n*Tenant*: '"${TENANT}"'\n*Branch*: '"${BRANCH}"'\n*Status*: '"${STATUS}"'\n*Message*: '"${MESSAGE}"'\n*AWS account ID*: '"${AWS_ACCOUNT_ID}"'\n*AWS region*: '"${AWS_REGION}"'\n*AWS EKS clusters count*: '"${AWS_EKS_CLUSTERS_COUNT}"'\n*AWS EKS clusters list*: '"${AWS_EKS_CLUSTERS_LIST}"'\n"}' \
+      "${INPUT_RMK_SLACK_WEBHOOK}"
+  fi
 }
 
 # constants for selecting branches
@@ -202,7 +212,7 @@ function destroy_clusters() {
       echo "Orphaned clusters:"
       echo "${ORPHANED_CLUSTERS}"
       if [[ "${ORPHANED_CLUSTERS}" != "" ]]; then
-        notify_slack "Failure" "${LOCAL_BRANCH}" "Orphaned clusters:\n${ORPHANED_CLUSTERS}"
+        notify_slack "Failure" "${LOCAL_BRANCH}" "Orphaned clusters:\n${ORPHANED_CLUSTERS}" "${TENANT}" "true"
       fi
     fi
 
@@ -214,7 +224,7 @@ function destroy_clusters() {
       echo "Orphaned volumes:"
       echo "${ORPHANED_VOLUMES}"
       if [[ "${ORPHANED_VOLUMES}" != "" ]]; then
-        notify_slack "Failure" "${LOCAL_BRANCH}" "Orphaned volumes:\n${ORPHANED_VOLUMES}" "N/A"
+        notify_slack "Failure" "${LOCAL_BRANCH}" "Orphaned volumes:\n${ORPHANED_VOLUMES}" "N/A" "true"
       fi
     fi
   fi
