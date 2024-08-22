@@ -11,7 +11,7 @@ function notify_slack() {
   local BRANCH="${2}"
   local MESSAGE="${3}"
   local TENANT="${4:-${TENANT}}"
-  local MESSAGE_FOR_ORPHANED_CLUSTERS_OR_VALUES="${5:-false}"
+  local MESSAGE_FOR_ORPHANED_CLUSTERS_OR_VOLUMES="${5:-false}"
 
   local ICON_URL="https://img.icons8.com/ios-filled/50/000000/0-degrees.png"
 
@@ -55,7 +55,7 @@ function notify_slack() {
     local AWS_EKS_CLUSTERS_COUNT="$(aws eks list-clusters --no-paginate --output json | jq -r '.clusters | length')"
   fi
 
-  if [[ "${MESSAGE_FOR_ORPHANED_CLUSTERS_OR_VALUES}" == "true" ]]; then
+  if [[ "${MESSAGE_FOR_ORPHANED_CLUSTERS_OR_VOLUMES}" == "true" ]]; then
     curl \
       -s \
       -X POST \
