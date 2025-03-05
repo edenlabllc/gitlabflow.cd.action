@@ -8,9 +8,7 @@ on:
 
 env:
   GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-  CORE_AWS_REGION: eu-north-1
-  REPOSITORY_NAME: core.gitlabflow.cd.action
-  VERSION: v1
+  VERSION: v2
 
 jobs:
   gitlabflow:
@@ -22,7 +20,6 @@ jobs:
           GIT_BRANCH="${GITHUB_REF#refs/heads/}"
 
           if [[ "master" != "${GIT_BRANCH}" ]]; then
-            # tmp versions might be useful while developing the action and producing tmp images in ECR
             VERSION="${VERSION}-develop"
           fi
 
@@ -30,32 +27,10 @@ jobs:
           echo "VERSION=${VERSION}" >> ${GITHUB_ENV}
 
       - name: Checkout main repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
         with:
           ref: ${{ github.ref }}
 
-      - name: Configure AWS credentials
-        uses: aws-actions/configure-aws-credentials@v4
-        with:
-          aws-region: ${{ env.CORE_AWS_REGION }}
-          aws-access-key-id: ${{ secrets.CORE_AWS_ACCESS_KEY_ID }}
-          aws-secret-access-key: ${{ secrets.CORE_AWS_SECRET_ACCESS_KEY }}
-
-      - name: Login to AWS ECR
-        uses: aws-actions/amazon-ecr-login@v2
-
-      - name: Build and push image to AWS ECR
-        uses: docker/build-push-action@v5
-        with:
-          context: .
-          push: true
-          tags: ${{ secrets.CORE_AWS_ACCOUNT_ID }}.dkr.ecr.${{ env.CORE_AWS_REGION }}.amazonaws.com/${{ env.REPOSITORY_NAME }}:${{ env.VERSION }}
-
-      - name: Scan image for vulnerabilities
-        run: |
-          # argument DELETE_IMAGE is false to keep "${VERSION}-develop" image tag in ECR for development purposes
-          ./scan-image.sh ${{ env.REPOSITORY_NAME }} ${{ env.VERSION }} ${{ env.GIT_BRANCH }} false false
-
-      - name: Release service
+      - name: Release action
         run: |
           ./release-service.sh ${{ env.VERSION }} ${{ env.GIT_BRANCH }} ${{ env.GITHUB_SHA }} ""

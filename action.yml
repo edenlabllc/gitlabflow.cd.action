@@ -4,48 +4,122 @@ inputs:
   github_token_repo_full_access:
     description: GitHub token with full access permissions to repositories (used by installer script and RMK).
     required: true
-  cloudflare_token:
-    description: Cloudflare token for DNS provisioning (used by RMK).
-    required: true
-  cd_develop_aws_region:
-    description: AWS region of the AWS account deploying applications to EKS for develop.
-    required: true
-  cd_develop_aws_access_key_id:
-    description: AWS access key ID of the AWS account deploying applications to EKS for develop.
-    required: true
-  cd_develop_aws_secret_access_key:
-    description: AWS secret access key of the AWS account deploying applications to EKS for develop.
-    required: true
-  cd_staging_aws_region:
-    description: AWS region of the AWS account deploying applications to EKS for staging.
-    required: false
-  cd_staging_aws_access_key_id:
-    description: AWS access key ID of the AWS account deploying applications to EKS for staging.
-    required: false
-  cd_staging_aws_secret_access_key:
-    description: AWS secret access key of the AWS account deploying applications to EKS for staging.
-    required: false
-  cd_production_aws_region:
-    description: AWS region of the AWS account deploying applications to EKS for production.
-    required: false
-  cd_production_aws_access_key_id:
-    description: AWS access key ID of the AWS account deploying applications to EKS for production.
-    required: false
-  cd_production_aws_secret_access_key:
-    description: AWS secret access key of the AWS account deploying applications to EKS for production.
-    required: false
+#  cloudflare_token:
+#    description: Cloudflare token for DNS provisioning (used by RMK).
+#    required: true
+#  cd_develop_aws_region:
+#    description: AWS region of the AWS account deploying applications to EKS for develop.
+#    required: true
+#  cd_develop_aws_access_key_id:
+#    description: AWS access key ID of the AWS account deploying applications to EKS for develop.
+#    required: true
+#  cd_develop_aws_secret_access_key:
+#    description: AWS secret access key of the AWS account deploying applications to EKS for develop.
+#    required: true
+#  cd_staging_aws_region:
+#    description: AWS region of the AWS account deploying applications to EKS for staging.
+#    required: false
+#  cd_staging_aws_access_key_id:
+#    description: AWS access key ID of the AWS account deploying applications to EKS for staging.
+#    required: false
+#  cd_staging_aws_secret_access_key:
+#    description: AWS secret access key of the AWS account deploying applications to EKS for staging.
+#    required: false
+#  cd_production_aws_region:
+#    description: AWS region of the AWS account deploying applications to EKS for production.
+#    required: false
+#  cd_production_aws_access_key_id:
+#    description: AWS access key ID of the AWS account deploying applications to EKS for production.
+#    required: false
+#  cd_production_aws_secret_access_key:
+#    description: AWS secret access key of the AWS account deploying applications to EKS for production.
+#    required: false
   allowed_environments:
     description: Allowed environments participating in releases for RMK commands "destroy", "project_update", "provision", "release_update", "sync".
     required: true
     default: develop,staging
+  cluster_provider_credentials:
+    description: |
+      Credentials in JSON format for different environments and cluster providers.
+      Example:
+      cluster_provider_credentials: |
+        {
+            "develop": {
+                "cluster_providers": {
+                    "aws": {
+                        "AWS_ACCESS_KEY_ID": "same_str",
+                        "AWS_SECRET_ACCESS_KEY": "same_str",
+                        "AWS_REGION": "same_str"
+                    },
+                    "azure": {
+                        "AZURE_CLIENT_ID": "same_str",
+                        "AZURE_CLIENT_SECRET": "same_str",
+                        "AZURE_LOCATION": "same_str",
+                        "AZURE_SUBSCRIPTION_ID": "same_str",
+                        "AZURE_TENANT_ID": "same_str"
+                    },
+                    "gcp": {
+                        "GOOGLE_APPLICATION_CREDENTIALS": "content",
+                        "GCP_REGION": "same_str"
+                    }
+                }
+            },
+            "production": {
+                "cluster_providers": {
+                    "aws": {
+                        "AWS_ACCESS_KEY_ID": "same_str",
+                        "AWS_SECRET_ACCESS_KEY": "same_str",
+                        "AWS_REGION": "same_str"
+                    },
+                    "azure": {
+                        "AZURE_CLIENT_ID": "same_str",
+                        "AZURE_CLIENT_SECRET": "same_str",
+                        "AZURE_LOCATION": "same_str",
+                        "AZURE_SUBSCRIPTION_ID": "same_str",
+                        "AZURE_TENANT_ID": "same_str"
+                    },
+                    "gcp": {
+                        "GOOGLE_APPLICATION_CREDENTIALS": "content",
+                        "GCP_REGION": "same_str"
+                    }
+                }
+            },
+            "staging": {
+                "cluster_providers": {
+                    "aws": {
+                        "AWS_ACCESS_KEY_ID": "same_str",
+                        "AWS_SECRET_ACCESS_KEY": "same_str",
+                        "AWS_REGION": "same_str"
+                    },
+                    "azure": {
+                        "AZURE_CLIENT_ID": "same_str",
+                        "AZURE_CLIENT_SECRET": "same_str",
+                        "AZURE_LOCATION": "same_str",
+                        "AZURE_SUBSCRIPTION_ID": "same_str",
+                        "AZURE_TENANT_ID": "same_str"
+                    },
+                    "gcp": {
+                        "GOOGLE_APPLICATION_CREDENTIALS": "content",
+                        "GCP_REGION": "same_str"
+                    }
+                }
+            }
+        }
+    required: true
+    default: ""
   cluster_provisioner:
     description: Allows using a set of RMK commands to provision cluster according to the specification tenant repositories.
     required: true
     default: false
-  reindexer_release_name:
-    description: Reindexer release name
-    required: false
-    default: fhir-server-search-reindexer
+# Kodjin specific
+#  reindexer_release_name:
+#    description: Reindexer release name
+#    required: false
+#    default: fhir-server-search-reindexer
+  rmk_cluster_provider:
+    description: "Specify cluster provider: aws, azure, gcp."
+    required: true
+    default: aws
   rmk_version:
     description: RMK version.
     required: false
@@ -81,18 +155,20 @@ inputs:
   rmk_command:
     description: Command to run CD in RMK. Allowed values are "destroy", "project_update", "provision", "reindex", "release_update", "sync".
     required: false
-  rmk_update_helmfile_repos_command:
-    description: Helmfile command to update repos when running release update in RMK. Allowed values are "" (do nothing), "repos", "fetch" (only if rmk_command=release_update and only for RMK version v3.x.x).
-    required: false
-    default: ""
+# DEPRECATED
+#  rmk_update_helmfile_repos_command:
+#    description: Helmfile command to update repos when running release update in RMK. Allowed values are "" (do nothing), "repos", "fetch" (only if rmk_command=release_update and only for RMK version v3.x.x).
+#    required: false
+#    default: ""
   rmk_update_skip_deploy:
     description: Whether to skip deploy and commit only when running release update in RMK (only if rmk_command=release_update).
     required: false
     default: false
-  rmk_sync_skip_deps:
-    description: DEPRECATED Whether to skip running "helm repo update" and "helm dependency build" when running sync in RMK (only if rmk_command=sync).
-    required: false
-    default: false
+# DEPRECATED
+#  rmk_sync_skip_deps:
+#    description: DEPRECATED Whether to skip running "helm repo update" and "helm dependency build" when running sync in RMK (only if rmk_command=sync).
+#    required: false
+#    default: false
   rmk_sync_labels:
     description: |
       List of labels when running sync in RMK (only if rmk_command=sync).
@@ -102,49 +178,54 @@ inputs:
         app=fhir-server-api
     required: false
     default: ""
-  repository_full_name:
+  rmk_release_repository_full_name:
     description: Image repository full name of application (includes registry URL and repository_name, only if rmk_command=release_update).
     required: false
-  version:
+  rmk_release_version:
     description: Current application version (only if rmk_command=release_update).
     required: false
-  destroy_clusters:
-    description: Destroy all clusters by feature/ffs-\d+ and release/rc-\d+ branch patterns (case-insensitive).
-    required: false
-    default: false
-  check_orphaned_clusters:
-    description: Whether to check for orphaned clusters (only if destroy_clusters=true).
-    required: false
-    default: true
-  check_orphaned_volumes:
-    description: Whether to check for orphaned volumes (only if destroy_clusters=true).
-    required: false
-    default: false
-  mongodb_backup:
-    description: DEPRECATED Make new backup of MongoDB databases.
-    required: false
-    default: false
-  mongodb_restore:
-    description: DEPRECATED Restore backup of MongoDB databases.
-    required: false
-    default: false
-  project_dependency_name:
+# Edenlab specific
+#  destroy_clusters:
+#    description: Destroy all clusters by feature/ffs-\d+ and release/rc-\d+ branch patterns (case-insensitive).
+#    required: false
+#    default: false
+#  check_orphaned_clusters:
+#    description: Whether to check for orphaned clusters (only if destroy_clusters=true).
+#    required: false
+#    default: true
+#  check_orphaned_volumes:
+#    description: Whether to check for orphaned volumes (only if destroy_clusters=true).
+#    required: false
+#    default: false
+# DEPRECATED
+#  mongodb_backup:
+#    description: DEPRECATED Make new backup of MongoDB databases.
+#    required: false
+#    default: false
+#  mongodb_restore:
+#    description: DEPRECATED Restore backup of MongoDB databases.
+#    required: false
+#    default: false
+  rmk_project_dependency_name:
     description: Dependency name. Allows using a set of rmk commands to project dependency version update to project.yaml file (only if rmk_command=project_update).
     required: false
-  project_dependency_version:
+  rmk_project_dependency_version:
     description: Dependency version. Allows using a set of rmk commands to project dependency version update to project.yaml file (only if rmk_command=project_update).
     required: false
-  routes_test:
-    description: Execute routes test.
-    required: false
-    default: false
-  routes_test_branch:
-    description: Branch for fhir.routes.tests repository.
-    required: false
-    default: master
-  reindexer_collections:
-    description: Collections to reindex (if empty, then reindex all from values).
-    required: false
+# Kodjin specific
+#  routes_test:
+#    description: Execute routes test.
+#    required: false
+#    default: false
+# Kodjin specific
+#  routes_test_branch:
+#    description: Branch for fhir.routes.tests repository.
+#    required: false
+#    default: master
+# Kodjin specific
+#  reindexer_collections:
+#    description: Collections to reindex (if empty, then reindex all from values).
+#    required: false
   helmfile_template_validate:
     description: Validate Helmfile templates.
     required: false
@@ -153,44 +234,45 @@ inputs:
     description: Head branch name (only if helmfile_template_validate=true).
     required: false
     default: ""
-  test_suites:
-    description: Enable the execution of Test Suites on the currently provisioned cluster.
-    required: false
-    default: false
-  test_suites_version:
-    description: Test Suites version.
-    required: false
-    default: ""
-  test_suites_skip_provisioning:
-    description: Execute Test Suites bypassing cluster provisioning.
-    required: false
-    default: false
-  test_suites_docker_image_name:
-    description: Test Suites Docker image name.
-    required: false
-    default: ""
-  test_suites_bucket_expiration_days:
-    description: Specify the number of days before the Allure reports in the bucket expire.
-    required: false
-    default: "3"
-  test_suites_bucket_name_prefix:
-    description: Specify the prefix for the bucket name where Allure reports will be stored.
-    required: false
-    default: "allure-report-explorer"
-  test_suites_tags:
-    description: |
-      List of tags for running Test Suites (only if test_suites=true; if empty, then all Test Suites tags will be used).
-      Example:
-      test_suites_tags: foo bar
-    required: false
-    default: ""
-  test_suites_environment_variables:
-    description: |
-      List of environment variables for running Test Suites (only if test_suites=true).
-      Example:
-      test_suites_environment_variables: KEY_1=VALUE_1 KEY_2=VALUE_2
-    required: false
-    default: ""
+# Kodjin specific
+#  test_suites:
+#    description: Enable the execution of Test Suites on the currently provisioned cluster.
+#    required: false
+#    default: false
+#  test_suites_version:
+#    description: Test Suites version.
+#    required: false
+#    default: ""
+#  test_suites_skip_provisioning:
+#    description: Execute Test Suites bypassing cluster provisioning.
+#    required: false
+#    default: false
+#  test_suites_docker_image_name:
+#    description: Test Suites Docker image name.
+#    required: false
+#    default: ""
+#  test_suites_bucket_expiration_days:
+#    description: Specify the number of days before the Allure reports in the bucket expire.
+#    required: false
+#    default: "3"
+#  test_suites_bucket_name_prefix:
+#    description: Specify the prefix for the bucket name where Allure reports will be stored.
+#    required: false
+#    default: "allure-report-explorer"
+#  test_suites_tags:
+#    description: |
+#      List of tags for running Test Suites (only if test_suites=true; if empty, then all Test Suites tags will be used).
+#      Example:
+#      test_suites_tags: foo bar
+#    required: false
+#    default: ""
+#  test_suites_environment_variables:
+#    description: |
+#      List of environment variables for running Test Suites (only if test_suites=true).
+#      Example:
+#      test_suites_environment_variables: KEY_1=VALUE_1 KEY_2=VALUE_2
+#    required: false
+#    default: ""
 outputs:
   git_branch:
     description: Git branch.
