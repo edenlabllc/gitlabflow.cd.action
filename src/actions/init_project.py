@@ -8,6 +8,8 @@ from ..utils.cmd import BaseCommand, CMDInterface
 class RMKConfigInitCommand(BaseCommand, CMDInterface):
     def __init__(self, environment: str, args: Namespace):
         super().__init__(environment)
+        self.cluster_provider = args.rmk_cluster_provider
+        self.github_token = args.github_token
         self.slack_notification = args.rmk_slack_notifications
         self.slack_channel = args.rmk_slack_channel
         self.slack_message_details = args.rmk_slack_message_details
@@ -18,6 +20,7 @@ class RMKConfigInitCommand(BaseCommand, CMDInterface):
 
     def run(self):
         """Configure Slack notifications if enabled."""
+        os.environ["RMK_GITHUB_TOKEN"] = self.github_token
         if self.slack_notification == "true":
             os.environ["RMK_SLACK_WEBHOOK"] = self.slack_webhook
             os.environ["RMK_SLACK_CHANNEL"] = self.slack_channel
@@ -28,15 +31,21 @@ class RMKConfigInitCommand(BaseCommand, CMDInterface):
                     [f'--slack-message-details="{detail}"' for detail in self.slack_message_details.splitlines()]
                 )
 
-            self.run_command(f"rmk config init --progress-bar=false --slack-notifications {flags_slack_message_details}")
+            self.run_command(f"rmk config init --cluster-provider={self.cluster_provider}"
+                             f" --progress-bar=false --slack-notifications {flags_slack_message_details}")
         else:
-            self.run_command("rmk config init --progress-bar=false")
+            self.run_command(f"rmk config init --cluster-provider={self.cluster_provider} --progress-bar=false")
 
 
 class ProjectInitializer:
+    # GIT_CONFIG = {
+    #     "name":  "github-actions",
+    #     "email": "github-actions@github.com",
+    # }
+
     GIT_CONFIG = {
-        "name":  "github-actions",
-        "email": "github-actions@github.com",
+        "name": "Aliaksandr Panasiuk",
+        "email": "apanasyuk@edenlab.com.ua",
     }
 
     def __init__(self, environment: str):
@@ -47,14 +56,13 @@ class ProjectInitializer:
     def configure_git(self):
         """Configure Git user settings."""
         try:
-            repo = Repo("/github/workspace")
+            repo = Repo(".")
             repo.config_writer().set_value("user", "name", self.GIT_CONFIG["name"]).release()
             repo.config_writer().set_value("user", "email", self.GIT_CONFIG["email"]).release()
         except GitCommandError as err:
-            print(f"ERROR: Failed to configure Git: {err}")
-            exit(1)
+            raise ValueError(f"ERROR: Failed to configure Git: {err}")
 
     def configure_rmk_init(self, args: Namespace):
         """Configure Slack notifications using SlackConfigCommand."""
-        slack_config = RMKConfigInitCommand(self.environment, args)
-        slack_config.execute()
+        rmk_init = RMKConfigInitCommand(self.environment, args)
+        rmk_init.execute()

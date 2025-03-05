@@ -22,9 +22,8 @@ class BaseCommand(ABC):
     def run_command(cmd: str):
         try:
             subprocess.run(cmd, shell=True, check=True)
-        except subprocess.CalledProcessError as e:
-            print(f"ERROR: Command '{cmd}' failed with exit code {e.returncode}")
-            exit(1)
+        except subprocess.CalledProcessError as err:
+            raise ValueError(f"ERROR: Command '{cmd}' failed with exit code {err.returncode}")
 
     def notify_slack(self, status: str, message: str):
         additional_info = {"Environment": "Production", "Deployed Version": "v1.2.3"}

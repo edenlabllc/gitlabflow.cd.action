@@ -39,16 +39,6 @@ class ReleaseUpdateCommand(BaseCommand):
         self.run_command(f"rmk release update --repository {repo} --tag {version} --skip-ci {flags_commit_deploy}")
 
 
-class ReindexCommand(BaseCommand):
-    def run(self):
-        os.environ["FHIR_SERVER_SEARCH_REINDEXER_ENABLED"] = "true"
-        collections_set = f"--set env.COLLECTIONS={os.getenv('INPUT_REINDEXER_COLLECTIONS')}" if os.getenv(
-            "INPUT_REINDEXER_COLLECTIONS") else ""
-        self.run_command(
-            f"rmk release sync --selector name={os.getenv('INPUT_REINDEXER_RELEASE_NAME')} {collections_set}")
-        self.notify_slack("Success", "Reindexer job complete")
-
-
 class ProjectUpdateCommand(BaseCommand):
     def run(self):
         dependency_name = os.getenv("INPUT_PROJECT_DEPENDENCY_NAME")
