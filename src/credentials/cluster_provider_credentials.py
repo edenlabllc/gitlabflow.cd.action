@@ -109,30 +109,31 @@ class Credentials:
 
         providers = env_config.cluster_providers
 
-        if provider.lower() == "aws":
-            os.environ.update({
-                "AWS_ACCESS_KEY_ID": providers.aws.AWS_ACCESS_KEY_ID,
-                "AWS_SECRET_ACCESS_KEY": providers.aws.AWS_SECRET_ACCESS_KEY,
-                "AWS_REGION": providers.aws.AWS_REGION,
-            })
-        elif provider.lower() == "azure":
-            os.environ.update({
-                "AZURE_CLIENT_ID": providers.azure.AZURE_CLIENT_ID,
-                "AZURE_CLIENT_SECRET": providers.azure.AZURE_CLIENT_SECRET,
-                "AZURE_LOCATION": providers.azure.AZURE_LOCATION,
-                "AZURE_SUBSCRIPTION_ID": providers.azure.AZURE_SUBSCRIPTION_ID,
-                "AZURE_TENANT_ID": providers.azure.AZURE_TENANT_ID,
-            })
-        elif provider.lower() == "gcp":
-            credentials_path = self.save_gcp_credentials(providers.gcp.GOOGLE_APPLICATION_CREDENTIALS)
-            os.environ.update({
-                "GOOGLE_APPLICATION_CREDENTIALS": credentials_path,
-                "GCP_REGION": providers.gcp.GCP_REGION,
-            })
-        else:
-            raise ValueError(f"Invalid provider '{provider}'. Supported providers: aws, azure, gcp")
+        match provider.lower():
+            case "aws":
+                os.environ.update({
+                    "AWS_ACCESS_KEY_ID": providers.aws.AWS_ACCESS_KEY_ID,
+                    "AWS_SECRET_ACCESS_KEY": providers.aws.AWS_SECRET_ACCESS_KEY,
+                    "AWS_REGION": providers.aws.AWS_REGION,
+                })
+            case "azure":
+                os.environ.update({
+                    "AZURE_CLIENT_ID": providers.azure.AZURE_CLIENT_ID,
+                    "AZURE_CLIENT_SECRET": providers.azure.AZURE_CLIENT_SECRET,
+                    "AZURE_LOCATION": providers.azure.AZURE_LOCATION,
+                    "AZURE_SUBSCRIPTION_ID": providers.azure.AZURE_SUBSCRIPTION_ID,
+                    "AZURE_TENANT_ID": providers.azure.AZURE_TENANT_ID,
+                })
+            case "gcp":
+                credentials_path = self.save_gcp_credentials(providers.gcp.GOOGLE_APPLICATION_CREDENTIALS)
+                os.environ.update({
+                    "GOOGLE_APPLICATION_CREDENTIALS": credentials_path,
+                    "GCP_REGION": providers.gcp.GCP_REGION,
+                })
+            case _:
+                raise ValueError(f"Invalid provider '{provider}'. Supported providers: aws, azure, gcp")
 
-        print(f"Credentials as environment variables set for {env_name} with provider {provider}.")
+        print(f"Credentials as environment variables set for {env_name} with cluster provider: {provider}.")
 
     def __repr__(self):
         return f"Credentials(environments={self.environments})"

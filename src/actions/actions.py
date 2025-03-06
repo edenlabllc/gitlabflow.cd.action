@@ -1,72 +1,135 @@
 import os
 
+from argparse import Namespace
 from ..utils.cmd import BaseCommand, CMDInterface
+from ..utils.github_environment_variables import GitHubContext
 
 
 class DestroyCommand(BaseCommand):
+    def __init__(self, github_context: GitHubContext, args: Namespace, environment: str, tenant: str):
+        super().__init__(environment)
+        self.github_context = github_context
+        self.args = args
+        self.tenant = tenant
+
     def run(self):
-        print(f"Destroying cluster for branch: {self.environment}")
-        self.run_command("rmk release list")
-        self.run_command("rmk release destroy")
-        self.run_command("rmk cluster provision --plan")
-        self.run_command("rmk cluster destroy")
-        print(f"Cluster has been destroyed for branch: {self.environment}")
-        self.notify_slack("Success", "Cluster has been destroyed")
+        print(f"Destroying cluster for branch {self.github_context.ref_name}, environment {self.environment}")
+        try:
+            self.run_command("rmk release list")
+            self.run_command("rmk release destroy")
+            self.run_command("rmk cluster capi provision")
+            self.run_command("rmk cluster capi destroy")
+            self.run_command("rmk cluster capi delete")
+        except Exception as err:
+            self.notify_slack(self.github_context, self.args,
+                              "Failure", f"{err}", tenant=self.tenant)
+            raise ValueError(f"{err}")
+
+        print(f"Cluster has been destroyed for branch {self.github_context.ref_name}, environment {self.environment}")
+        self.notify_slack(self.github_context, self.args,
+                          "Success", "Cluster has been destroyed", tenant=self.tenant)
 
 
 class ProvisionCommand(BaseCommand):
+    def __init__(self, github_context: GitHubContext, args: Namespace, environment: str, tenant: str):
+        super().__init__(environment)
+        self.github_context = github_context
+        self.args = args
+        self.tenant = tenant
+
     def run(self):
-        print(f"Provisioning cluster for branch: {self.environment}")
-        self.run_command("rmk cluster provision")
-        self.run_command("rmk release list")
-        self.run_command("rmk release sync")
-        self.notify_slack("Success", "Cluster has been provisioned")
+        print(f"Provisioning cluster for branch {self.github_context.ref_name}, environment {self.environment}")
+        try:
+            self.run_command("rmk cluster capi create")
+            self.run_command("rmk cluster capi provision")
+            self.run_command("rmk release sync")
+        except Exception as err:
+            self.notify_slack(self.github_context, self.args,
+                              "Failure", f"{err}", tenant=self.tenant)
+            raise ValueError(f"{err}")
+
+        self.notify_slack(self.github_context, self.args,
+                          "Success", "Cluster has been provisioned", tenant=self.tenant)
 
 
 class ReleaseSyncCommand(BaseCommand):
+    def __init__(self, github_context: GitHubContext, args: Namespace, environment: str, tenant: str):
+        super().__init__(environment)
+        self.github_context = github_context
+        self.args = args
+        self.tenant = tenant
+
     def run(self):
-        sync_labels = os.getenv("INPUT_RMK_SYNC_LABELS", "")
-        flags_labels = "".join([f" --selector {label}" for label in sync_labels.split()])
-        self.run_command(f"rmk release sync {flags_labels}")
+        try:
+            sync_labels = self.args.rmk_sync_labels
+            flags_labels = "".join([f" --selector {label}" for label in sync_labels.split()])
+            self.run_command(f"rmk release sync {flags_labels}")
+        except Exception as err:
+            raise ValueError(f"{err}")
 
 
 class ReleaseUpdateCommand(BaseCommand):
+    def __init__(self, github_context: GitHubContext, args: Namespace, environment: str, tenant: str):
+        super().__init__(environment)
+        self.github_context = github_context
+        self.args = args
+        self.tenant = tenant
+
     def run(self):
-        repo = os.getenv("REPOSITORY_FULL_NAME")
-        version = os.getenv("VERSION")
-        flags_commit_deploy = "--deploy" if os.getenv(
-            "INPUT_RMK_UPDATE_SKIP_DEPLOY") != "true" else "--skip-context-switch --commit"
-        self.run_command(f"rmk release update --repository {repo} --tag {version} --skip-ci {flags_commit_deploy}")
+        try:
+            release_repository = self.args.rmk_release_repository_full_name
+            release_version = self.args.rmk_release_version
+            if not release_repository or not release_version:
+                raise ValueError("ERROR: Release name or version is not configured for release update.")
+
+            flags_commit_deploy = "--deploy" \
+                if self.args.rmk_update_skip_deploy != "true" else "--skip-context-switch --commit"
+            self.run_command(f"rmk release update --repository {release_repository} "
+                             f"--tag {release_version} --skip-ci {flags_commit_deploy}")
+        except Exception as err:
+            raise ValueError(f"{err}")
 
 
 class ProjectUpdateCommand(BaseCommand):
+    def __init__(self, github_context: GitHubContext, args: Namespace, environment: str, tenant: str):
+        super().__init__(environment)
+        self.github_context = github_context
+        self.args = args
+        self.tenant = tenant
+
     def run(self):
-        dependency_name = os.getenv("INPUT_PROJECT_DEPENDENCY_NAME")
-        dependency_version = os.getenv("INPUT_PROJECT_DEPENDENCY_VERSION")
-        if not dependency_name or not dependency_version:
-            raise ValueError("ERROR: Dependency name or version is not configured for project update.")
-        self.run_command(f"rmk project update --dependency {dependency_name} --version {dependency_version}")
+        try:
+            dependency_name = self.args.rmk_project_dependency_name
+            dependency_version = self.args.rmk_project_dependency_version
+            if not dependency_name or not dependency_version:
+                raise ValueError("ERROR: Dependency name or version is not configured for project update.")
+
+            self.run_command(f"rmk project update --dependency {dependency_name} --version {dependency_version}")
+        except Exception as err:
+            raise ValueError(f"{err}")
 
 
 class RMKCLIExecutor(CMDInterface):
-    COMMANDS = {
-        "destroy": DestroyCommand,
-        "project_update": ProjectUpdateCommand,
-        "provision": ProvisionCommand,
-        "release_update": ReleaseUpdateCommand,
-        "release_sync": ReleaseSyncCommand,
-    }
-
-    def __init__(self, command: str, environment: str):
-        self.command = command
+    def __init__(self, github_context: GitHubContext, args: Namespace, environment: str, tenant: str):
         self.environment = environment
+        self.github_context = github_context
+        self.args = args
+        self.tenant = tenant
 
     def execute(self):
-        if self.command in self.COMMANDS:
-            self.COMMANDS[self.command](self.environment).run()
-        else:
-            raise ValueError(f"Unknown RMK command: {self.command}")
-
+        match self.args.rmk_command:
+            case "destroy":
+                DestroyCommand(self.github_context, self.args, self.environment, self.tenant).run()
+            case "provision":
+                ProvisionCommand(self.github_context, self.args, self.environment, self.tenant).run()
+            case "project_update":
+                ProjectUpdateCommand(self.github_context, self.args, self.environment, self.tenant).run()
+            case "release_sync":
+                ReleaseSyncCommand(self.github_context, self.args, self.environment, self.tenant).run()
+            case "release_update":
+                ReleaseUpdateCommand(self.github_context, self.args, self.environment, self.tenant).run()
+            case _:
+                raise ValueError(f"Unknown RMK command: {self.args.rmk_command}")
 
 #
 # if __name__ == "__main__":

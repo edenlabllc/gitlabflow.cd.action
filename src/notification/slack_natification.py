@@ -15,9 +15,9 @@ class SlackNotifier:
         "Skip": "https://img.icons8.com/ios-filled/50/000000/0-degrees.png",
     }
 
-    def __init__(self, github_context: GitHubContext, args: Namespace, status, branch, message, additional_info=None, tenant=None):
+    def __init__(self, github_context: GitHubContext, args: Namespace, status, message, additional_info=None, tenant=None):
+        self.branch = github_context.ref_name
         self.status = status
-        self.branch = branch
         self.message = message
         self.additional_info = additional_info or {}
         self.tenant = tenant or ""

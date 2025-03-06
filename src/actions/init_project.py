@@ -1,3 +1,4 @@
+import json
 import os
 
 from argparse import Namespace
@@ -37,15 +38,23 @@ class RMKConfigInitCommand(BaseCommand, CMDInterface):
             self.run_command(f"rmk config init --cluster-provider={self.cluster_provider} --progress-bar=false")
 
 
-class ProjectInitializer:
-    # GIT_CONFIG = {
-    #     "name":  "github-actions",
-    #     "email": "github-actions@github.com",
-    # }
+class GETTenant(BaseCommand, CMDInterface):
+    def __init__(self, environment: str):
+        super().__init__(environment)
 
+    def execute(self) -> str:
+        return self.run()
+
+    def run(self) -> str:
+        output = self.run_command(f"rmk --log-format=json config view", True)
+        rmk_config = json.loads(output)
+        return rmk_config["config"]["Tenant"]
+
+
+class ProjectInitializer:
     GIT_CONFIG = {
-        "name": "Aliaksandr Panasiuk",
-        "email": "apanasyuk@edenlab.com.ua",
+        "name":  "github-actions",
+        "email": "github-actions@github.com",
     }
 
     def __init__(self, environment: str):
