@@ -1,6 +1,5 @@
-import os
-
 from argparse import Namespace
+
 from ..utils.cmd import BaseCommand, CMDInterface
 from ..utils.github_environment_variables import GitHubContext
 
@@ -109,6 +108,48 @@ class ProjectUpdateCommand(BaseCommand):
             raise ValueError(f"{err}")
 
 
+class HelmfileValidateCommand(BaseCommand):
+    def __init__(self, github_context: GitHubContext, args: Namespace, environment: str, tenant: str):
+        super().__init__(environment)
+        self.github_context = github_context
+        self.args = args
+        self.tenant = tenant
+        self.head_ref_branch = self.github_context.ref
+        # self.head_ref_branch = self.github_context.ref if self.github_context.ref.startswith("refs/heads/") \
+        #     else self.args.helmfile_template_head_ref_branch
+
+    # def git_checkout(self):
+    #     try:
+    #         repo = Repo(".")
+    #         if repo.is_dirty(untracked_files=True):
+    #             raise ValueError("Repository has uncommitted changes. Commit or stash them before checkout.")
+    #
+    #         git = repo.git
+    #         git.checkout(self.head_ref_branch)
+    #         print(f"Checked out to branch: {self.head_ref_branch}")
+    #     except GitCommandError as err:
+    #         raise ValueError(f"Failed to checkout branch '{self.head_ref_branch}': {err}")
+
+    def run(self):
+        print(f"Validate Helmfile templates for branch: {self.github_context.ref}")
+        try:
+            # if not self.head_ref_branch:
+            #     raise ValueError(
+            #         "ERROR: Head branch name is incorrect. Check the workflow's helmfile_template_head_ref_branch input")
+            #
+            # self.git_checkout()
+
+            print("Execute release build.")
+            self.run_command("rmk release build --skip-context-switch")
+
+            print("Execute release template.")
+            self.run_command("rmk release template --skip-context-switch")
+
+            print("The Helmfile templates have been validated.")
+        except Exception as err:
+            raise ValueError(f"{err}")
+
+
 class RMKCLIExecutor(CMDInterface):
     def __init__(self, github_context: GitHubContext, args: Namespace, environment: str, tenant: str):
         self.environment = environment
@@ -120,6 +161,8 @@ class RMKCLIExecutor(CMDInterface):
         match self.args.rmk_command:
             case "destroy":
                 DestroyCommand(self.github_context, self.args, self.environment, self.tenant).run()
+            case "helmfile_validate":
+                HelmfileValidateCommand(self.github_context, self.args, self.environment, self.tenant).run()
             case "provision":
                 ProvisionCommand(self.github_context, self.args, self.environment, self.tenant).run()
             case "project_update":
@@ -130,11 +173,3 @@ class RMKCLIExecutor(CMDInterface):
                 ReleaseUpdateCommand(self.github_context, self.args, self.environment, self.tenant).run()
             case _:
                 raise ValueError(f"Unknown RMK command: {self.args.rmk_command}")
-
-#
-# if __name__ == "__main__":
-#     rmk_executor = RMKCLIExecutor(
-#         command=os.getenv("INPUT_RMK_COMMAND", "destroy"),
-#         environment=os.getenv("ENVIRONMENT", "develop")
-#     )
-#     rmk_executor.execute()

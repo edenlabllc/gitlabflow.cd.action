@@ -110,26 +110,3 @@ class GitHubContext:
     def get_action_job_api_url(self) -> str:
         """Generate the GitHub Actions job API URL."""
         return f"{self.api_url}/repos/{self.repository}/actions/runs/{self.run_id}/attempts/{self.run_attempt}/jobs"
-
-
-# if __name__ == "__main__":
-#     try:
-#         github_context = GitHubContext.from_env()
-#         print("Context as list:", github_context.to_list())
-#         print("Context as string:", github_context.to_string())
-#
-#         key_to_search = "repository"
-#         value = github_context.search_key(key_to_search)
-#         print(f"Search result for '{key_to_search}':", value if value else "Key not found")
-#
-#         if not github_context.validate_repository_format():
-#             print("Warning: Repository format is incorrect. Expected 'owner/repo'.")
-#
-#         print("GitHub URL:", github_context.get_github_url())
-#         print("Repository Name:", github_context.get_repository_name())
-#         print("GitHub Actions Job API URL:", github_context.get_action_job_api_url())
-#         print("Environment Variables as Dict:", github_context.get_env_as_dict())
-#
-#     except ValueError as e:
-#         print(f"Error: {e}")
-#         exit(1)

@@ -1,6 +1,7 @@
 import re
 
 from abc import ABC, abstractmethod
+from argparse import Namespace
 
 
 class EnvironmentSelectorInterface(ABC):
@@ -47,13 +48,3 @@ class ExtendedEnvironmentSelector(EnvironmentSelector):
         if branch_name.startswith("hotfix/"):
             return "production"
         return super().select_environment(branch_name)
-
-
-# if __name__ == "__main__":
-#     selector = ExtendedEnvironmentSelector()
-#     branches = ["develop", "feature/abc-123", "release/v1.2.3-rc", "release/v1.2.3", "hotfix/fix-456", "production"]
-#     for branch in branches:
-#         try:
-#             print(selector.select_environment(branch))
-#         except ValueError as e:
-#             print(e)

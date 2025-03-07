@@ -7,6 +7,7 @@ from src.actions.actions import RMKCLIExecutor
 from src.actions.init_project import ProjectInitializer, GETTenant
 from src.credentials.cluster_provider_credentials import Credentials
 from src.input_output.input import ArgumentParser
+from src.select_environment.allowed_environments import AllowEnvironments
 from src.select_environment.select_environment import EnvironmentSelector, ExtendedEnvironmentSelector
 from src.utils.github_environment_variables import GitHubContext
 from src.utils.install_rmk import RMKInstaller
@@ -21,14 +22,16 @@ if __name__ == "__main__":
         environment = ExtendedEnvironmentSelector().select_environment(github_context.ref_name)
         print(f"Current environment: {environment}")
 
-        Credentials(args.cluster_provider_credentials).set_env_variables(environment, args.rmk_cluster_provider)
+        AllowEnvironments(args, environment).validate()
 
+        Credentials(args.cluster_provider_credentials).set_env_variables(environment, args.rmk_cluster_provider)
+        """comments"""
         RMKInstaller(args)
+
         ProjectInitializer(environment).configure_rmk_init(args)
         tenant = GETTenant(environment).execute()
 
         RMKCLIExecutor(github_context, args, environment, tenant).execute()
-
     except Exception as err:
         print(f"Error: {err}", file=sys.stderr)
         sys.exit(1)

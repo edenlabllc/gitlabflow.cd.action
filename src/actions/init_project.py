@@ -3,6 +3,7 @@ import os
 
 from argparse import Namespace
 from git import Repo, GitCommandError
+
 from ..utils.cmd import BaseCommand, CMDInterface
 
 

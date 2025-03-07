@@ -32,18 +32,6 @@ class ArgumentParser:
                                  action=self.EnvDefault, envvar="INPUT_CLUSTER_PROVIDER_CREDENTIALS",
                                  type=str, required=False)
 
-        self.parser.add_argument("--cluster-provisioner",
-                                 action=self.EnvDefault, envvar="INPUT_CLUSTER_PROVISIONER",
-                                 type=str, required=False)
-
-        self.parser.add_argument("--helmfile-template-validate",
-                                 action=self.EnvDefault, envvar="INPUT_HELMFILE_TEMPLATE_VALIDATE",
-                                 type=str, required=False)
-
-        self.parser.add_argument("--helmfile-template-head-ref-branch",
-                                 action=self.EnvDefault, envvar="INPUT_HELMFILE_TEMPLATE_HEAD_REF_BRANCH",
-                                 type=str, required=False)
-
         self.parser.add_argument("--rmk-cluster-provider",
                                  action=self.EnvDefault, envvar="INPUT_RMK_CLUSTER_PROVIDER",
                                  type=str, required=False)

@@ -1,5 +1,3 @@
-import os
-import traceback
 from argparse import Namespace
 
 from slack_sdk.webhook import WebhookClient

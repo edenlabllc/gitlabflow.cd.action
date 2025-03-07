@@ -107,10 +107,10 @@ inputs:
         }
     required: true
     default: ""
-  cluster_provisioner:
-    description: Allows using a set of RMK commands to provision cluster according to the specification tenant repositories.
-    required: true
-    default: false
+#  cluster_provisioner:
+#    description: Allows using a set of RMK commands to provision cluster according to the specification tenant repositories.
+#    required: true
+#    default: false
 # Kodjin specific
 #  reindexer_release_name:
 #    description: Reindexer release name
@@ -153,7 +153,7 @@ inputs:
     required: false
     default: ""
   rmk_command:
-    description: Command to run CD in RMK. Allowed values are "destroy", "project_update", "provision", "reindex", "release_update", "sync".
+    description: Command to run CD in RMK. Allowed values are "destroy", "helmfile_validate", "project_update", "provision", "release_update", "sync".
     required: false
 # DEPRECATED
 #  rmk_update_helmfile_repos_command:
@@ -226,14 +226,14 @@ inputs:
 #  reindexer_collections:
 #    description: Collections to reindex (if empty, then reindex all from values).
 #    required: false
-  helmfile_template_validate:
-    description: Validate Helmfile templates.
-    required: false
-    default: false
-  helmfile_template_head_ref_branch:
-    description: Head branch name (only if helmfile_template_validate=true).
-    required: false
-    default: ""
+#  helmfile_template_validate:
+#    description: Validate Helmfile templates.
+#    required: false
+#    default: false
+#  helmfile_template_head_ref_branch:
+#    description: Head branch name (only if helmfile_template_validate=true).
+#    required: false
+#    default: ""
 # Kodjin specific
 #  test_suites:
 #    description: Enable the execution of Test Suites on the currently provisioned cluster.
