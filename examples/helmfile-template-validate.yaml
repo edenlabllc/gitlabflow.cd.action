@@ -1,34 +1,27 @@
-name: Release sync GitLab CD workflow
+name: Validate Helmfile templates
 
 on:
-  push:
-    branches:
-      - develop
-      - staging
-
-concurrency:
-  group: release-sync-${{ github.ref }}
-  cancel-in-progress: false
+  pull_request:
 
 env:
   # The cluster provider: "azure", "aws", "gcp"
   CLUSTER_PROVIDER: "aws"
 
 jobs:
-  release-sync:
-    name: Checkout main and gitlabflow action repositories, run gitlabflow action for release sync
+  helmfile-template-validate:
+    name: Validate Helmfile templates
     runs-on: ubuntu-22.04
     steps:
       - name: Checkout main repository
         uses: actions/checkout@v4
         with:
-          ref: ${{ github.ref }}
+          ref: ${{ github.head_ref }}
           fetch-depth: 0
 
       - name: Run gitlabflow action
         uses: edenlab/gitlabflow.cd.action@v2
         with:
-          allowed_environments: develop,staging
           cluster_provider_credentials: ${{ secrets.CLUSTER_PROVIDER_CREDENTIALS }}
           github_token_repo_full_access: ${{ secrets.GH_TOKEN_REPO_FULL_ACCESS }}
-          rmk_command: sync
+          rmk_cluster_provider: ${{ env.CLUSTER_PROVIDER }}
+          rmk_command: helmfile_validate

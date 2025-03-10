@@ -70,7 +70,7 @@ class ProjectInitializer:
             repo.config_writer().set_value("user", "name", self.GIT_CONFIG["name"]).release()
             repo.config_writer().set_value("user", "email", self.GIT_CONFIG["email"]).release()
         except GitCommandError as err:
-            raise ValueError(f"ERROR: Failed to configure Git: {err}")
+            raise ValueError(f"failed to configure Git: {err}")
 
     def configure_rmk_init(self, args: Namespace):
         """Configure Slack notifications using SlackConfigCommand."""

@@ -32,7 +32,7 @@ class BaseCommand(ABC):
                 subprocess.run(cmd, shell=True, check=True)
                 return None
         except subprocess.CalledProcessError as err:
-            raise ValueError(f"ERROR: Command '{cmd}' failed with exit code {err.returncode}")
+            raise ValueError(f"command '{cmd}' failed with exit code {err.returncode}")
 
     def notify_slack(self, github_context: GitHubContext, args: Namespace, status, message, additional_info=None, tenant=None):
         notifier = SlackNotifier(github_context, args, status=status, message=message,

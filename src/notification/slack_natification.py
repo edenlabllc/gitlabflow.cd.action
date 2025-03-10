@@ -23,11 +23,11 @@ class SlackNotifier:
         self.github_context = github_context
 
         if not args.github_token or not args.github_token.strip():
-            raise ValueError("GitHub token is missing or empty!")
+            raise ValueError("gitHub token is missing or empty!")
         self.github_client = Github(args.github_token)
 
         if not args.rmk_slack_webhook or not args.rmk_slack_webhook.strip():
-            raise ValueError("Slack Webhook token is missing or empty!")
+            raise ValueError("slack Webhook token is missing or empty!")
         self.webhook_client = WebhookClient(args.rmk_slack_webhook)
 
     def get_action_job_url(self):
@@ -41,7 +41,7 @@ class SlackNotifier:
                     if job_id:
                         return f"{self.github_context.get_github_url()}/actions/runs/{ self.github_context.run_id}/job/{job_id}"
         except GithubException as err:
-            raise ValueError(f"Error accessing GitHub API: {err}")
+            raise ValueError(f"error accessing GitHub API: {err}")
 
     def construct_payload(self, action_job_url, action_run_by):
         payload_text = (
@@ -69,6 +69,6 @@ class SlackNotifier:
             payload = self.construct_payload(action_job_url, action_run_by)
             response = self.webhook_client.send_dict(payload)
         except Exception as err:
-            raise ValueError(f"Error sending webhook request: {err}")
+            raise ValueError(f"error sending webhook request: {err}")
 
         return response.status_code

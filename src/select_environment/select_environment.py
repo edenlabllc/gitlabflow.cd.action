@@ -40,7 +40,7 @@ class EnvironmentSelector(EnvironmentSelectorInterface):
                 return "production"
             return "staging"
 
-        raise ValueError(f"ERROR: Environment '{branch_name}' not allowed for environment selection.")
+        raise ValueError(f"environment '{branch_name}' not allowed for environment selection.")
 
 
 class ExtendedEnvironmentSelector(EnvironmentSelector):
