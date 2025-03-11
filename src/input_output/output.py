@@ -3,7 +3,6 @@ import os
 from typing import Dict
 
 class GitHubOutput:
-
     def __init__(self):
         self.is_github_actions_runner = 'GITHUB_OUTPUT' in os.environ
 
