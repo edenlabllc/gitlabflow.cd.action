@@ -27,7 +27,7 @@ class SlackNotifier:
         self.github_client = Github(args.github_token)
 
         if not args.rmk_slack_webhook or not args.rmk_slack_webhook.strip():
-            raise ValueError("slack Webhook token is missing or empty")
+            raise ValueError("Slack Webhook token is missing or empty")
         self.webhook_client = WebhookClient(args.rmk_slack_webhook)
 
     def get_action_job_url(self):

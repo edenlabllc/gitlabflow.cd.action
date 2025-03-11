@@ -39,4 +39,4 @@ class BaseCommand(ABC):
                                  additional_info=additional_info, tenant=tenant)
         response_code = notifier.notify()
         print(f"Slack notification sent with response code: {response_code}")
-        print(f"Slack Notification - Status: {status}, Environment: {self.environment}, Message: {message}")
+        print(f"Slack notification - Status: {status}, Environment: {self.environment}, Message: {message}")
