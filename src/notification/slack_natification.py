@@ -23,7 +23,7 @@ class SlackNotifier:
         self.github_context = github_context
 
         if not args.github_token or not args.github_token.strip():
-            raise ValueError("gitHub token is missing or empty")
+            raise ValueError("GitHub token is missing or empty")
         self.github_client = Github(args.github_token)
 
         if not args.rmk_slack_webhook or not args.rmk_slack_webhook.strip():

@@ -11,4 +11,4 @@ class GitHubOutput:
             with open(os.environ['GITHUB_OUTPUT'], 'a') as f:
                 for key in body: print(f"{key}={body[key]}", file=f)
         else:
-            print("Skip output counters as GitHub actions outputs. ")
+            print("Skip output counters as GitHub actions outputs.")

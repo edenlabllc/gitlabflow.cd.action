@@ -45,8 +45,8 @@ if __name__ == "__main__":
         """Output counters as GitHub actions outputs"""
         data = {
             "git_branch": github_context.ref_name,
-            "repository_full_name": args.rmk_release_repository_full_name,
-            "version": args.rmk_release_version,
+            "rmk_release_repository_full_name": args.rmk_release_repository_full_name,
+            "rmk_release_version": args.rmk_release_version,
             "environment": environment
         }
         GitHubOutput().output_dict(data)
