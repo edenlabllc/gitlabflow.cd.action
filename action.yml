@@ -142,14 +142,14 @@ inputs:
     description: Dependency version. Allows using a set of rmk commands to project dependency version update to project.yaml file (only if rmk_command=project_update).
     required: false
 outputs:
+  environment:
+    description: Current CD environment.
   git_branch:
     description: Git branch.
   rmk_release_repository_full_name:
     description: Image repository full name of application (includes registry URL and repository_name).
   rmk_release_version:
     description: Current application version.
-  environment:
-    description: Current CD environment.
 runs:
   using: composite
   steps:

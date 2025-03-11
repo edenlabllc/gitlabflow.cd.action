@@ -44,10 +44,10 @@ if __name__ == "__main__":
 
         """Output counters as GitHub actions outputs"""
         data = {
+            "environment": environment,
             "git_branch": github_context.ref_name,
             "rmk_release_repository_full_name": args.rmk_release_repository_full_name,
-            "rmk_release_version": args.rmk_release_version,
-            "environment": environment
+            "rmk_release_version": args.rmk_release_version
         }
         GitHubOutput().output_dict(data)
     except Exception as err:
