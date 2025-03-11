@@ -6,7 +6,7 @@ inputs:
     description: GitHub token with full access permissions to repositories (used by installer script and RMK).
     required: true
   allowed_environments:
-    description: Allowed environments participating in releases for RMK commands "destroy", "project_update", "provision", "release_sync", "release_update".
+    description: Allowed environments participating in releases for RMK commands "destroy", "helmfile_validate", "project_update", "provision", "release_sync", "release_update".
     required: true
     default: develop,staging
   cluster_provider_credentials:
@@ -30,7 +30,7 @@ inputs:
                         "AZURE_TENANT_ID": "same_str"
                     },
                     "gcp": {
-                        "GOOGLE_APPLICATION_CREDENTIALS": "content",
+                        "GOOGLE_APPLICATION_CREDENTIALS": {json_content},
                         "GCP_REGION": "same_str"
                     }
                 }
@@ -50,7 +50,7 @@ inputs:
                         "AZURE_TENANT_ID": "same_str"
                     },
                     "gcp": {
-                        "GOOGLE_APPLICATION_CREDENTIALS": "content",
+                        "GOOGLE_APPLICATION_CREDENTIALS": {json_content},
                         "GCP_REGION": "same_str"
                     }
                 }
@@ -70,7 +70,7 @@ inputs:
                         "AZURE_TENANT_ID": "same_str"
                     },
                     "gcp": {
-                        "GOOGLE_APPLICATION_CREDENTIALS": "content",
+                        "GOOGLE_APPLICATION_CREDENTIALS": {json_content},
                         "GCP_REGION": "same_str"
                     }
                 }

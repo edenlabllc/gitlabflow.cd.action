@@ -79,7 +79,7 @@ class ReleaseUpdateCommand(BaseCommand):
             release_repository = self.args.rmk_release_repository_full_name
             release_version = self.args.rmk_release_version
             if not release_repository or not release_version:
-                raise ValueError("release name or version is not configured for release update.")
+                raise ValueError("release name or version is not configured for release update")
 
             flags_commit_deploy = "--deploy" \
                 if self.args.rmk_update_skip_deploy != "true" else "--skip-context-switch --commit"
@@ -101,7 +101,7 @@ class ProjectUpdateCommand(BaseCommand):
             dependency_name = self.args.rmk_project_dependency_name
             dependency_version = self.args.rmk_project_dependency_version
             if not dependency_name or not dependency_version:
-                raise ValueError("dependency name or version is not configured for project update.")
+                raise ValueError("dependency name or version is not configured for project update")
 
             self.run_command(f"rmk project update --dependency {dependency_name} --version {dependency_version}")
         except Exception as err:
