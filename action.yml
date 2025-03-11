@@ -115,7 +115,7 @@ inputs:
     default: ""
   rmk_command:
     description: Command to run CD in RMK. Allowed values are "destroy", "helmfile_validate", "project_update", "provision", "release_sync", "release_update".
-    required: false
+    required: true
   rmk_update_skip_deploy:
     description: Whether to skip deploy and commit only when running release update in RMK (only if rmk_command=release_update).
     required: false
