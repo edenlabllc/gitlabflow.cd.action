@@ -1,4 +1,4 @@
-name: GitLab flow action for tenant bootstrap repositories
+name: GitLab flow Action for tenant bootstrap repositories
 description: Action for provisioning and destroying clusters, updating and synchronizing releases, and managing project dependencies.
 
 inputs:
@@ -18,67 +18,103 @@ inputs:
             "develop": {
                 "cluster_providers": {
                     "aws": {
-                        "AWS_ACCESS_KEY_ID": "same_str",
-                        "AWS_SECRET_ACCESS_KEY": "same_str",
-                        "AWS_REGION": "same_str"
+                        "AWS_ACCESS_KEY_ID": "aws_access_key_id",
+                        "AWS_SECRET_ACCESS_KEY": "aws_secret_access_key",
+                        "AWS_REGION": "eu-north-1"
                     },
                     "azure": {
-                        "AZURE_CLIENT_ID": "same_str",
-                        "AZURE_CLIENT_SECRET": "same_str",
-                        "AZURE_LOCATION": "same_str",
-                        "AZURE_SUBSCRIPTION_ID": "same_str",
-                        "AZURE_TENANT_ID": "same_str"
+                        "AZURE_CLIENT_ID": "azure_client_id",
+                        "AZURE_CLIENT_SECRET": "azure_client_secret",
+                        "AZURE_LOCATION": "westus",
+                        "AZURE_SUBSCRIPTION_ID": "azure_subscription_id",
+                        "AZURE_TENANT_ID": "azure_tenant_id"
                     },
                     "gcp": {
-                        "GOOGLE_APPLICATION_CREDENTIALS": {json_content},
-                        "GCP_REGION": "same_str"
+                        "GOOGLE_APPLICATION_CREDENTIALS": {
+                            "type": "service_account",
+                            "project_id": "example",
+                            "private_key_id": "12345678fff",
+                            "private_key": "-----BEGIN PRIVATE KEY-----<example_cert>-----END PRIVATE KEY-----",
+                            "client_email": "example@example.iam.gserviceaccount.com",
+                            "client_id": "12345678fff",
+                            "auth_uri": "https://accounts.google.com/o/oauth2/auth",
+                            "token_uri": "https://oauth2.googleapis.com/token",
+                            "auth_provider_x509_cert_url": "https://www.googleapis.com/oauth2/v1/certs",
+                            "client_x509_cert_url": "https://www.googleapis.com/robot/v1/metadata/x509/example%40example.iam.gserviceaccount.com",
+                            "universe_domain": "googleapis.com"
+                        },
+                        "GCP_REGION": "europe-west1"
                     }
                 }
             },
             "production": {
                 "cluster_providers": {
                     "aws": {
-                        "AWS_ACCESS_KEY_ID": "same_str",
-                        "AWS_SECRET_ACCESS_KEY": "same_str",
-                        "AWS_REGION": "same_str"
+                        "AWS_ACCESS_KEY_ID": "aws_access_key_id",
+                        "AWS_SECRET_ACCESS_KEY": "aws_secret_access_key",
+                        "AWS_REGION": "eu-north-1"
                     },
                     "azure": {
-                        "AZURE_CLIENT_ID": "same_str",
-                        "AZURE_CLIENT_SECRET": "same_str",
-                        "AZURE_LOCATION": "same_str",
-                        "AZURE_SUBSCRIPTION_ID": "same_str",
-                        "AZURE_TENANT_ID": "same_str"
+                        "AZURE_CLIENT_ID": "azure_client_id",
+                        "AZURE_CLIENT_SECRET": "azure_client_secret",
+                        "AZURE_LOCATION": "westus",
+                        "AZURE_SUBSCRIPTION_ID": "azure_subscription_id",
+                        "AZURE_TENANT_ID": "azure_tenant_id"
                     },
                     "gcp": {
-                        "GOOGLE_APPLICATION_CREDENTIALS": {json_content},
-                        "GCP_REGION": "same_str"
+                        "GOOGLE_APPLICATION_CREDENTIALS": {
+                            "type": "service_account",
+                            "project_id": "example",
+                            "private_key_id": "12345678fff",
+                            "private_key": "-----BEGIN PRIVATE KEY-----<example_cert>-----END PRIVATE KEY-----",
+                            "client_email": "example@example.iam.gserviceaccount.com",
+                            "client_id": "12345678fff",
+                            "auth_uri": "https://accounts.google.com/o/oauth2/auth",
+                            "token_uri": "https://oauth2.googleapis.com/token",
+                            "auth_provider_x509_cert_url": "https://www.googleapis.com/oauth2/v1/certs",
+                            "client_x509_cert_url": "https://www.googleapis.com/robot/v1/metadata/x509/example%40example.iam.gserviceaccount.com",
+                            "universe_domain": "googleapis.com"
+                        },
+                        "GCP_REGION": "europe-west1"
                     }
                 }
             },
             "staging": {
                 "cluster_providers": {
                     "aws": {
-                        "AWS_ACCESS_KEY_ID": "same_str",
-                        "AWS_SECRET_ACCESS_KEY": "same_str",
-                        "AWS_REGION": "same_str"
+                        "AWS_ACCESS_KEY_ID": "aws_access_key_id",
+                        "AWS_SECRET_ACCESS_KEY": "aws_secret_access_key",
+                        "AWS_REGION": "eu-north-1"
                     },
                     "azure": {
-                        "AZURE_CLIENT_ID": "same_str",
-                        "AZURE_CLIENT_SECRET": "same_str",
-                        "AZURE_LOCATION": "same_str",
-                        "AZURE_SUBSCRIPTION_ID": "same_str",
-                        "AZURE_TENANT_ID": "same_str"
+                        "AZURE_CLIENT_ID": "azure_client_id",
+                        "AZURE_CLIENT_SECRET": "azure_client_secret",
+                        "AZURE_LOCATION": "westus",
+                        "AZURE_SUBSCRIPTION_ID": "azure_subscription_id",
+                        "AZURE_TENANT_ID": "azure_tenant_id"
                     },
                     "gcp": {
-                        "GOOGLE_APPLICATION_CREDENTIALS": {json_content},
-                        "GCP_REGION": "same_str"
+                        "GOOGLE_APPLICATION_CREDENTIALS": {
+                            "type": "service_account",
+                            "project_id": "example",
+                            "private_key_id": "12345678fff",
+                            "private_key": "-----BEGIN PRIVATE KEY-----<example_cert>-----END PRIVATE KEY-----",
+                            "client_email": "example@example.iam.gserviceaccount.com",
+                            "client_id": "12345678fff",
+                            "auth_uri": "https://accounts.google.com/o/oauth2/auth",
+                            "token_uri": "https://oauth2.googleapis.com/token",
+                            "auth_provider_x509_cert_url": "https://www.googleapis.com/oauth2/v1/certs",
+                            "client_x509_cert_url": "https://www.googleapis.com/robot/v1/metadata/x509/example%40example.iam.gserviceaccount.com",
+                            "universe_domain": "googleapis.com"
+                        },
+                        "GCP_REGION": "europe-west1"
                     }
                 }
             }
         }
     required: true
   rmk_cluster_provider:
-    description: "Specify cluster provider: aws, azure, gcp."
+    description: "Cluster provider: aws, azure, gcp."
     required: true
     default: aws
   rmk_version:
@@ -93,23 +129,23 @@ inputs:
     required: false
     default: https://edenlabllc-rmk.s3.eu-north-1.amazonaws.com/rmk/s3-installer
   rmk_slack_notifications:
-    description: Enable slack notifications.
+    description: Enable Slack notifications.
     required: false
     default: false
   rmk_slack_webhook:
-    description: Url for slack webhook (required if rmk_slack_notifications=true).
+    description: URL for Slack webhook (required if rmk_slack_notifications=true).
     required: false
     default: ""
   rmk_slack_channel:
-    description: Channel name for slack notification (required if rmk_slack_notifications=true).
+    description: Channel name for Slack notification (required if rmk_slack_notifications=true).
     required: false
     default: ""
   rmk_slack_message_details:
     description: |
-      Additional information in the body of the slack message (only if rmk_slack_notifications=true).
+      Additional information in the body of the Slack message (only if rmk_slack_notifications=true).
       Example:
       rmk_slack_message_details: |
-        GitHub Action Url: ${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}
+        GitHub Action URL: ${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}
         Build Number: ${GITHUB_RUN_NUMBER}
     required: false
     default: ""
@@ -136,10 +172,10 @@ inputs:
     description: Current application version (only if rmk_command=release_update).
     required: false
   rmk_project_dependency_name:
-    description: Dependency name. Allows using a set of rmk commands to project dependency version update to project.yaml file (only if rmk_command=project_update).
+    description: Dependency name. Allows using a set of RMK commands to project dependency version update to project.yaml file (only if rmk_command=project_update).
     required: false
   rmk_project_dependency_version:
-    description: Dependency version. Allows using a set of rmk commands to project dependency version update to project.yaml file (only if rmk_command=project_update).
+    description: Dependency version. Allows using a set of RMK commands to project dependency version update to project.yaml file (only if rmk_command=project_update).
     required: false
 outputs:
   environment:

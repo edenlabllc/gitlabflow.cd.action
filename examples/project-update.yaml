@@ -3,24 +3,24 @@ name: Project update
 on:
   workflow_dispatch:
     inputs:
-      project_dependency_name:
-        description: 'Enter the dependency name from the project.yaml file.'
+      rmk_project_dependency_name:
+        description: Enter the dependency name from the project.yaml file.
         required: true
-      project_dependency_version:
-        description: 'Enter the dependency version from the project.yaml file.'
+      rmk_project_dependency_version:
+        description: Enter the dependency version from the project.yaml file.
         required: true
       rmk_version:
-        description: 'Specific RMK version.'
+        description: Specific RMK version.
         required: false
         default: latest
 
 env:
-  # The cluster provider: "azure", "aws", "gcp"
-  CLUSTER_PROVIDER: "aws"
+  # The cluster provider: azure, aws, gcp
+  RMK_CLUSTER_PROVIDER: aws
 
 jobs:
   project-update:
-    name: 'Update ${{ github.event.inputs.project_dependencies_name }} dependency to version ${{ github.event.inputs.project_dependencies_version }} for branch: ${{ github.ref_name }}.'
+    name: Update ${{ github.event.inputs.project_dependencies_name }} dependency to version ${{ github.event.inputs.project_dependencies_version }} for branch: ${{ github.ref_name }}.
     runs-on: ubuntu-22.04
     steps:
       - name: Checkout main repository
@@ -29,22 +29,21 @@ jobs:
           ref: ${{ github.ref }}
           fetch-depth: 0
 
-      - name: Run gitlabflow action
+      - name: Run gitlabflow Action
         id: gitlabflow
         uses: ./.github/actions/gitlabflow
-
-        # Common action inputs
         with:
-          allowed_environments: "develop"
+          allowed_environments: develop
           cluster_provider_credentials: ${{ secrets.CLUSTER_PROVIDER_CREDENTIALS }}
-          github_token_repo_full_access: ${{ secrets.GH_TOKEN_REPO_FULL_ACCESS }}
+          github_token_repo_full_access: ${{ secrets.GITHUB_TOKEN_REPO_FULL_ACCESS }}
+          rmk_cluster_provider: ${{ env.RMK_CLUSTER_PROVIDER }}
           rmk_command: project_update
-          rmk_project_dependency_name: ${{ github.event.inputs.project_dependency_name }}
-          rmk_project_dependency_version: ${{ github.event.inputs.project_dependency_version }}
+          rmk_project_dependency_name: ${{ github.event.inputs.rmk_project_dependency_name }}
+          rmk_project_dependency_version: ${{ github.event.inputs.rmk_project_dependency_version }}
           rmk_slack_channel: fhir-kodjin-cd
           rmk_slack_notifications: true
           rmk_slack_message_details: |
             GitHub Action Url: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
             Build Number: ${{ github.run_number }}
-          rmk_slack_webhook: ${{ secrets.SLACK_WEBHOOK }}
+          rmk_slack_webhook: ${{ secrets.RMK_SLACK_WEBHOOK }}
           rmk_version: ${{ github.event.inputs.rmk_version }}

@@ -1,4 +1,4 @@
-name: GitLab flow action CI
+name: GitLab flow Action CI
 
 on:
   push:
@@ -12,7 +12,7 @@ env:
 
 jobs:
   gitlabflow:
-    name: Checkout main and gitlabflow action repositories, run gitlabflow action
+    name: Checkout and run Action
     runs-on: ubuntu-22.04
     steps:
       - name: Initialize environment variables
@@ -31,6 +31,6 @@ jobs:
         with:
           ref: ${{ github.ref }}
 
-      - name: Release action
+      - name: Release Action
         run: |
           ./release-service.sh ${{ env.VERSION }} ${{ env.GIT_BRANCH }} ${{ env.GITHUB_SHA }} ""

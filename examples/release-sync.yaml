@@ -11,8 +11,8 @@ concurrency:
   cancel-in-progress: false
 
 env:
-  # The cluster provider: "azure", "aws", "gcp"
-  CLUSTER_PROVIDER: "aws"
+  # The cluster provider: azure, aws, gcp
+  RMK_CLUSTER_PROVIDER: aws
 
 jobs:
   release-sync:
@@ -25,10 +25,11 @@ jobs:
           ref: ${{ github.ref }}
           fetch-depth: 0
 
-      - name: Run gitlabflow action
+      - name: Run gitlabflow Action
         uses: edenlab/gitlabflow.cd.action@v2
         with:
           allowed_environments: develop,staging
           cluster_provider_credentials: ${{ secrets.CLUSTER_PROVIDER_CREDENTIALS }}
-          github_token_repo_full_access: ${{ secrets.GH_TOKEN_REPO_FULL_ACCESS }}
+          github_token_repo_full_access: ${{ secrets.GITHUB_TOKEN_REPO_FULL_ACCESS }}
+          rmk_cluster_provider: ${{ env.RMK_CLUSTER_PROVIDER }}
           rmk_command: sync

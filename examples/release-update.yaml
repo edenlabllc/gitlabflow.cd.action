@@ -3,24 +3,24 @@ name: Release update GitLab CD workflow
 on:
   workflow_dispatch:
     inputs:
-      repository_full_name:
+      rmk_release_repository_full_name:
         description: Image repository full name of application (includes registry URL and repository_name).
         required: true
-      version:
+      rmk_release_version:
         description: Current application version.
         required: true
       rmk_version:
-        description: 'Specific RMK version.'
+        description: Specific RMK version.
         required: false
         default: latest
 
 env:
-  # The cluster provider: "azure", "aws", "gcp"
-  CLUSTER_PROVIDER: "aws"
+  # The cluster provider: azure, aws, gcp
+  RMK_CLUSTER_PROVIDER: aws
 
 jobs:
   release-update:
-    name: Checkout main and gitlabflow action repositories, run gitlabflow action for release update
+    name: Checkout and run Action
     runs-on: ubuntu-22.04
     steps:
       - name: Checkout main repository
@@ -29,20 +29,21 @@ jobs:
           ref: ${{ github.ref }}
           fetch-depth: 0
 
-      - name: Run gitlabflow action
+      - name: Run gitlabflow Action
         uses: edenlab/gitlabflow.cd.action@v2
         with:
-          allowed_environments: "develop"
+          allowed_environments: develop
           cluster_provider_credentials: ${{ secrets.CLUSTER_PROVIDER_CREDENTIALS }}
-          github_token_repo_full_access: ${{ secrets.GH_TOKEN_REPO_FULL_ACCESS }}
+          github_token_repo_full_access: ${{ secrets.GITHUB_TOKEN_REPO_FULL_ACCESS }}
+          rmk_cluster_provider: ${{ env.RMK_CLUSTER_PROVIDER }}
           rmk_command: release_update
-          rmk_release_repository_full_name: ${{ github.event.inputs.repository_full_name }}
-          rmk_release_version: ${{ github.event.inputs.version }}
+          rmk_release_repository_full_name: ${{ github.event.inputs.rmk_release_repository_full_name }}
+          rmk_release_version: ${{ github.event.inputs.rmk_release_version }}
           rmk_slack_channel: fhir-kodjin-cd
           rmk_slack_message_details: |
             GitHub Action Url: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
             Build Number: ${{ github.run_number }}
           rmk_slack_notifications: true
-          rmk_slack_webhook: ${{ secrets.SLACK_WEBHOOK }}
+          rmk_slack_webhook: ${{ secrets.RMK_SLACK_WEBHOOK }}
           rmk_update_skip_deploy: true
           rmk_version: ${{ github.event.inputs.rmk_version }}

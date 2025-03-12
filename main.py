@@ -42,7 +42,7 @@ if __name__ == "__main__":
         """Execute the RMK command"""
         RMKCLIExecutor(github_context, args, environment, tenant).execute()
 
-        """Output counters as GitHub actions outputs"""
+        """Output counters as GitHub Actions outputs"""
         data = {
             "environment": environment,
             "git_branch": github_context.ref_name,
