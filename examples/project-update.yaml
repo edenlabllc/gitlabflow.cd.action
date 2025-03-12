@@ -10,7 +10,7 @@ on:
         description: Enter the dependency version from the project.yaml file.
         required: true
       rmk_version:
-        description: Specific RMK version.
+        description: Specify RMK version.
         required: false
         default: latest
 

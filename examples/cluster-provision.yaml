@@ -15,7 +15,7 @@ on:
           - provision
           - destroy
       rmk_version:
-        description: Specific RMK version.
+        description: Specify RMK version.
         required: false
         default: latest
 

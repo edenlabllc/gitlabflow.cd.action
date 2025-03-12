@@ -3,7 +3,7 @@ import subprocess
 from abc import ABC, abstractmethod
 from argparse import Namespace
 
-from src.notification.slack_natification import SlackNotifier
+from src.notification.slack_notification import SlackNotifier
 from src.utils.github_environment_variables import GitHubContext
 
 

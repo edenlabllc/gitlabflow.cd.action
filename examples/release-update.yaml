@@ -4,13 +4,13 @@ on:
   workflow_dispatch:
     inputs:
       rmk_release_repository_full_name:
-        description: Image repository full name of application (includes registry URL and repository_name).
+        description: Enter the image repository full name of application (includes registry URL and repository_name).
         required: true
       rmk_release_version:
-        description: Current application version.
+        description: Enter current application version.
         required: true
       rmk_version:
-        description: Specific RMK version.
+        description: Specify RMK version.
         required: false
         default: latest
 
