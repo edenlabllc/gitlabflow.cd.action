@@ -32,11 +32,11 @@ inputs:
                     "gcp": {
                         "GOOGLE_APPLICATION_CREDENTIALS": {
                             "type": "service_account",
-                            "project_id": "example",
-                            "private_key_id": "12345678fff",
+                            "project_id": "<google_project_id>",
+                            "private_key_id": "<google_private_key_id>",
                             "private_key": "-----BEGIN PRIVATE KEY-----<example_cert>-----END PRIVATE KEY-----",
                             "client_email": "example@example.iam.gserviceaccount.com",
-                            "client_id": "12345678fff",
+                            "client_id": "<google_client_id>",
                             "auth_uri": "https://accounts.google.com/o/oauth2/auth",
                             "token_uri": "https://oauth2.googleapis.com/token",
                             "auth_provider_x509_cert_url": "https://www.googleapis.com/oauth2/v1/certs",
@@ -64,11 +64,11 @@ inputs:
                     "gcp": {
                         "GOOGLE_APPLICATION_CREDENTIALS": {
                             "type": "service_account",
-                            "project_id": "example",
-                            "private_key_id": "12345678fff",
+                            "project_id": "<google_project_id>",
+                            "private_key_id": "<google_private_key_id>",
                             "private_key": "-----BEGIN PRIVATE KEY-----<example_cert>-----END PRIVATE KEY-----",
                             "client_email": "example@example.iam.gserviceaccount.com",
-                            "client_id": "12345678fff",
+                            "client_id": "<google_client_id>",
                             "auth_uri": "https://accounts.google.com/o/oauth2/auth",
                             "token_uri": "https://oauth2.googleapis.com/token",
                             "auth_provider_x509_cert_url": "https://www.googleapis.com/oauth2/v1/certs",
@@ -96,11 +96,11 @@ inputs:
                     "gcp": {
                         "GOOGLE_APPLICATION_CREDENTIALS": {
                             "type": "service_account",
-                            "project_id": "example",
-                            "private_key_id": "12345678fff",
+                            "project_id": "<google_project_id>",
+                            "private_key_id": "<google_private_key_id>",
                             "private_key": "-----BEGIN PRIVATE KEY-----<example_cert>-----END PRIVATE KEY-----",
                             "client_email": "example@example.iam.gserviceaccount.com",
-                            "client_id": "12345678fff",
+                            "client_id": "<google_client_id>",
                             "auth_uri": "https://accounts.google.com/o/oauth2/auth",
                             "token_uri": "https://oauth2.googleapis.com/token",
                             "auth_provider_x509_cert_url": "https://www.googleapis.com/oauth2/v1/certs",
