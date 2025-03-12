@@ -7,7 +7,7 @@ on:
   workflow_dispatch:
     inputs:
       rmk_command:
-        description: Enter command Action for cluster provisioner, available: provision or destroy.
+        description: Enter command action for cluster provisioner, available: provision or destroy.
         required: true
         default: provision
         type: choice
@@ -34,7 +34,7 @@ jobs:
           ref: ${{ github.ref }}
           fetch-depth: 0
 
-      - name: Run gitlabflow Action
+      - name: Run gitlabflow action
         uses: edenlab/gitlabflow.cd.action@v2
         with:
           cluster_provider_credentials: ${{ secrets.CLUSTER_PROVIDER_CREDENTIALS }}

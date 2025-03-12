@@ -18,7 +18,7 @@ jobs:
           ref: ${{ github.head_ref }}
           fetch-depth: 0
 
-      - name: Run gitlabflow Action
+      - name: Run gitlabflow action
         uses: edenlab/gitlabflow.cd.action@v2
         with:
           cluster_provider_credentials: ${{ secrets.CLUSTER_PROVIDER_CREDENTIALS }}

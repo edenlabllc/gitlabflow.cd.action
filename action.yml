@@ -1,4 +1,4 @@
-name: GitLab flow Action for tenant bootstrap repositories
+name: GitLab flow action for tenant bootstrap repositories
 description: Action for provisioning and destroying clusters, updating and synchronizing releases, and managing project dependencies.
 
 inputs:
@@ -18,16 +18,16 @@ inputs:
             "develop": {
                 "cluster_providers": {
                     "aws": {
-                        "AWS_ACCESS_KEY_ID": "aws_access_key_id",
-                        "AWS_SECRET_ACCESS_KEY": "aws_secret_access_key",
-                        "AWS_REGION": "eu-north-1"
+                        "AWS_ACCESS_KEY_ID": "<aws_access_key_id>",
+                        "AWS_SECRET_ACCESS_KEY": "<aws_secret_access_key>",
+                        "AWS_REGION": "us-east-1"
                     },
                     "azure": {
-                        "AZURE_CLIENT_ID": "azure_client_id",
-                        "AZURE_CLIENT_SECRET": "azure_client_secret",
-                        "AZURE_LOCATION": "westus",
-                        "AZURE_SUBSCRIPTION_ID": "azure_subscription_id",
-                        "AZURE_TENANT_ID": "azure_tenant_id"
+                        "AZURE_CLIENT_ID": "<azure_client_id>",
+                        "AZURE_CLIENT_SECRET": "<azure_client_secret>",
+                        "AZURE_LOCATION": "eastus",
+                        "AZURE_SUBSCRIPTION_ID": "<azure_subscription_id>",
+                        "AZURE_TENANT_ID": "<azure_tenant_id>"
                     },
                     "gcp": {
                         "GOOGLE_APPLICATION_CREDENTIALS": {
@@ -43,23 +43,23 @@ inputs:
                             "client_x509_cert_url": "https://www.googleapis.com/robot/v1/metadata/x509/example%40example.iam.gserviceaccount.com",
                             "universe_domain": "googleapis.com"
                         },
-                        "GCP_REGION": "europe-west1"
+                        "GCP_REGION": "us-east1"
                     }
                 }
             },
             "production": {
                 "cluster_providers": {
                     "aws": {
-                        "AWS_ACCESS_KEY_ID": "aws_access_key_id",
-                        "AWS_SECRET_ACCESS_KEY": "aws_secret_access_key",
-                        "AWS_REGION": "eu-north-1"
+                        "AWS_ACCESS_KEY_ID": "<aws_access_key_id>",
+                        "AWS_SECRET_ACCESS_KEY": "<aws_secret_access_key>",
+                        "AWS_REGION": "us-east-1"
                     },
                     "azure": {
-                        "AZURE_CLIENT_ID": "azure_client_id",
-                        "AZURE_CLIENT_SECRET": "azure_client_secret",
-                        "AZURE_LOCATION": "westus",
-                        "AZURE_SUBSCRIPTION_ID": "azure_subscription_id",
-                        "AZURE_TENANT_ID": "azure_tenant_id"
+                        "AZURE_CLIENT_ID": "<azure_client_id>",
+                        "AZURE_CLIENT_SECRET": "<azure_client_secret>",
+                        "AZURE_LOCATION": "eastus",
+                        "AZURE_SUBSCRIPTION_ID": "<azure_subscription_id>",
+                        "AZURE_TENANT_ID": "<azure_tenant_id>"
                     },
                     "gcp": {
                         "GOOGLE_APPLICATION_CREDENTIALS": {
@@ -75,23 +75,23 @@ inputs:
                             "client_x509_cert_url": "https://www.googleapis.com/robot/v1/metadata/x509/example%40example.iam.gserviceaccount.com",
                             "universe_domain": "googleapis.com"
                         },
-                        "GCP_REGION": "europe-west1"
+                        "GCP_REGION": "us-east1"
                     }
                 }
             },
             "staging": {
                 "cluster_providers": {
                     "aws": {
-                        "AWS_ACCESS_KEY_ID": "aws_access_key_id",
-                        "AWS_SECRET_ACCESS_KEY": "aws_secret_access_key",
-                        "AWS_REGION": "eu-north-1"
+                        "AWS_ACCESS_KEY_ID": "<aws_access_key_id>",
+                        "AWS_SECRET_ACCESS_KEY": "<aws_secret_access_key>",
+                        "AWS_REGION": "us-east-1"
                     },
                     "azure": {
-                        "AZURE_CLIENT_ID": "azure_client_id",
-                        "AZURE_CLIENT_SECRET": "azure_client_secret",
-                        "AZURE_LOCATION": "westus",
-                        "AZURE_SUBSCRIPTION_ID": "azure_subscription_id",
-                        "AZURE_TENANT_ID": "azure_tenant_id"
+                        "AZURE_CLIENT_ID": "<azure_client_id>",
+                        "AZURE_CLIENT_SECRET": "<azure_client_secret>",
+                        "AZURE_LOCATION": "eastus",
+                        "AZURE_SUBSCRIPTION_ID": "<azure_subscription_id>",
+                        "AZURE_TENANT_ID": "<azure_tenant_id>"
                     },
                     "gcp": {
                         "GOOGLE_APPLICATION_CREDENTIALS": {
@@ -107,14 +107,14 @@ inputs:
                             "client_x509_cert_url": "https://www.googleapis.com/robot/v1/metadata/x509/example%40example.iam.gserviceaccount.com",
                             "universe_domain": "googleapis.com"
                         },
-                        "GCP_REGION": "europe-west1"
+                        "GCP_REGION": "us-east1"
                     }
                 }
             }
         }
     required: true
   rmk_cluster_provider:
-    description: "Cluster provider: aws, azure, gcp."
+    description: Cluster provider. Allowed values are "aws", "azure", "gcp".
     required: true
     default: aws
   rmk_version:
