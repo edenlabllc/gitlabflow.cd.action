@@ -48,7 +48,7 @@ class GitHubContext:
 
         missing_vars = [var for var in required_env_vars if os.getenv(var) is None]
         if missing_vars:
-            raise ValueError(f"Missing required environment variables: {', '.join(missing_vars)}")
+            raise ValueError(f"missing required environment variables: {', '.join(missing_vars)}")
 
         return GitHubContext(
             actor=os.getenv("GITHUB_ACTOR"),

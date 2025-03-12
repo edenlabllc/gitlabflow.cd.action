@@ -16,8 +16,8 @@ class RMKInstaller:
         print("Verifying RMK installation version...")
         if self.version != "latest":
             if version.parse('v0.45.2') > version.parse(self.version):
-                raise Exception(f"Version {self.version} of RMK is not correct. " +
-                                "The version for RMK must be at least v0.45.2 or greater.")
+                raise Exception(f"version {self.version} of RMK is not correct, " +
+                                "the version for RMK must be at least v0.45.2 or greater")
 
     def install_rmk(self):
         print("Installing RMK.")
@@ -25,7 +25,7 @@ class RMKInstaller:
             response = requests.get(self.url)
             response.raise_for_status()
         except requests.RequestException as err:
-            raise Exception(f"Error downloading RMK installer file:\n{err}")
+            raise Exception(f"downloading RMK installer file:\n{err}")
 
         try:
             subprocess.run(
@@ -35,4 +35,4 @@ class RMKInstaller:
                 input=response.text
             )
         except subprocess.CalledProcessError as err:
-            raise Exception(f"Error installing RMK:\n{err}")
+            raise Exception(f"installing RMK:\n{err}")

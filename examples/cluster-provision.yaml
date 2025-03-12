@@ -1,73 +1,44 @@
 name: Cluster provisioner
 
+# The name for workflow runs generated from the workflow.
+run-name: Cluster ${{ github.event.inputs.cluster_provisioner_command }}
+
 on:
   workflow_dispatch:
     inputs:
-      cluster_provisioner_command:
-        description: 'Enter command action for cluster provisioner, available: provision or destroy.'
+      rmk_command:
+        description: Enter command action for cluster provisioner, available: provision or destroy.
         required: true
-        default: 'provision'
+        default: provision
+        type: choice
+        options:
+          - provision
+          - destroy
+      rmk_version:
+        description: Specify RMK version.
+        required: false
+        default: latest
 
 env:
-  # AWS region of the AWS account storing images in ECR.
-  CORE_AWS_REGION: eu-north-1
-  # AWS region of the AWS account deploying applications to EKS for develop.
-  CD_DEVELOP_AWS_REGION:
-  # AWS region of the AWS account deploying applications to EKS for staging.
-  CD_STAGING_AWS_REGION:
-  # The latest action version.
-  ACTION_VERSION: v1
+  # The cluster provider: azure, aws, gcp
+  RMK_CLUSTER_PROVIDER: aws
 
 jobs:
   cluster-provision:
-    name: 'Cluster will be ${{ github.event.inputs.cluster_provisioner_command }} for branch: ${{ github.ref_name }}.'
-    runs-on: ubuntu-20.04
+    name: Cluster will be ${{ github.event.inputs.cluster_provisioner_command }} for branch: ${{ github.ref_name }}.
+    runs-on: ubuntu-22.04
     steps:
       - name: Checkout main repository
-        uses: actions/checkout@v2
+        uses: actions/checkout@v4
         with:
           ref: ${{ github.ref }}
           fetch-depth: 0
 
-      - name: Checkout gitlabflow action repository
-        uses: actions/checkout@v2
-        with:
-          repository: edenlabllc/gitlabflow.cd.action
-          ref: ${{ env.ACTION_VERSION }}
-          token: ${{ secrets.GH_TOKEN_REPO_FULL_ACCESS }}
-          path: .github/actions/gitlabflow
-
-      - name: Configure AWS credentials
-        uses: aws-actions/configure-aws-credentials@v1
-        with:
-          aws-region: ${{ env.CORE_AWS_REGION }}
-          aws-access-key-id: ${{ secrets.CORE_AWS_ACCESS_KEY_ID }}
-          aws-secret-access-key: ${{ secrets.CORE_AWS_SECRET_ACCESS_KEY }}
-
-      - name: Login to AWS ECR
-        uses: aws-actions/amazon-ecr-login@v1
-
-      - name: Pull GitLab flow action image from AWS ECR
-        run: |
-          ECR_REGISTRY_URL="${{ secrets.CORE_AWS_ACCOUNT_ID }}.dkr.ecr.${{ env.CORE_AWS_REGION }}.amazonaws.com"
-          IMAGE_NAME="core.gitlabflow.cd.action"
-          IMAGE_FULL_NAME="${ECR_REGISTRY_URL}/${IMAGE_NAME}:${{ env.ACTION_VERSION }}"
-          docker pull "${IMAGE_FULL_NAME}"
-          docker tag "${IMAGE_FULL_NAME}" "${IMAGE_NAME}"
-
       - name: Run gitlabflow action
-        id: gitlabflow
-        uses: ./.github/actions/gitlabflow
-
-        # Common action inputs
+        uses: edenlab/gitlabflow.cd.action@v2
         with:
-          github_token_repo_full_access: ${{ secrets.GH_TOKEN_REPO_FULL_ACCESS }}
-          cloudflare_token: ${{ secrets.CLOUDFLARE_TOKEN }}
-          cd_develop_aws_region: ${{ env.CD_DEVELOP_AWS_REGION }}
-          cd_develop_aws_access_key_id: ${{ secrets.CD_DEVELOP_AWS_ACCESS_KEY_ID }}
-          cd_develop_aws_secret_access_key: ${{ secrets.CD_DEVELOP_AWS_SECRET_ACCESS_KEY }}
-          cd_staging_aws_region: ${{ env.CD_STAGING_AWS_REGION }}
-          cd_staging_aws_access_key_id: ${{ secrets.CD_STAGING_AWS_ACCESS_KEY_ID }}
-          cd_staging_aws_secret_access_key: ${{ secrets.CD_STAGING_AWS_SECRET_ACCESS_KEY }}
-          cluster_provisioner: true
-          rmk_command: ${{ github.event.inputs.cluster_provisioner_command }}
+          cluster_provider_credentials: ${{ secrets.CLUSTER_PROVIDER_CREDENTIALS }}
+          github_token_repo_full_access: ${{ secrets.GITHUB_TOKEN_REPO_FULL_ACCESS }}
+          rmk_cluster_provider: ${{ env.RMK_CLUSTER_PROVIDER }}
+          rmk_command: ${{ inputs.rmk_command }}
+          rmk_version: ${{ inputs.rmk_version }}

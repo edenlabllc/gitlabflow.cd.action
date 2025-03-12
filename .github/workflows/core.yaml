@@ -12,7 +12,7 @@ env:
 
 jobs:
   gitlabflow:
-    name: Checkout main and gitlabflow action repositories, run gitlabflow action
+    name: Checkout and run action
     runs-on: ubuntu-22.04
     steps:
       - name: Initialize environment variables
@@ -27,10 +27,10 @@ jobs:
           echo "VERSION=${VERSION}" >> ${GITHUB_ENV}
 
       - name: Checkout main repository
-        uses: actions/checkout@v5
+        uses: actions/checkout@v4
         with:
           ref: ${{ github.ref }}
 
-      - name: Release action
+      - name: Release GitHub Action
         run: |
           ./release-service.sh ${{ env.VERSION }} ${{ env.GIT_BRANCH }} ${{ env.GITHUB_SHA }} ""

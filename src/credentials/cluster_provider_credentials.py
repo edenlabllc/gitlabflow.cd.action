@@ -49,9 +49,9 @@ class Credentials:
         try:
             data = json.loads(json_data)
             if not isinstance(data, dict):
-                raise ValueError("Invalid JSON format: Expected a dictionary.")
+                raise ValueError("invalid JSON format: expected a dictionary")
         except json.JSONDecodeError as err:
-            raise ValueError(f"Failed to parse JSON: {err}")
+            raise ValueError(f"failed to parse JSON: {err}")
 
         environments = {}
         for env_name, env_data in data.items():
@@ -66,7 +66,7 @@ class Credentials:
                     )
                 )
             except TypeError as err:
-                raise ValueError(f"Invalid structure for environment '{env_name}': {err}")
+                raise ValueError(f"invalid structure for environment '{env_name}': {err}")
 
         return environments
 
@@ -80,7 +80,7 @@ class Credentials:
     def save_gcp_credentials(credentials_content: str) -> str:
         """Save GCP credentials content to a file and return its path with validation."""
         if not credentials_content:
-            raise ValueError("GCP credentials content is empty or invalid.")
+            raise ValueError("GCP credentials content is empty or invalid")
 
         if isinstance(credentials_content, dict):
             credentials_json = credentials_content
@@ -88,16 +88,16 @@ class Credentials:
             try:
                 credentials_json = json.loads(json.dumps(credentials_content))
                 if not isinstance(credentials_json, dict):
-                    raise ValueError("Invalid GCP credentials format. Expected a JSON object.")
+                    raise ValueError("invalid GCP credentials format, expected a JSON object")
             except json.JSONDecodeError as err:
-                raise ValueError(f"Failed to parse GCP credentials JSON: {err}")
+                raise ValueError(f"failed to parse GCP credentials JSON: {err}")
 
         file_path = "gcp-credentials.json"
         try:
             with open(file_path, "w") as cred_file:
                 json.dump(credentials_json, cred_file, indent=4)
         except IOError as err:
-            raise IOError(f"Failed to write GCP credentials file: {err}")
+            raise IOError(f"failed to write GCP credentials file: {err}")
 
         return os.path.abspath(file_path)
 
@@ -105,7 +105,7 @@ class Credentials:
         """Set environment variables based on the selected cluster provider."""
         env_config = self.get_environment(env_name)
         if not env_config:
-            raise ValueError(f"Environment '{env_name}' not found in credentials values.")
+            raise ValueError(f"environment '{env_name}' not found in credentials values")
 
         providers = env_config.cluster_providers
 
@@ -131,7 +131,7 @@ class Credentials:
                     "GCP_REGION": providers.gcp.GCP_REGION,
                 })
             case _:
-                raise ValueError(f"Invalid provider '{provider}'. Supported providers: aws, azure, gcp")
+                raise ValueError(f"invalid provider '{provider}', supported providers: aws, azure, gcp")
 
         print(f"Credentials as environment variables set for {env_name} with cluster provider: {provider}.")
 

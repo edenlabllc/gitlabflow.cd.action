@@ -1,41 +1,12 @@
 name: GitLab flow action for tenant bootstrap repositories
-description: |
+description: Action for provisioning and destroying clusters, updating and synchronizing releases, and managing project dependencies.
+
 inputs:
   github_token_repo_full_access:
     description: GitHub token with full access permissions to repositories (used by installer script and RMK).
     required: true
-#  cloudflare_token:
-#    description: Cloudflare token for DNS provisioning (used by RMK).
-#    required: true
-#  cd_develop_aws_region:
-#    description: AWS region of the AWS account deploying applications to EKS for develop.
-#    required: true
-#  cd_develop_aws_access_key_id:
-#    description: AWS access key ID of the AWS account deploying applications to EKS for develop.
-#    required: true
-#  cd_develop_aws_secret_access_key:
-#    description: AWS secret access key of the AWS account deploying applications to EKS for develop.
-#    required: true
-#  cd_staging_aws_region:
-#    description: AWS region of the AWS account deploying applications to EKS for staging.
-#    required: false
-#  cd_staging_aws_access_key_id:
-#    description: AWS access key ID of the AWS account deploying applications to EKS for staging.
-#    required: false
-#  cd_staging_aws_secret_access_key:
-#    description: AWS secret access key of the AWS account deploying applications to EKS for staging.
-#    required: false
-#  cd_production_aws_region:
-#    description: AWS region of the AWS account deploying applications to EKS for production.
-#    required: false
-#  cd_production_aws_access_key_id:
-#    description: AWS access key ID of the AWS account deploying applications to EKS for production.
-#    required: false
-#  cd_production_aws_secret_access_key:
-#    description: AWS secret access key of the AWS account deploying applications to EKS for production.
-#    required: false
   allowed_environments:
-    description: Allowed environments participating in releases for RMK commands "destroy", "project_update", "provision", "release_update", "sync".
+    description: Allowed environments participating in releases for RMK commands "destroy", "helmfile_validate", "project_update", "provision", "release_sync", "release_update".
     required: true
     default: develop,staging
   cluster_provider_credentials:
@@ -47,77 +18,103 @@ inputs:
             "develop": {
                 "cluster_providers": {
                     "aws": {
-                        "AWS_ACCESS_KEY_ID": "same_str",
-                        "AWS_SECRET_ACCESS_KEY": "same_str",
-                        "AWS_REGION": "same_str"
+                        "AWS_ACCESS_KEY_ID": "<aws_access_key_id>",
+                        "AWS_SECRET_ACCESS_KEY": "<aws_secret_access_key>",
+                        "AWS_REGION": "us-east-1"
                     },
                     "azure": {
-                        "AZURE_CLIENT_ID": "same_str",
-                        "AZURE_CLIENT_SECRET": "same_str",
-                        "AZURE_LOCATION": "same_str",
-                        "AZURE_SUBSCRIPTION_ID": "same_str",
-                        "AZURE_TENANT_ID": "same_str"
+                        "AZURE_CLIENT_ID": "<azure_client_id>",
+                        "AZURE_CLIENT_SECRET": "<azure_client_secret>",
+                        "AZURE_LOCATION": "eastus",
+                        "AZURE_SUBSCRIPTION_ID": "<azure_subscription_id>",
+                        "AZURE_TENANT_ID": "<azure_tenant_id>"
                     },
                     "gcp": {
-                        "GOOGLE_APPLICATION_CREDENTIALS": "content",
-                        "GCP_REGION": "same_str"
+                        "GOOGLE_APPLICATION_CREDENTIALS": {
+                            "type": "service_account",
+                            "project_id": "<google_project_id>",
+                            "private_key_id": "<google_private_key_id>",
+                            "private_key": "-----BEGIN PRIVATE KEY-----<example_cert>-----END PRIVATE KEY-----",
+                            "client_email": "example@example.iam.gserviceaccount.com",
+                            "client_id": "<google_client_id>",
+                            "auth_uri": "https://accounts.google.com/o/oauth2/auth",
+                            "token_uri": "https://oauth2.googleapis.com/token",
+                            "auth_provider_x509_cert_url": "https://www.googleapis.com/oauth2/v1/certs",
+                            "client_x509_cert_url": "https://www.googleapis.com/robot/v1/metadata/x509/example%40example.iam.gserviceaccount.com",
+                            "universe_domain": "googleapis.com"
+                        },
+                        "GCP_REGION": "us-east1"
                     }
                 }
             },
             "production": {
                 "cluster_providers": {
                     "aws": {
-                        "AWS_ACCESS_KEY_ID": "same_str",
-                        "AWS_SECRET_ACCESS_KEY": "same_str",
-                        "AWS_REGION": "same_str"
+                        "AWS_ACCESS_KEY_ID": "<aws_access_key_id>",
+                        "AWS_SECRET_ACCESS_KEY": "<aws_secret_access_key>",
+                        "AWS_REGION": "us-east-1"
                     },
                     "azure": {
-                        "AZURE_CLIENT_ID": "same_str",
-                        "AZURE_CLIENT_SECRET": "same_str",
-                        "AZURE_LOCATION": "same_str",
-                        "AZURE_SUBSCRIPTION_ID": "same_str",
-                        "AZURE_TENANT_ID": "same_str"
+                        "AZURE_CLIENT_ID": "<azure_client_id>",
+                        "AZURE_CLIENT_SECRET": "<azure_client_secret>",
+                        "AZURE_LOCATION": "eastus",
+                        "AZURE_SUBSCRIPTION_ID": "<azure_subscription_id>",
+                        "AZURE_TENANT_ID": "<azure_tenant_id>"
                     },
                     "gcp": {
-                        "GOOGLE_APPLICATION_CREDENTIALS": "content",
-                        "GCP_REGION": "same_str"
+                        "GOOGLE_APPLICATION_CREDENTIALS": {
+                            "type": "service_account",
+                            "project_id": "<google_project_id>",
+                            "private_key_id": "<google_private_key_id>",
+                            "private_key": "-----BEGIN PRIVATE KEY-----<example_cert>-----END PRIVATE KEY-----",
+                            "client_email": "example@example.iam.gserviceaccount.com",
+                            "client_id": "<google_client_id>",
+                            "auth_uri": "https://accounts.google.com/o/oauth2/auth",
+                            "token_uri": "https://oauth2.googleapis.com/token",
+                            "auth_provider_x509_cert_url": "https://www.googleapis.com/oauth2/v1/certs",
+                            "client_x509_cert_url": "https://www.googleapis.com/robot/v1/metadata/x509/example%40example.iam.gserviceaccount.com",
+                            "universe_domain": "googleapis.com"
+                        },
+                        "GCP_REGION": "us-east1"
                     }
                 }
             },
             "staging": {
                 "cluster_providers": {
                     "aws": {
-                        "AWS_ACCESS_KEY_ID": "same_str",
-                        "AWS_SECRET_ACCESS_KEY": "same_str",
-                        "AWS_REGION": "same_str"
+                        "AWS_ACCESS_KEY_ID": "<aws_access_key_id>",
+                        "AWS_SECRET_ACCESS_KEY": "<aws_secret_access_key>",
+                        "AWS_REGION": "us-east-1"
                     },
                     "azure": {
-                        "AZURE_CLIENT_ID": "same_str",
-                        "AZURE_CLIENT_SECRET": "same_str",
-                        "AZURE_LOCATION": "same_str",
-                        "AZURE_SUBSCRIPTION_ID": "same_str",
-                        "AZURE_TENANT_ID": "same_str"
+                        "AZURE_CLIENT_ID": "<azure_client_id>",
+                        "AZURE_CLIENT_SECRET": "<azure_client_secret>",
+                        "AZURE_LOCATION": "eastus",
+                        "AZURE_SUBSCRIPTION_ID": "<azure_subscription_id>",
+                        "AZURE_TENANT_ID": "<azure_tenant_id>"
                     },
                     "gcp": {
-                        "GOOGLE_APPLICATION_CREDENTIALS": "content",
-                        "GCP_REGION": "same_str"
+                        "GOOGLE_APPLICATION_CREDENTIALS": {
+                            "type": "service_account",
+                            "project_id": "<google_project_id>",
+                            "private_key_id": "<google_private_key_id>",
+                            "private_key": "-----BEGIN PRIVATE KEY-----<example_cert>-----END PRIVATE KEY-----",
+                            "client_email": "example@example.iam.gserviceaccount.com",
+                            "client_id": "<google_client_id>",
+                            "auth_uri": "https://accounts.google.com/o/oauth2/auth",
+                            "token_uri": "https://oauth2.googleapis.com/token",
+                            "auth_provider_x509_cert_url": "https://www.googleapis.com/oauth2/v1/certs",
+                            "client_x509_cert_url": "https://www.googleapis.com/robot/v1/metadata/x509/example%40example.iam.gserviceaccount.com",
+                            "universe_domain": "googleapis.com"
+                        },
+                        "GCP_REGION": "us-east1"
                     }
                 }
             }
         }
     required: true
-    default: ""
-#  cluster_provisioner:
-#    description: Allows using a set of RMK commands to provision cluster according to the specification tenant repositories.
-#    required: true
-#    default: false
-# Kodjin specific
-#  reindexer_release_name:
-#    description: Reindexer release name
-#    required: false
-#    default: fhir-server-search-reindexer
   rmk_cluster_provider:
-    description: "Specify cluster provider: aws, azure, gcp."
+    description: Cluster provider. Allowed values are "aws", "azure", "gcp".
     required: true
     default: aws
   rmk_version:
@@ -132,46 +129,36 @@ inputs:
     required: false
     default: https://edenlabllc-rmk.s3.eu-north-1.amazonaws.com/rmk/s3-installer
   rmk_slack_notifications:
-    description: Enable slack notifications.
+    description: Enable Slack notifications.
     required: false
     default: false
   rmk_slack_webhook:
-    description: Url for slack webhook (required if rmk_slack_notifications=true).
+    description: URL for Slack webhook (required if rmk_slack_notifications=true).
     required: false
     default: ""
   rmk_slack_channel:
-    description: Channel name for slack notification (required if rmk_slack_notifications=true).
+    description: Channel name for Slack notification (required if rmk_slack_notifications=true).
     required: false
     default: ""
   rmk_slack_message_details:
     description: |
-      Additional information in the body of the slack message (only if rmk_slack_notifications=true).
+      Additional information in the body of the Slack message (only if rmk_slack_notifications=true).
       Example:
       rmk_slack_message_details: |
-        GitHub Action Url: ${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}
-        Build Number: ${GITHUB_RUN_NUMBER}
+        GitHub Actions Build URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        GitHub Actions Build Number: ${{ github.run_number }}
     required: false
     default: ""
   rmk_command:
-    description: Command to run CD in RMK. Allowed values are "destroy", "helmfile_validate", "project_update", "provision", "release_update", "sync".
-    required: false
-# DEPRECATED
-#  rmk_update_helmfile_repos_command:
-#    description: Helmfile command to update repos when running release update in RMK. Allowed values are "" (do nothing), "repos", "fetch" (only if rmk_command=release_update and only for RMK version v3.x.x).
-#    required: false
-#    default: ""
+    description: Command to run CD in RMK. Allowed values are "destroy", "helmfile_validate", "project_update", "provision", "release_sync", "release_update".
+    required: true
   rmk_update_skip_deploy:
     description: Whether to skip deploy and commit only when running release update in RMK (only if rmk_command=release_update).
     required: false
     default: false
-# DEPRECATED
-#  rmk_sync_skip_deps:
-#    description: DEPRECATED Whether to skip running "helm repo update" and "helm dependency build" when running sync in RMK (only if rmk_command=sync).
-#    required: false
-#    default: false
   rmk_sync_labels:
     description: |
-      List of labels when running sync in RMK (only if rmk_command=sync).
+      List of labels when running sync in RMK (only if rmk_command=release_sync).
       Example:
       rmk_sync_labels: |
         scope=kodjin
@@ -184,104 +171,52 @@ inputs:
   rmk_release_version:
     description: Current application version (only if rmk_command=release_update).
     required: false
-# Edenlab specific
-#  destroy_clusters:
-#    description: Destroy all clusters by feature/ffs-\d+ and release/rc-\d+ branch patterns (case-insensitive).
-#    required: false
-#    default: false
-#  check_orphaned_clusters:
-#    description: Whether to check for orphaned clusters (only if destroy_clusters=true).
-#    required: false
-#    default: true
-#  check_orphaned_volumes:
-#    description: Whether to check for orphaned volumes (only if destroy_clusters=true).
-#    required: false
-#    default: false
-# DEPRECATED
-#  mongodb_backup:
-#    description: DEPRECATED Make new backup of MongoDB databases.
-#    required: false
-#    default: false
-#  mongodb_restore:
-#    description: DEPRECATED Restore backup of MongoDB databases.
-#    required: false
-#    default: false
   rmk_project_dependency_name:
-    description: Dependency name. Allows using a set of rmk commands to project dependency version update to project.yaml file (only if rmk_command=project_update).
+    description: Dependency name. Allows using a set of RMK commands to project dependency version update to project.yaml file (only if rmk_command=project_update).
     required: false
   rmk_project_dependency_version:
-    description: Dependency version. Allows using a set of rmk commands to project dependency version update to project.yaml file (only if rmk_command=project_update).
+    description: Dependency version. Allows using a set of RMK commands to project dependency version update to project.yaml file (only if rmk_command=project_update).
     required: false
-# Kodjin specific
-#  routes_test:
-#    description: Execute routes test.
-#    required: false
-#    default: false
-# Kodjin specific
-#  routes_test_branch:
-#    description: Branch for fhir.routes.tests repository.
-#    required: false
-#    default: master
-# Kodjin specific
-#  reindexer_collections:
-#    description: Collections to reindex (if empty, then reindex all from values).
-#    required: false
-#  helmfile_template_validate:
-#    description: Validate Helmfile templates.
-#    required: false
-#    default: false
-#  helmfile_template_head_ref_branch:
-#    description: Head branch name (only if helmfile_template_validate=true).
-#    required: false
-#    default: ""
-# Kodjin specific
-#  test_suites:
-#    description: Enable the execution of Test Suites on the currently provisioned cluster.
-#    required: false
-#    default: false
-#  test_suites_version:
-#    description: Test Suites version.
-#    required: false
-#    default: ""
-#  test_suites_skip_provisioning:
-#    description: Execute Test Suites bypassing cluster provisioning.
-#    required: false
-#    default: false
-#  test_suites_docker_image_name:
-#    description: Test Suites Docker image name.
-#    required: false
-#    default: ""
-#  test_suites_bucket_expiration_days:
-#    description: Specify the number of days before the Allure reports in the bucket expire.
-#    required: false
-#    default: "3"
-#  test_suites_bucket_name_prefix:
-#    description: Specify the prefix for the bucket name where Allure reports will be stored.
-#    required: false
-#    default: "allure-report-explorer"
-#  test_suites_tags:
-#    description: |
-#      List of tags for running Test Suites (only if test_suites=true; if empty, then all Test Suites tags will be used).
-#      Example:
-#      test_suites_tags: foo bar
-#    required: false
-#    default: ""
-#  test_suites_environment_variables:
-#    description: |
-#      List of environment variables for running Test Suites (only if test_suites=true).
-#      Example:
-#      test_suites_environment_variables: KEY_1=VALUE_1 KEY_2=VALUE_2
-#    required: false
-#    default: ""
 outputs:
-  git_branch:
-    description: Git branch.
-  repository_full_name:
-    description: Image repository full name of application (includes registry URL and repository_name).
-  version:
-    description: Current application version.
   environment:
     description: Current CD environment.
+  git_branch:
+    description: Git branch.
+  rmk_release_repository_full_name:
+    description: Image repository full name of application (includes registry URL and repository_name).
+  rmk_release_version:
+    description: Current application version.
 runs:
-  using: docker
-  image: docker://core.gitlabflow.cd.action
+  using: composite
+  steps:
+    - name: Install python
+      uses: actions/setup-python@v4
+      with:
+        python-version: "3.10"
+
+    - name: Install python dependencies
+      run: pip install -r ${{ github.action_path }}/requirements.txt
+      shell: bash
+
+    - name: Execute main script
+      id: main
+      run: python ${{ github.action_path }}/main.py
+      shell: bash
+      env:
+        INPUT_GITHUB_TOKEN_REPO_FULL_ACCESS: ${{ inputs.github_token_repo_full_access }}
+        INPUT_ALLOWED_ENVIRONMENTS: ${{ inputs.allowed_environments }}
+        INPUT_CLUSTER_PROVIDER_CREDENTIALS: ${{ inputs.cluster_provider_credentials }}
+        INPUT_RMK_CLUSTER_PROVIDER: ${{ inputs.rmk_cluster_provider }}
+        INPUT_RMK_VERSION: ${{ inputs.rmk_version }}
+        INPUT_RMK_DOWNLOAD_URL: ${{ inputs.rmk_download_url }}
+        INPUT_RMK_SLACK_NOTIFICATIONS: ${{ inputs.rmk_slack_notifications }}
+        INPUT_RMK_SLACK_WEBHOOK: ${{ inputs.rmk_slack_webhook }}
+        INPUT_RMK_SLACK_CHANNEL: ${{ inputs.rmk_slack_channel }}
+        INPUT_RMK_SLACK_MESSAGE_DETAILS: ${{ inputs.rmk_slack_message_details }}
+        INPUT_RMK_COMMAND: ${{ inputs.rmk_command }}
+        INPUT_RMK_UPDATE_SKIP_DEPLOY: ${{ inputs.rmk_update_skip_deploy }}
+        INPUT_RMK_SYNC_LABELS: ${{ inputs.rmk_sync_labels }}
+        INPUT_RMK_RELEASE_REPOSITORY_FULL_NAME: ${{ inputs.rmk_release_repository_full_name }}
+        INPUT_RMK_RELEASE_VERSION: ${{ inputs.rmk_release_version }}
+        INPUT_RMK_PROJECT_DEPENDENCY_NAME: ${{ inputs.rmk_project_dependency_name }}
+        INPUT_RMK_PROJECT_DEPENDENCY_VERSION: ${{ inputs.rmk_project_dependency_version }}
