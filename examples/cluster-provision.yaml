@@ -1,7 +1,7 @@
 name: Cluster provisioner
 
 # The name for workflow runs generated from the workflow.
-run-name: Cluster ${{ github.event.inputs.cluster_provisioner_command }}
+run-name: Cluster ${{ github.event.inputs.rmk_command }}
 
 on:
   workflow_dispatch:
@@ -25,7 +25,7 @@ env:
 
 jobs:
   cluster-provision:
-    name: 'Cluster will be ${{ github.event.inputs.cluster_provisioner_command }} for branch: ${{ github.ref_name }}.'
+    name: 'Cluster will be ${{ github.event.inputs.rmk_command }}ed for branch: ${{ github.ref_name }}.'
     runs-on: ubuntu-22.04
     steps:
       - name: Checkout main repository
@@ -35,7 +35,7 @@ jobs:
           fetch-depth: 0
 
       - name: Run gitlabflow action
-        uses: edenlab/gitlabflow.cd.action@v2
+        uses: edenlabllc/gitlabflow.cd.action@v2
         with:
           cluster_provider_credentials: ${{ secrets.CLUSTER_PROVIDER_CREDENTIALS }}
           github_token_repo_full_access: ${{ secrets.GITHUB_TOKEN_REPO_FULL_ACCESS }}

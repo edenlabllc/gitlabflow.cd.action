@@ -16,7 +16,7 @@ env:
 
 jobs:
   release-sync:
-    name: Checkout main and gitlabflow action repositories, run gitlabflow action for release sync
+    name: 'Sync releases for branch: ${{ github.ref_name }}.'
     runs-on: ubuntu-22.04
     steps:
       - name: Checkout main repository
@@ -26,7 +26,7 @@ jobs:
           fetch-depth: 0
 
       - name: Run gitlabflow action
-        uses: edenlab/gitlabflow.cd.action@v2
+        uses: edenlabllc/gitlabflow.cd.action@v2
         with:
           allowed_environments: develop,staging
           cluster_provider_credentials: ${{ secrets.CLUSTER_PROVIDER_CREDENTIALS }}
