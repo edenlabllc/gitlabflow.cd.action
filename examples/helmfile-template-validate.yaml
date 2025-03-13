@@ -19,7 +19,7 @@ jobs:
           fetch-depth: 0
 
       - name: Run gitlabflow action
-        uses: edenlab/gitlabflow.cd.action@v2
+        uses: edenlabllc/gitlabflow.cd.action@v2
         with:
           cluster_provider_credentials: ${{ secrets.CLUSTER_PROVIDER_CREDENTIALS }}
           github_token_repo_full_access: ${{ secrets.GITHUB_TOKEN_REPO_FULL_ACCESS }}

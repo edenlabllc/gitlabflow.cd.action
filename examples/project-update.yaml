@@ -20,7 +20,7 @@ env:
 
 jobs:
   project-update:
-    name: 'Update ${{ github.event.inputs.project_dependencies_name }} dependency to version ${{ github.event.inputs.project_dependencies_version }} for branch: ${{ github.ref_name }}.'
+    name: 'Update ${{ github.event.inputs.rmk_project_dependency_name }} dependency to version ${{ github.event.inputs.rmk_project_dependency_version }} for branch: ${{ github.ref_name }}.'
     runs-on: ubuntu-22.04
     steps:
       - name: Checkout main repository
@@ -30,8 +30,7 @@ jobs:
           fetch-depth: 0
 
       - name: Run gitlabflow action
-        id: gitlabflow
-        uses: ./.github/actions/gitlabflow
+        uses: edenlabllc/gitlabflow.cd.action@v2
         with:
           allowed_environments: develop
           cluster_provider_credentials: ${{ secrets.CLUSTER_PROVIDER_CREDENTIALS }}
