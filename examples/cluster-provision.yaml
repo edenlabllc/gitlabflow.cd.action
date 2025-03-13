@@ -7,7 +7,7 @@ on:
   workflow_dispatch:
     inputs:
       rmk_command:
-        description: Enter command action for cluster provisioner, available: provision or destroy.
+        description: 'Enter command action for cluster provisioner, available: provision or destroy.'
         required: true
         default: provision
         type: choice
@@ -25,7 +25,7 @@ env:
 
 jobs:
   cluster-provision:
-    name: Cluster will be ${{ github.event.inputs.cluster_provisioner_command }} for branch: ${{ github.ref_name }}.
+    name: 'Cluster will be ${{ github.event.inputs.cluster_provisioner_command }} for branch: ${{ github.ref_name }}.'
     runs-on: ubuntu-22.04
     steps:
       - name: Checkout main repository

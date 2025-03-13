@@ -4,10 +4,10 @@ on:
   workflow_dispatch:
     inputs:
       rmk_project_dependency_name:
-        description: Enter the dependency name from the project.yaml file.
+        description: Enter the dependency name from the <project.yaml> file.
         required: true
       rmk_project_dependency_version:
-        description: Enter the dependency version from the project.yaml file.
+        description: Enter the dependency version from the <project.yaml> file.
         required: true
       rmk_version:
         description: Specify RMK version.
@@ -20,7 +20,7 @@ env:
 
 jobs:
   project-update:
-    name: Update ${{ github.event.inputs.project_dependencies_name }} dependency to version ${{ github.event.inputs.project_dependencies_version }} for branch: ${{ github.ref_name }}.
+    name: 'Update ${{ github.event.inputs.project_dependencies_name }} dependency to version ${{ github.event.inputs.project_dependencies_version }} for branch: ${{ github.ref_name }}.'
     runs-on: ubuntu-22.04
     steps:
       - name: Checkout main repository
