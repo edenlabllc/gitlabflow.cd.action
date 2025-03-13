@@ -20,7 +20,7 @@ env:
 
 jobs:
   release-update:
-    name: 'Update ${{ github.event.inputs.rmk_release_repository_full_name }} ECR to version ${{ github.event.inputs.rmk_release_version }} for branch: ${{ github.ref_name }}.'
+    name: 'Update ${{ github.event.inputs.rmk_release_repository_full_name }} image to version ${{ github.event.inputs.rmk_release_version }} for branch: ${{ github.ref_name }}.'
     runs-on: ubuntu-22.04
     steps:
       - name: Checkout main repository
