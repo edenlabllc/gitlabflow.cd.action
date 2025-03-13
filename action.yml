@@ -145,8 +145,8 @@ inputs:
       Additional information in the body of the Slack message (only if rmk_slack_notifications=true).
       Example:
       rmk_slack_message_details: |
-        GitHub Actions Build URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
-        GitHub Actions Build Number: ${{ github.run_number }}
+        GitHub Actions Build URL: <github.server_url>/<github.repository>/actions/runs/<github.run_id>
+        GitHub Actions Build Number: <github.run_number>
     required: false
     default: ""
   rmk_command:
