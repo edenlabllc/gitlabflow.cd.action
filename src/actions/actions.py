@@ -115,16 +115,15 @@ class HelmfileValidateCommand(BaseCommand):
         self.github_context = github_context
         self.args = args
         self.tenant = tenant
-        self.head_ref_branch = self.github_context.ref
 
     def run(self):
-        print(f"Validate Helmfile templates for branch: {self.github_context.ref}")
+        print(f"Validate Helmfile templates for branch: {self.github_context.ref_name}")
         try:
             print("Execute release build.")
-            self.run_command("rmk release build --skip-context-switch")
+            self.run_command("rmk release build --skip-context-switch 1> /dev/null")
 
             print("Execute release template.")
-            self.run_command("rmk release template --skip-context-switch")
+            self.run_command("rmk release template --skip-context-switch --helmfile-args=\"--quiet\" --helmfile-args=\"--log-level=error\"")
 
             print("The Helmfile templates have been validated.")
         except Exception as err:
