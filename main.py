@@ -27,7 +27,7 @@ if __name__ == "__main__":
 
         repo = Repo(".")
 
-        print(repo.head)
+        print(repo.active_branch.name)
 
         print(f"Current branch: {github_context.ref_name}")
 
