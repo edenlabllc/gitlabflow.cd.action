@@ -19,10 +19,10 @@ if __name__ == "__main__":
 
         """Retrieve GitHub Action environment variables"""
         github_context = GitHubContext.from_env()
-        print(f"Current branch: {github_context.ref_name}")
 
         """Determine the project environment based on the repository branch"""
         environment = ExtendedEnvironmentSelector().select_environment(github_context)
+        print(f"Current branch: {github_context.ref_name}")
         print(f"Current environment: {environment}")
 
         """Validate environment-specific constraints"""
