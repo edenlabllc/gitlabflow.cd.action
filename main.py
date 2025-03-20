@@ -3,6 +3,8 @@
 import os
 import sys
 
+from git import Repo
+
 from src.actions.actions import RMKCLIExecutor
 from src.actions.init_project import ProjectInitializer, GETTenant
 from src.credentials.cluster_provider_credentials import Credentials
@@ -22,6 +24,10 @@ if __name__ == "__main__":
         github_context = GitHubContext.from_env()
 
         print(f"TEST: {github_context}")
+
+        repo = Repo(".")
+
+        print(repo.head.name)
 
         print(f"Current branch: {github_context.ref_name}")
 
