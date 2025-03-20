@@ -1,9 +1,6 @@
 #!/usr/bin/env python3
 
-import os
 import sys
-
-from git import Repo
 
 from src.actions.actions import RMKCLIExecutor
 from src.actions.init_project import ProjectInitializer, GETTenant
@@ -22,17 +19,10 @@ if __name__ == "__main__":
 
         """Retrieve GitHub Action environment variables"""
         github_context = GitHubContext.from_env()
-
-        print(f"TEST: {github_context}")
-
-        repo = Repo(".")
-
-        print(repo.active_branch.name)
-
         print(f"Current branch: {github_context.ref_name}")
 
         """Determine the project environment based on the repository branch"""
-        environment = ExtendedEnvironmentSelector().select_environment(github_context.ref_name)
+        environment = ExtendedEnvironmentSelector().select_environment(github_context)
         print(f"Current environment: {environment}")
 
         """Validate environment-specific constraints"""

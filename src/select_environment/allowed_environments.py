@@ -2,7 +2,7 @@ from argparse import Namespace
 
 
 class AllowEnvironments:
-    def __init__(self, args: Namespace, environment: str, ):
+    def __init__(self, args: Namespace, environment: str):
         self.args = args
         self.environment = environment
 

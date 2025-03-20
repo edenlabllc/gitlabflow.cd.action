@@ -1,12 +1,14 @@
 import re
 
 from abc import ABC, abstractmethod
-from argparse import Namespace
+from git import Repo
+
+from src.utils.github_environment_variables import GitHubContext
 
 
 class EnvironmentSelectorInterface(ABC):
     @abstractmethod
-    def select_environment(self, branch_name: str) -> str:
+    def select_environment(self, github_context: GitHubContext) -> str:
         pass
 
 
@@ -26,25 +28,29 @@ class EnvironmentSelector(EnvironmentSelectorInterface):
     SELECT_ALL_BRANCHES = fr"{SELECT_FEATURE_BRANCHES}|{SELECT_RELEASE_BRANCHES}"
     SELECT_ORIGIN_ALL_BRANCHES = fr"{SELECT_ORIGIN_FEATURE_BRANCHES}|{SELECT_ORIGIN_RELEASE_BRANCHES}"
 
-    def select_environment(self, branch_name: str) -> str:
-        if re.match(r"^(develop|staging|production)$", branch_name, re.IGNORECASE):
-            return branch_name
+    def select_environment(self, github_context: GitHubContext) -> str:
+        if re.match(r"^(develop|staging|production)$", github_context.ref_name, re.IGNORECASE):
+            return github_context.ref_name
 
-        if re.match(EnvironmentSelector.SELECT_FEATURE_BRANCHES, branch_name, re.IGNORECASE):
+        if re.match(EnvironmentSelector.SELECT_FEATURE_BRANCHES, github_context.ref_name, re.IGNORECASE):
             return "develop"
 
-        if re.match(EnvironmentSelector.SELECT_RELEASE_BRANCHES, branch_name, re.IGNORECASE):
-            if re.search(EnvironmentSelector.SEMVER_REGEXP, branch_name, re.IGNORECASE):
-                if "-rc" in branch_name:
+        if re.match(EnvironmentSelector.SELECT_RELEASE_BRANCHES, github_context.ref_name, re.IGNORECASE):
+            if re.search(EnvironmentSelector.SEMVER_REGEXP, github_context.ref_name, re.IGNORECASE):
+                if "-rc" in github_context.ref_name:
                     return "staging"
                 return "production"
             return "staging"
 
-        raise ValueError(f"environment '{branch_name}' not allowed for environment selection")
+        raise ValueError(f"environment '{github_context.ref_name}' not allowed for environment selection")
 
 
 class ExtendedEnvironmentSelector(EnvironmentSelector):
-    def select_environment(self, branch_name: str) -> str:
-        if branch_name.startswith("hotfix/"):
+    def select_environment(self, github_context: GitHubContext) -> str:
+        if github_context.event_name == "pull_request":
+            repo = Repo(".")
+            github_context.ref_name = repo.active_branch.name
+
+        if github_context.ref_name.startswith("hotfix/"):
             return "production"
-        return super().select_environment(branch_name)
+        return super().select_environment(github_context)
