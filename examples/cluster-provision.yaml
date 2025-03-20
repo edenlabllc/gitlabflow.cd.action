@@ -41,4 +41,5 @@ jobs:
           github_token_repo_full_access: ${{ secrets.GITHUB_TOKEN_REPO_FULL_ACCESS }}
           rmk_cluster_provider: ${{ env.RMK_CLUSTER_PROVIDER }}
           rmk_command: ${{ inputs.rmk_command }}
+          rmk_slack_webhook: ${{ secrets.SLACK_WEBHOOK }}
           rmk_version: ${{ inputs.rmk_version }}

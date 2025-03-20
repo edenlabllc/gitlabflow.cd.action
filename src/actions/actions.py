@@ -16,6 +16,7 @@ class DestroyCommand(BaseCommand):
         try:
             self.run_command("rmk release list")
             self.run_command("rmk release destroy")
+            self.run_command("rmk cluster capi create")
             self.run_command("rmk cluster capi provision")
             self.run_command("rmk cluster capi destroy")
             self.run_command("rmk cluster capi delete")

@@ -33,3 +33,4 @@ jobs:
           github_token_repo_full_access: ${{ secrets.GITHUB_TOKEN_REPO_FULL_ACCESS }}
           rmk_cluster_provider: ${{ env.RMK_CLUSTER_PROVIDER }}
           rmk_command: sync
+          rmk_slack_webhook: ${{ secrets.SLACK_WEBHOOK }}
