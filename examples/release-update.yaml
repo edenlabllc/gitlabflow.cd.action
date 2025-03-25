@@ -41,8 +41,8 @@ jobs:
           rmk_release_version: ${{ github.event.inputs.rmk_release_version }}
           rmk_slack_channel: fhir-kodjin-cd
           rmk_slack_message_details: |
-            GitHub Action Url: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
-            Build Number: ${{ github.run_number }}
+            GitHub Actions Build URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+            GitHub Actions Build Number: ${{ github.run_number }}
           rmk_slack_notifications: true
           rmk_slack_webhook: ${{ secrets.RMK_SLACK_WEBHOOK }}
           rmk_update_skip_deploy: true
