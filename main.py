@@ -1,15 +1,13 @@
 #!/usr/bin/env python3
 
-import os
 import sys
 
 from src.actions.actions import RMKCLIExecutor
 from src.actions.init_project import ProjectInitializer, GETTenant
 from src.credentials.cluster_provider_credentials import Credentials
 from src.input_output.input import ArgumentParser
-from src.input_output.output import GitHubOutput
 from src.select_environment.allowed_environments import AllowEnvironments
-from src.select_environment.select_environment import EnvironmentSelector, ExtendedEnvironmentSelector
+from src.select_environment.select_environment import ExtendedEnvironmentSelector
 from src.utils.github_environment_variables import GitHubContext
 from src.utils.install_rmk import RMKInstaller
 
@@ -41,15 +39,6 @@ if __name__ == "__main__":
 
         """Execute the RMK command"""
         RMKCLIExecutor(github_context, args, environment, tenant).execute()
-
-        """Output counters as GitHub Actions outputs"""
-        data = {
-            "environment": environment,
-            "git_branch": github_context.ref_name,
-            "rmk_release_repository_full_name": args.rmk_release_repository_full_name,
-            "rmk_release_version": args.rmk_release_version
-        }
-        GitHubOutput().output_dict(data)
     except Exception as err:
         print(f"Error: {err}", file=sys.stderr)
         sys.exit(1)
