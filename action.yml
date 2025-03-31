@@ -2,9 +2,6 @@ name: GitLab flow action for tenant bootstrap repositories
 description: Action for provisioning and destroying clusters, updating and synchronizing releases, and managing project dependencies.
 
 inputs:
-  github_token_repo_full_access:
-    description: GitHub token with full access permissions to repositories (used by installer script and RMK).
-    required: true
   allowed_environments:
     description: Allowed environments participating in releases for RMK commands "destroy", "helmfile_validate", "project_update", "provision", "release_sync", "release_update".
     required: true
@@ -113,14 +110,16 @@ inputs:
             }
         }
     required: true
+  github_token_repo_full_access:
+    description: GitHub token with full access permissions to repositories (used by installer script and RMK).
+    required: true
   rmk_cluster_provider:
     description: Cluster provider. Allowed values are "aws", "azure", "gcp".
     required: true
     default: aws
-  rmk_version:
-    description: RMK version.
-    required: false
-    default: latest
+  rmk_command:
+    description: Command to run CD in RMK. Allowed values are "destroy", "helmfile_validate", "project_update", "provision", "release_sync", "release_update".
+    required: true
   rmk_download_url:
     description: |
       URL of the download script for RMK installation.
@@ -128,14 +127,18 @@ inputs:
         rmk_download_url: https://edenlabllc-rmk.s3.eu-north-1.amazonaws.com/rmk/s3-installer
     required: false
     default: https://edenlabllc-rmk.s3.eu-north-1.amazonaws.com/rmk/s3-installer
-  rmk_slack_notifications:
-    description: Enable Slack notifications.
+  rmk_project_dependency_name:
+    description: Dependency name. Allows using a set of RMK commands to project dependency version update to project.yaml file (only if rmk_command=project_update).
     required: false
-    default: false
-  rmk_slack_webhook:
-    description: URL for Slack webhook (required if rmk_slack_notifications=true).
+  rmk_project_dependency_version:
+    description: Dependency version. Allows using a set of RMK commands to project dependency version update to project.yaml file (only if rmk_command=project_update).
     required: false
-    default: ""
+  rmk_release_repository_full_name:
+    description: Image repository full name of application (includes registry URL and repository_name, only if rmk_command=release_update).
+    required: false
+  rmk_release_version:
+    description: Current application version (only if rmk_command=release_update).
+    required: false
   rmk_slack_channel:
     description: Channel name for Slack notification (required if rmk_slack_notifications=true).
     required: false
@@ -149,13 +152,14 @@ inputs:
         GitHub Actions Build Number: <github.run_number>
     required: false
     default: ""
-  rmk_command:
-    description: Command to run CD in RMK. Allowed values are "destroy", "helmfile_validate", "project_update", "provision", "release_sync", "release_update".
-    required: true
-  rmk_update_skip_deploy:
-    description: Whether to skip deploy and commit only when running release update in RMK (only if rmk_command=release_update).
+  rmk_slack_notifications:
+    description: Enable Slack notifications.
     required: false
     default: false
+  rmk_slack_webhook:
+    description: URL for Slack webhook (required if rmk_slack_notifications=true).
+    required: false
+    default: ""
   rmk_sync_labels:
     description: |
       List of labels when running sync in RMK (only if rmk_command=release_sync).
@@ -165,27 +169,33 @@ inputs:
         app=fhir-server-api
     required: false
     default: ""
-  rmk_release_repository_full_name:
-    description: Image repository full name of application (includes registry URL and repository_name, only if rmk_command=release_update).
+  rmk_update_skip_deploy:
+    description: Whether to skip deploy and commit only when running release update in RMK (only if rmk_command=release_update).
     required: false
-  rmk_release_version:
-    description: Current application version (only if rmk_command=release_update).
+    default: false
+  rmk_version:
+    description: RMK version.
     required: false
-  rmk_project_dependency_name:
-    description: Dependency name. Allows using a set of RMK commands to project dependency version update to project.yaml file (only if rmk_command=project_update).
-    required: false
-  rmk_project_dependency_version:
-    description: Dependency version. Allows using a set of RMK commands to project dependency version update to project.yaml file (only if rmk_command=project_update).
-    required: false
+    default: latest
 outputs:
   environment:
     description: Current CD environment.
+    value: ${{ steps.main.outputs.environment }}
   git_branch:
     description: Git branch.
+    value: ${{ steps.main.outputs.git_branch }}
+  rmk_project_dependency_name:
+    description: Project dependency name.
+    value: ${{ steps.main.outputs.rmk_project_dependency_name }}
+  rmk_project_dependency_version:
+    description: Project dependency version.
+    value: ${{ steps.main.outputs.rmk_project_dependency_version }}
   rmk_release_repository_full_name:
     description: Image repository full name of application (includes registry URL and repository_name).
+    value: ${{ steps.main.outputs.rmk_release_repository_full_name }}
   rmk_release_version:
     description: Current application version.
+    value: ${{ steps.main.outputs.rmk_release_version }}
 runs:
   using: composite
   steps:

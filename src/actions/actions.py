@@ -1,5 +1,8 @@
 from argparse import Namespace
 
+from git import Repo
+
+from ..input_output.output import GitHubOutput
 from ..utils.cmd import BaseCommand, CMDInterface
 from ..utils.github_environment_variables import GitHubContext
 
@@ -11,7 +14,29 @@ class DestroyCommand(BaseCommand):
         self.args = args
         self.tenant = tenant
 
+    @staticmethod
+    def should_skip_destroy() -> bool:
+        try:
+            message = Repo(".").head.commit.message.lower()
+            return "[skip cluster destroy]" in message
+        except Exception as err:
+            print(f"failed to inspect git commit message: {err}")
+            return False  # don't skip if we can't verify
+
     def run(self):
+        if self.should_skip_destroy():
+            message = (f"Cluster destroy was skipped for branch `{self.github_context.ref_name}`"
+                       f" in environment `{self.environment}` due to `[skip cluster destroy]` tag in commit message.")
+            print(f"{message}")
+            self.notify_slack(
+                self.github_context,
+                self.args,
+                status="Skip",
+                message=message,
+                tenant=self.tenant
+            )
+            return
+
         print(f"Destroying cluster for branch {self.github_context.ref_name}, environment {self.environment}")
         try:
             self.run_command("rmk release list")
@@ -138,18 +163,42 @@ class RMKCLIExecutor(CMDInterface):
         self.tenant = tenant
 
     def execute(self):
+        """Output counters as GitHub Actions outputs"""
+        data_output = {
+            "environment": self.environment,
+            "git_branch":  self.github_context.ref_name,
+        }
+
         match self.args.rmk_command:
             case "destroy":
                 DestroyCommand(self.github_context, self.args, self.environment, self.tenant).run()
+                GitHubOutput().output_dict(data_output)
             case "helmfile_validate":
                 HelmfileValidateCommand(self.github_context, self.args, self.environment, self.tenant).run()
+                GitHubOutput().output_dict(data_output)
             case "provision":
                 ProvisionCommand(self.github_context, self.args, self.environment, self.tenant).run()
+                GitHubOutput().output_dict(data_output)
             case "project_update":
+                extra_output = {
+                    "rmk_project_dependency_name": self.args.rmk_project_dependency_name,
+                    "rmk_project_dependency_version": self.args.rmk_project_dependency_version,
+                }
+                data_output = {**data_output, **extra_output}
+
                 ProjectUpdateCommand(self.github_context, self.args, self.environment, self.tenant).run()
+                GitHubOutput().output_dict(data_output)
             case "release_sync":
                 ReleaseSyncCommand(self.github_context, self.args, self.environment, self.tenant).run()
+                GitHubOutput().output_dict(data_output)
             case "release_update":
+                extra_output = {
+                    "rmk_release_repository_full_name": self.args.rmk_release_repository_full_name,
+                    "rmk_release_version": self.args.rmk_release_version,
+                }
+                data_output = {**data_output, **extra_output}
+
                 ReleaseUpdateCommand(self.github_context, self.args, self.environment, self.tenant).run()
+                GitHubOutput().output_dict(data_output)
             case _:
                 raise ValueError(f"unknown RMK command: {self.args.rmk_command}")
