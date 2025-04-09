@@ -3,7 +3,7 @@ name: Release update GitLab CD workflow
 on:
   workflow_dispatch:
     inputs:
-      repository_full_name::
+      repository_full_name:
         description: Enter the image repository full name of application (includes registry URL and repository_name).
         required: true
       version:
