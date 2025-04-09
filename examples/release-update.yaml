@@ -3,10 +3,10 @@ name: Release update GitLab CD workflow
 on:
   workflow_dispatch:
     inputs:
-      rmk_release_repository_full_name:
+      repository_full_name::
         description: Enter the image repository full name of application (includes registry URL and repository_name).
         required: true
-      rmk_release_version:
+      version:
         description: Enter current application version.
         required: true
       rmk_version:
@@ -37,8 +37,8 @@ jobs:
           github_token_repo_full_access: ${{ secrets.GH_TOKEN_REPO_FULL_ACCESS }}
           rmk_cluster_provider: ${{ env.RMK_CLUSTER_PROVIDER }}
           rmk_command: release_update
-          rmk_release_repository_full_name: ${{ github.event.inputs.rmk_release_repository_full_name }}
-          rmk_release_version: ${{ github.event.inputs.rmk_release_version }}
+          rmk_release_repository_full_name: ${{ github.event.inputs.repository_full_name }}
+          rmk_release_version: ${{ github.event.inputs.version }}
           rmk_slack_channel: fhir-kodjin-cd
           rmk_slack_message_details: |
             GitHub Actions Build URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}

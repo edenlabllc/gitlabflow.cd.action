@@ -3,10 +3,10 @@ name: Project update
 on:
   workflow_dispatch:
     inputs:
-      rmk_project_dependency_name:
+      project_dependency_name:
         description: Enter the dependency name from the <project.yaml> file.
         required: true
-      rmk_project_dependency_version:
+      project_dependency_version:
         description: Enter the dependency version from the <project.yaml> file.
         required: true
       rmk_version:
@@ -37,8 +37,8 @@ jobs:
           github_token_repo_full_access: ${{ secrets.GH_TOKEN_REPO_FULL_ACCESS }}
           rmk_cluster_provider: ${{ env.RMK_CLUSTER_PROVIDER }}
           rmk_command: project_update
-          rmk_project_dependency_name: ${{ github.event.inputs.rmk_project_dependency_name }}
-          rmk_project_dependency_version: ${{ github.event.inputs.rmk_project_dependency_version }}
+          rmk_project_dependency_name: ${{ github.event.inputs.project_dependency_name }}
+          rmk_project_dependency_version: ${{ github.event.inputs.project_dependency_version }}
           rmk_slack_channel: fhir-kodjin-cd
           rmk_slack_notifications: true
           rmk_slack_message_details: |
