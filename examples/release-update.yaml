@@ -34,7 +34,7 @@ jobs:
         with:
           allowed_environments: develop
           cluster_provider_credentials: ${{ secrets.CLUSTER_PROVIDER_CREDENTIALS }}
-          github_token_repo_full_access: ${{ secrets.GITHUB_TOKEN_REPO_FULL_ACCESS }}
+          github_token_repo_full_access: ${{ secrets.GH_TOKEN_REPO_FULL_ACCESS }}
           rmk_cluster_provider: ${{ env.RMK_CLUSTER_PROVIDER }}
           rmk_command: release_update
           rmk_release_repository_full_name: ${{ github.event.inputs.rmk_release_repository_full_name }}
