@@ -162,7 +162,7 @@ inputs:
     default: ""
   rmk_sync_labels:
     description: |
-      List of labels when running sync in RMK (only if rmk_command=release_sync).
+      List of labels when running sync in RMK (only if rmk_command=provision|release_sync).
       Example:
       rmk_sync_labels: |
         scope=kodjin
