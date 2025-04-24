@@ -69,7 +69,6 @@ class ProvisionCommand(BaseCommand):
         try:
             self.run_command("rmk cluster capi create")
             self.run_command("rmk cluster capi provision")
-            self.run_command("rmk release sync")
         except Exception as err:
             slack_message = f"{err}"
             self._get_capi_controllers_error_logs()
@@ -81,6 +80,15 @@ class ProvisionCommand(BaseCommand):
 
             self.notify_slack(self.github_context, self.args,
                               "Failure", slack_message, tenant=self.tenant, slack_message_log_output=False)
+            raise ValueError(f"{err}")
+
+        try:
+            sync_labels = self.args.rmk_sync_labels
+            flags_labels = "".join([f" --selector {label}" for label in sync_labels.split()])
+            self.run_command(f"rmk release sync {flags_labels}")
+        except Exception as err:
+            self.notify_slack(self.github_context, self.args,
+                              "Failure", f"{err}", tenant=self.tenant)
             raise ValueError(f"{err}")
 
         self.notify_slack(self.github_context, self.args,
