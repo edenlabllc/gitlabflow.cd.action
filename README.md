@@ -99,18 +99,9 @@ See [`examples/`](./examples) for more templates.
 | `CLUSTER_PROVIDER_CREDENTIALS` | JSON object with cloud credentials per env |
 | `SLACK_WEBHOOK`                | (Optional) Slack Incoming Webhook URL      |
 
-## 🌍 Cloud providers
+## 🌍Cluster provider credentials
 
-Defined inside `cluster_provider_credentials` as structured JSON:
-
-- **AWS**:  
-  `AWS_ACCESS_KEY_ID`, `AWS_SECRET_ACCESS_KEY`, `AWS_REGION`
-- **Azure**:  
-  `AZURE_CLIENT_ID`, `AZURE_CLIENT_SECRET`, `AZURE_SUBSCRIPTION_ID`, `AZURE_TENANT_ID`, `AZURE_LOCATION`
-- **GCP**:  
-  Full service account JSON under `GOOGLE_APPLICATION_CREDENTIALS` and `GCP_REGION`
-
-Each environment (e.g. `develop`, `staging`, `production`) may define multiple providers.
+See the [`action.yaml`](action.yml)'s `cluster_provider_credentials` action input for more details. 
 
 ## 📤 Outputs
 
@@ -133,7 +124,7 @@ Enable by setting:
 with:
   rmk_slack_notifications: true
   rmk_slack_webhook: ${{ secrets.SLACK_WEBHOOK }}
-  rmk_slack_channel: "#cd-events"
+  rmk_slack_channel: "#rmk-test-cd"
   rmk_slack_message_details: |
     GitHub Actions Run: https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}
     Triggered by: ${{ github.actor }}
@@ -145,5 +136,4 @@ Notifications are sent for **Success**, **Failure**, and **Skip** (e.g. `[skip c
 
 - [`action.yml`](./action.yml) — defines inputs and outputs.
 - [`main.py`](./main.py) — executes command logic.
-- `commands/` — contains all supported RMK command implementations.
 - [`examples/`](./examples) — ready-to-use workflow templates.
