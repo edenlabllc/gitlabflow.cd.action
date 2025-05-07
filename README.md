@@ -7,7 +7,7 @@
 Reusable GitHub Action for provisioning and destroying clusters, synchronizing releases, and updating project
 dependencies using RMK — with multi-cloud and multi-environment support.
 
-## 🚦 What it does
+## What it does
 
 This action encapsulates CD logic for tenant bootstrap repositories using [RMK](https://github.com/edenlabllc/rmk).  
 It supports a wide range of infrastructure and deployment operations, triggered by workflow inputs or environment
@@ -23,7 +23,7 @@ settings.
 - Slack notifications (optional)
 - AWS, Azure, GCP support via structured credentials
 
-## ✅ Supported commands
+## Supported commands
 
 Controlled by the `rmk_command` input:
 
@@ -36,7 +36,7 @@ Controlled by the `rmk_command` input:
 | `project_update`    | Patch dependency version in `project.yaml`   |
 | `helmfile_validate` | Validate Helmfile templates                  |
 
-## 🧠 Why use this
+## Why use this
 
 Managing infra per repo is error-prone and hard to maintain. This action:
 
@@ -45,7 +45,7 @@ Managing infra per repo is error-prone and hard to maintain. This action:
 - Tracks outputs for automation and audit.
 - Minimizes boilerplate: run, pass inputs, and let RMK do the work.
 
-## ⚙️ Usage
+## Usage
 
 Used in `workflow_dispatch` workflows inside tenant bootstrap repositories.
 
@@ -91,7 +91,7 @@ jobs:
 
 See [`examples/`](./examples) for more templates.
 
-## 🔐 Required secrets
+## Required secrets
 
 | Name                           | Purpose                                    |
 |--------------------------------|--------------------------------------------|
@@ -99,11 +99,11 @@ See [`examples/`](./examples) for more templates.
 | `CLUSTER_PROVIDER_CREDENTIALS` | JSON object with cloud credentials per env |
 | `SLACK_WEBHOOK`                | (Optional) Slack Incoming Webhook URL      |
 
-## 🌍Cluster provider credentials
+## Cluster provider credentials
 
 See the [`action.yaml`](action.yml)'s `cluster_provider_credentials` action input for more details. 
 
-## 📤 Outputs
+## Outputs
 
 Returned by the action depending on command:
 
@@ -116,7 +116,7 @@ Returned by the action depending on command:
 | `rmk_project_dependency_name`      | Dependency name (for `project_update`)    |
 | `rmk_project_dependency_version`   | Dependency version (for `project_update`) |
 
-## 🔔 Slack notifications
+## Slack notifications
 
 Enable by setting:
 
@@ -132,8 +132,8 @@ with:
 
 Notifications are sent for **Success**, **Failure**, and **Skip** (e.g. `[skip cluster destroy]` in commit message).
 
-## 📂 Internals
+## Internals
 
-- [`action.yml`](./action.yml) — defines inputs and outputs.
-- [`main.py`](./main.py) — executes command logic.
-- [`examples/`](./examples) — ready-to-use workflow templates.
+- [`action.yml`](./action.yml) — defines action inputs and outputs.
+- [`main.py`](./main.py) — executes action logic.
+- [`examples/`](./examples) — example ready-to-use workflow templates.
