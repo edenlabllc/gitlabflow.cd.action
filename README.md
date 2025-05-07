@@ -15,7 +15,7 @@ settings.
 
 **Key features:**
 
-- Cluster provisioning (`rmk cluster capi *`)
+- Cluster provisioning
 - Cluster destruction with optional `[skip cluster destroy]` support
 - Release sync and version updates
 - Project dependency version updates
@@ -79,6 +79,7 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+      
       - name: Run Gitlabflow CD Action
         uses: edenlabllc/gitlabflow.cd.action@v2
         with:
@@ -101,20 +102,11 @@ See [`examples/`](./examples) for more templates.
 
 ## Cluster provider credentials
 
-See the [`action.yaml`](action.yml)'s `cluster_provider_credentials` action input for more details. 
+See the [`action.yaml`](action.yml)'s `cluster_provider_credentials` section for more details. 
 
 ## Outputs
 
-Returned by the action depending on command:
-
-| Output name                        | Description                               |
-|------------------------------------|-------------------------------------------|
-| `environment`                      | Current CD environment                    |
-| `git_branch`                       | Git branch name                           |
-| `rmk_release_version`              | Release version (for `release_update`)    |
-| `rmk_release_repository_full_name` | Full image repo (for `release_update`)    |
-| `rmk_project_dependency_name`      | Dependency name (for `project_update`)    |
-| `rmk_project_dependency_version`   | Dependency version (for `project_update`) |
+See the [`action.yaml`](action.yml)'s `outputs` section for more details.
 
 ## Slack notifications
 
