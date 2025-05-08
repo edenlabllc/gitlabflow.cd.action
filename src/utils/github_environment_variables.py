@@ -65,8 +65,8 @@ class GitHubContext:
         return GitHubContext(
             actor=os.getenv("GITHUB_ACTOR"),
             api_url=os.getenv("GITHUB_API_URL"),
-            base_ref=os.getenv("GITHUB_EVENT_NAME"),
-            event_name=os.getenv("GITHUB_BASE_REF"),
+            base_ref=os.getenv("GITHUB_BASE_REF"),
+            event_name=os.getenv("GITHUB_EVENT_NAME"),
             head_ref=os.getenv("GITHUB_HEAD_REF"),
             ref=github_custom_ref if github_custom_ref else os.getenv("GITHUB_REF"),
             ref_name=github_custom_ref_name if github_custom_ref_name else os.getenv("GITHUB_REF_NAME"),
