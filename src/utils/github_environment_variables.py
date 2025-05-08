@@ -1,6 +1,8 @@
 # GITHUB_ACTOR=user
 # GITHUB_API_URL=https://api.github.com/
+# GITHUB_BASE_REF=feature/FFS-2-test
 # GITHUB_EVENT_NAME=workflow_dispatch
+# GITHUB_HEAD_REF=feature/FFS-3-test
 # GITHUB_REF=refs/heads/feature-branch-1
 # GITHUB_REF_NAME=feature/FFS-123-test
 # GITHUB_REF_TYPE=branch
@@ -8,7 +10,9 @@
 # GITHUB_REPOSITORY_OWNER=octocat
 # GITHUB_RUN_ATTEMPT=1
 # GITHUB_RUN_ID=1658821493
+# GITHUB_RUN_NUMBER=1
 # GITHUB_SERVER_URL=https://github.com
+# GITHUB_SHA=ffac537e6cbbf934b08745a378932722df287a53
 
 import os
 
@@ -20,7 +24,9 @@ from typing import Optional, Dict, List
 class GitHubContext:
     actor: str
     api_url: str
+    base_ref: str
     event_name: str
+    head_ref: str
     ref: str
     ref_name: str
     ref_type: str
@@ -28,14 +34,18 @@ class GitHubContext:
     repository_owner: str
     run_attempt: str
     run_id: str
+    run_number: str
     server_url: str
+    sha: str
 
     @staticmethod
-    def from_env() -> "GitHubContext":
+    def from_env(github_custom_ref="", github_custom_ref_name="") -> "GitHubContext":
         required_env_vars = [
             "GITHUB_ACTOR",
             "GITHUB_API_URL",
+            "GITHUB_BASE_REF",
             "GITHUB_EVENT_NAME",
+            "GITHUB_HEAD_REF",
             "GITHUB_REF",
             "GITHUB_REF_NAME",
             "GITHUB_REF_TYPE",
@@ -43,7 +53,9 @@ class GitHubContext:
             "GITHUB_REPOSITORY_OWNER",
             "GITHUB_RUN_ATTEMPT",
             "GITHUB_RUN_ID",
+            "GITHUB_RUN_NUMBER",
             "GITHUB_SERVER_URL",
+            "GITHUB_SHA",
         ]
 
         missing_vars = [var for var in required_env_vars if os.getenv(var) is None]
@@ -53,15 +65,19 @@ class GitHubContext:
         return GitHubContext(
             actor=os.getenv("GITHUB_ACTOR"),
             api_url=os.getenv("GITHUB_API_URL"),
-            event_name=os.getenv("GITHUB_EVENT_NAME"),
-            ref=os.getenv("GITHUB_REF"),
-            ref_name=os.getenv("GITHUB_REF_NAME"),
+            base_ref=os.getenv("GITHUB_EVENT_NAME"),
+            event_name=os.getenv("GITHUB_BASE_REF"),
+            head_ref=os.getenv("GITHUB_HEAD_REF"),
+            ref=github_custom_ref if github_custom_ref else os.getenv("GITHUB_REF"),
+            ref_name=github_custom_ref_name if github_custom_ref_name else os.getenv("GITHUB_REF_NAME"),
             ref_type=os.getenv("GITHUB_REF_TYPE"),
             repository=os.getenv("GITHUB_REPOSITORY"),
             repository_owner=os.getenv("GITHUB_REPOSITORY_OWNER"),
             run_attempt=os.getenv("GITHUB_RUN_ATTEMPT"),
             run_id=os.getenv("GITHUB_RUN_ID"),
+            run_number=os.getenv("GITHUB_RUN_NUMBER"),
             server_url=os.getenv("GITHUB_SERVER_URL"),
+            sha=os.getenv("GITHUB_SHA"),
         )
 
     def to_list(self) -> List[str]:
@@ -69,7 +85,9 @@ class GitHubContext:
         return [
             f"actor: {self.actor}",
             f"api_url: {self.api_url}",
+            f"base_ref: {self.base_ref}",
             f"event_name: {self.event_name}",
+            f"head_ref: {self.head_ref}",
             f"ref: {self.ref}",
             f"ref_name: {self.ref_name}",
             f"ref_type: {self.ref_type}",
@@ -77,7 +95,9 @@ class GitHubContext:
             f"repository_owner: {self.repository_owner}",
             f"run_attempt: {self.run_attempt}",
             f"run_id: {self.run_id}",
+            f"run_number: {self.run_number}",
             f"server_url: {self.server_url}",
+            f"sha: {self.sha}",
         ]
 
     def to_string(self) -> str:
