@@ -110,6 +110,14 @@ inputs:
             }
         }
     required: true
+  github_custom_ref:
+    description: Custom Git ref (e.g. refs/heads/branch-name) used to override GITHUB_REF for dynamic checkouts.
+    required: false
+    default: ""
+  github_custom_ref_name:
+    description: Custom branch name (e.g. branch-name) used to override GITHUB_REF_NAME in matrix jobs or custom workflows.
+    required: false
+    default: ""
   github_token_repo_full_access:
     description: GitHub token with full access permissions to repositories (used by installer script and RMK).
     required: true
@@ -213,20 +221,22 @@ runs:
       run: python ${{ github.action_path }}/main.py
       shell: bash
       env:
-        INPUT_GITHUB_TOKEN_REPO_FULL_ACCESS: ${{ inputs.github_token_repo_full_access }}
         INPUT_ALLOWED_ENVIRONMENTS: ${{ inputs.allowed_environments }}
         INPUT_CLUSTER_PROVIDER_CREDENTIALS: ${{ inputs.cluster_provider_credentials }}
+        INPUT_GITHUB_CUSTOM_REF: ${{ inputs.github_custom_ref }}
+        INPUT_GITHUB_CUSTOM_REF_NAME: ${{ inputs.github_custom_ref_name }}
+        INPUT_GITHUB_TOKEN_REPO_FULL_ACCESS: ${{ inputs.github_token_repo_full_access }}
         INPUT_RMK_CLUSTER_PROVIDER: ${{ inputs.rmk_cluster_provider }}
-        INPUT_RMK_VERSION: ${{ inputs.rmk_version }}
-        INPUT_RMK_DOWNLOAD_URL: ${{ inputs.rmk_download_url }}
-        INPUT_RMK_SLACK_NOTIFICATIONS: ${{ inputs.rmk_slack_notifications }}
-        INPUT_RMK_SLACK_WEBHOOK: ${{ inputs.rmk_slack_webhook }}
-        INPUT_RMK_SLACK_CHANNEL: ${{ inputs.rmk_slack_channel }}
-        INPUT_RMK_SLACK_MESSAGE_DETAILS: ${{ inputs.rmk_slack_message_details }}
         INPUT_RMK_COMMAND: ${{ inputs.rmk_command }}
-        INPUT_RMK_UPDATE_SKIP_DEPLOY: ${{ inputs.rmk_update_skip_deploy }}
-        INPUT_RMK_SYNC_LABELS: ${{ inputs.rmk_sync_labels }}
-        INPUT_RMK_RELEASE_REPOSITORY_FULL_NAME: ${{ inputs.rmk_release_repository_full_name }}
-        INPUT_RMK_RELEASE_VERSION: ${{ inputs.rmk_release_version }}
+        INPUT_RMK_DOWNLOAD_URL: ${{ inputs.rmk_download_url }}
         INPUT_RMK_PROJECT_DEPENDENCY_NAME: ${{ inputs.rmk_project_dependency_name }}
         INPUT_RMK_PROJECT_DEPENDENCY_VERSION: ${{ inputs.rmk_project_dependency_version }}
+        INPUT_RMK_RELEASE_REPOSITORY_FULL_NAME: ${{ inputs.rmk_release_repository_full_name }}
+        INPUT_RMK_RELEASE_VERSION: ${{ inputs.rmk_release_version }}
+        INPUT_RMK_SLACK_CHANNEL: ${{ inputs.rmk_slack_channel }}
+        INPUT_RMK_SLACK_MESSAGE_DETAILS: ${{ inputs.rmk_slack_message_details }}
+        INPUT_RMK_SLACK_NOTIFICATIONS: ${{ inputs.rmk_slack_notifications }}
+        INPUT_RMK_SLACK_WEBHOOK: ${{ inputs.rmk_slack_webhook }}
+        INPUT_RMK_SYNC_LABELS: ${{ inputs.rmk_sync_labels }}
+        INPUT_RMK_UPDATE_SKIP_DEPLOY: ${{ inputs.rmk_update_skip_deploy }}
+        INPUT_RMK_VERSION: ${{ inputs.rmk_version }}

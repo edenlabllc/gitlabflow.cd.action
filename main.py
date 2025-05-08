@@ -17,7 +17,9 @@ if __name__ == "__main__":
         args = ArgumentParser().parse_args()
 
         """Retrieve GitHub Action environment variables"""
-        github_context = GitHubContext.from_env()
+        github_context = GitHubContext.from_env(
+            github_custom_ref=args.github_custom_ref,
+            github_custom_ref_name=args.github_custom_ref_name)
 
         """Determine the project environment based on the repository branch"""
         environment = ExtendedEnvironmentSelector().select_environment(github_context)

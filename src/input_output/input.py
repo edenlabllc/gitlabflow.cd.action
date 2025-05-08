@@ -28,6 +28,14 @@ class ArgumentParser:
                                  action=self.EnvDefault, envvar="INPUT_CLUSTER_PROVIDER_CREDENTIALS",
                                  type=str, required=False)
 
+        self.parser.add_argument("--github-custom-ref",
+                                 action=self.EnvDefault, envvar="INPUT_GITHUB_CUSTOM_REF",
+                                 type=str, required=False)
+
+        self.parser.add_argument("--github-custom-ref-name",
+                                 action=self.EnvDefault, envvar="INPUT_GITHUB_CUSTOM_REF_NAME",
+                                 type=str, required=False)
+
         self.parser.add_argument("--github-token",
                                  action=self.EnvDefault, envvar="INPUT_GITHUB_TOKEN_REPO_FULL_ACCESS",
                                  type=str, required=False)
