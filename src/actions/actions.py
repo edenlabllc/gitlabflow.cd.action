@@ -247,7 +247,7 @@ class HelmfileValidateCommand(BaseCommand):
             self.run_command("rmk release build --skip-context-switch 1> /dev/null")
 
             print("Execute release template.")
-            self.run_command("rmk release template --skip-context-switch --helmfile-args=\"--quiet\" --helmfile-args=\"--log-level=error\"")
+            self.run_command("rmk release template --skip-context-switch 1> /dev/null")
 
             print("The Helmfile templates have been validated.")
         except Exception as err:
