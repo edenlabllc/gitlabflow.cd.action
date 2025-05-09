@@ -104,6 +104,10 @@ See [`examples/`](./examples) for more templates.
 
 See the [`action.yaml`](action.yml)'s `cluster_provider_credentials` section for more details. 
 
+## Inputs
+
+See the [`action.yaml`](action.yml)'s `inputs` section for more details.
+
 ## Outputs
 
 See the [`action.yaml`](action.yml)'s `outputs` section for more details.
