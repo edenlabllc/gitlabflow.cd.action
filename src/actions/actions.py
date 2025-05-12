@@ -4,9 +4,9 @@ from argparse import Namespace
 from collections import defaultdict
 from git import Repo
 
-from ..input_output.output import GitHubOutput
-from ..utils.cmd import BaseCommand, CMDInterface
-from ..utils.github_environment_variables import GitHubContext
+from github_actions.common import GitHubOutput
+from github_actions.common import BaseCommand, CMDInterface
+from github_actions.common import GitHubContext
 
 
 class DestroyCommand(BaseCommand):
@@ -162,7 +162,7 @@ class ProvisionCommand(BaseCommand):
 
     @staticmethod
     def _capi_controller_name_prefix(provider: str) -> str | None:
-        return {"aws":"capa", "azure":"capz", "gcp":"capg"}.get(provider)
+        return {"aws": "capa", "azure": "capz", "gcp": "capg"}.get(provider)
 
     def _get_capi_resources_info(self) -> str | None:
         print("Fetching all Cluster API (CAPI) resources...")

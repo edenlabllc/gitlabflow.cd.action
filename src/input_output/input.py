@@ -1,24 +1,7 @@
-import os
-import argparse
+from github_actions.common.input_output.input import ArgumentParser
 
 
-class ArgumentParser:
-    class EnvDefault(argparse.Action):
-        def __init__(self, envvar, required=True, default=None, **kwargs):
-            if envvar:
-                if envvar in os.environ:
-                    default = os.environ.get(envvar, default)
-            if required and default:
-                required = False
-            super(ArgumentParser.EnvDefault, self).__init__(default=default, required=required, metavar=envvar, **kwargs)
-
-        def __call__(self, parser, namespace, values, option_string=None):
-            setattr(namespace, self.dest, values)
-
-    def __init__(self):
-        self.parser = argparse.ArgumentParser()
-        self.setup_arguments()
-
+class GitLabflowCDArgumentParser(ArgumentParser):
     def setup_arguments(self):
         self.parser.add_argument("--allowed-environments",
                                  action=self.EnvDefault, envvar="INPUT_ALLOWED_ENVIRONMENTS",
@@ -95,6 +78,3 @@ class ArgumentParser:
         self.parser.add_argument("--rmk-version",
                                  action=self.EnvDefault, envvar="INPUT_RMK_VERSION",
                                  type=str, default='latest')
-
-    def parse_args(self):
-        return self.parser.parse_args()
