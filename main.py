@@ -41,7 +41,7 @@ if __name__ == "__main__":
         tenant = GETTenant(environment).execute()
 
         """Execute the RMK command"""
-        # RMKCLIExecutor(github_context, args, environment, tenant).execute()
+        RMKCLIExecutor(github_context, args, environment, tenant).execute()
     except Exception as err:
         print(f"Error: {err}", file=sys.stderr)
         sys.exit(1)
