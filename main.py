@@ -2,19 +2,20 @@
 
 import sys
 
+from github_actions.common import AllowEnvironments
+from github_actions.common import Credentials
+from github_actions.common import ExtendedEnvironmentSelector
+from github_actions.common import GitHubContext
+from github_actions.common import ProjectInitializer, GETTenant
+from github_actions.common import RMKInstaller
+
 from src.actions.actions import RMKCLIExecutor
-from src.actions.init_project import ProjectInitializer, GETTenant
-from src.credentials.cluster_provider_credentials import Credentials
-from src.input_output.input import ArgumentParser
-from src.select_environment.allowed_environments import AllowEnvironments
-from src.select_environment.select_environment import ExtendedEnvironmentSelector
-from src.utils.github_environment_variables import GitHubContext
-from src.utils.install_rmk import RMKInstaller
+from src.input_output.input import GitLabflowCDArgumentParser
 
 if __name__ == "__main__":
     try:
         """Parse command-line arguments"""
-        args = ArgumentParser().parse_args()
+        args = GitLabflowCDArgumentParser().parse_args()
 
         """Retrieve GitHub Action environment variables"""
         github_context = GitHubContext.from_env(
