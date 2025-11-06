@@ -215,6 +215,7 @@ runs:
 
     - name: Install python dependencies
       run: |
+        echo $PATH
         which pip
         pip -V
         pip install -r ${{ github.action_path }}/requirements.txt
