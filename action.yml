@@ -214,7 +214,10 @@ runs:
       continue-on-error: true
 
     - name: Install python dependencies
-      run: pip install -r ${{ github.action_path }}/requirements.txt
+      run: |
+        which pip
+        pip -V
+        pip install -r ${{ github.action_path }}/requirements.txt
       shell: bash
 
 #    - name: Execute main script
