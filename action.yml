@@ -222,12 +222,9 @@ outputs:
 runs:
   using: composite
   steps:
-    # We use `continue-on-error: true` because this workflow runs both on
-    # GitHub-hosted and self-hosted runners.
-    # On GitHub runners, Python 3.10 may need to be installed via setup-python.
-    # On on-prem self-hosted runners, Python is already provisioned (via Ansible),
-    # and setup-python may fail due to lack of internet access.
-    # Failing here should NOT stop the workflow — so we allow the step to continue.
+    # setup-python action does not support provisioning Python on RHEL 9 self-hosted runners.
+    # Python is pre-installed on onprem hosts via configuration management.
+    # Therefore, this step may legitimately fail and should not block the workflow.
     - name: Install python
       uses: actions/setup-python@v4
       with:
