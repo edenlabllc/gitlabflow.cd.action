@@ -81,7 +81,7 @@ jobs:
         uses: actions/checkout@v4
       
       - name: Run Gitlabflow CD Action
-        uses: edenlabllc/gitlabflow.cd.action@v2
+        uses: edenlabllc/gitlabflow.cd.action@v3
         with:
           github_token_repo_full_access: ${{ secrets.GH_TOKEN_REPO_FULL_ACCESS }}
           cluster_provider_credentials: ${{ secrets.CLUSTER_PROVIDER_CREDENTIALS }}

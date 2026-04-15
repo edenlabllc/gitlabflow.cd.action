@@ -8,7 +8,7 @@ on:
 
 env:
   GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-  VERSION: v2
+  VERSION: v3
 
 jobs:
   gitlabflow:

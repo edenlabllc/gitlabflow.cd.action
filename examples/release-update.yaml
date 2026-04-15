@@ -30,7 +30,7 @@ jobs:
           fetch-depth: 0
 
       - name: Run gitlabflow action
-        uses: edenlabllc/gitlabflow.cd.action@v2
+        uses: edenlabllc/gitlabflow.cd.action@v3
         with:
           allowed_environments: develop
           cluster_provider_credentials: ${{ secrets.CLUSTER_PROVIDER_CREDENTIALS }}
