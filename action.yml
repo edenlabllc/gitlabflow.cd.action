@@ -3,7 +3,7 @@ description: Action for provisioning and destroying clusters, updating and synch
 
 inputs:
   allowed_environments:
-    description: Allowed environments participating in releases for RMK commands "destroy", "helmfile_validate", "project_update", "provision", "release_sync", "release_update".
+    description: Allowed environments participating in releases for RMK commands.
     required: true
     default: develop,staging
   cluster_provider_credentials:
@@ -141,8 +141,22 @@ inputs:
     required: true
     default: aws
   rmk_command:
-    description: Command to run CD in RMK. Allowed values are "destroy", "helmfile_validate", "project_update", "provision", "release_sync", "release_update".
+    description: RMK command to run. Allowed values are "destroy", "helmfile_validate", "project_update", "provision", "release_destroy", "release_sync", "release_update".
     required: true
+  rmk_destroy_labels:
+    description: |
+      List of labels when running release destroy in RMK (only if rmk_command=destroy|release_destroy).
+      Labels are not used if rmk_destroy_skip_release_destroy=true and rmk_command=destroy.
+      Example:
+      rmk_destroy_labels: |
+        scope=kodjin
+        app=fhir-server-api
+    required: false
+    default: ""
+  rmk_destroy_skip_release_destroy:
+    description: Whether to skip release destroy when running destroy in RMK (only if rmk_command=destroy).
+    required: false
+    default: false
   rmk_download_url:
     description: |
       URL of the download script for RMK installation.
@@ -156,6 +170,10 @@ inputs:
   rmk_project_dependency_version:
     description: Dependency version. Allows using a set of RMK commands to project dependency version update to project.yaml file (only if rmk_command=project_update).
     required: false
+  rmk_provision_skip_release_sync:
+    description: Whether to skip release sync when running provision in RMK (only if rmk_command=provision).
+    required: false
+    default: false
   rmk_release_repository_full_name:
     description: Image repository full name of application (includes registry URL and repository_name, only if rmk_command=release_update).
     required: false
@@ -186,6 +204,7 @@ inputs:
   rmk_sync_labels:
     description: |
       List of labels when running sync in RMK (only if rmk_command=provision|release_sync).
+      Labels are not used if rmk_provision_skip_release_sync=true and rmk_command=provision.
       Example:
       rmk_sync_labels: |
         scope=kodjin
@@ -247,9 +266,12 @@ runs:
         INPUT_GITHUB_TOKEN_REPO_FULL_ACCESS: ${{ inputs.github_token_repo_full_access }}
         INPUT_RMK_CLUSTER_PROVIDER: ${{ inputs.rmk_cluster_provider }}
         INPUT_RMK_COMMAND: ${{ inputs.rmk_command }}
+        INPUT_RMK_DESTROY_LABELS: ${{ inputs.rmk_destroy_labels }}
+        INPUT_RMK_DESTROY_SKIP_RELEASE_DESTROY: ${{ inputs.rmk_destroy_skip_release_destroy }}
         INPUT_RMK_DOWNLOAD_URL: ${{ inputs.rmk_download_url }}
         INPUT_RMK_PROJECT_DEPENDENCY_NAME: ${{ inputs.rmk_project_dependency_name }}
         INPUT_RMK_PROJECT_DEPENDENCY_VERSION: ${{ inputs.rmk_project_dependency_version }}
+        INPUT_RMK_PROVISION_SKIP_RELEASE_SYNC: ${{ inputs.rmk_provision_skip_release_sync }}
         INPUT_RMK_RELEASE_REPOSITORY_FULL_NAME: ${{ inputs.rmk_release_repository_full_name }}
         INPUT_RMK_RELEASE_VERSION: ${{ inputs.rmk_release_version }}
         INPUT_RMK_SLACK_CHANNEL: ${{ inputs.rmk_slack_channel }}
