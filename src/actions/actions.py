@@ -41,8 +41,11 @@ class DestroyCommand(BaseCommand):
 
         print(f"Destroying cluster for branch {self.github_context.ref_name}, environment {self.environment}")
         try:
-            self.run_command("rmk release list")
-            self.run_command("rmk release destroy")
+            if self.args.rmk_destroy_skip_release_destroy != "true":
+                destroy_labels = self.args.rmk_destroy_labels
+                flags_labels = "".join([f" --selector {label}" for label in destroy_labels.split()])
+                self.run_command("rmk release list")
+                self.run_command(f"rmk release destroy {flags_labels}")
             self.run_command("rmk cluster capi create")
             self.run_command("rmk cluster capi provision")
             self.run_command("rmk cluster capi destroy")
@@ -82,14 +85,15 @@ class ProvisionCommand(BaseCommand):
                               "Failure", slack_message, tenant=self.tenant, slack_message_log_output=False)
             raise ValueError(f"{err}")
 
-        try:
-            sync_labels = self.args.rmk_sync_labels
-            flags_labels = "".join([f" --selector {label}" for label in sync_labels.split()])
-            self.run_command(f"rmk release sync {flags_labels}")
-        except Exception as err:
-            self.notify_slack(self.github_context, self.args,
-                              "Failure", f"{err}", tenant=self.tenant)
-            raise ValueError(f"{err}")
+        if self.args.rmk_provision_skip_release_sync != "true":
+            try:
+                sync_labels = self.args.rmk_sync_labels
+                flags_labels = "".join([f" --selector {label}" for label in sync_labels.split()])
+                self.run_command(f"rmk release sync {flags_labels}")
+            except Exception as err:
+                self.notify_slack(self.github_context, self.args,
+                                  "Failure", f"{err}", tenant=self.tenant)
+                raise ValueError(f"{err}")
 
         self.notify_slack(self.github_context, self.args,
                           "Success", "Cluster has been provisioned", tenant=self.tenant)
@@ -192,6 +196,22 @@ class ReleaseSyncCommand(BaseCommand):
             raise ValueError(f"{err}")
 
 
+class ReleaseDestroyCommand(BaseCommand):
+    def __init__(self, github_context: GitHubContext, args: Namespace, environment: str, tenant: str):
+        super().__init__(environment)
+        self.github_context = github_context
+        self.args = args
+        self.tenant = tenant
+
+    def run(self):
+        try:
+            destroy_labels = self.args.rmk_destroy_labels
+            flags_labels = "".join([f" --selector {label}" for label in destroy_labels.split()])
+            self.run_command(f"rmk release destroy {flags_labels}")
+        except Exception as err:
+            raise ValueError(f"{err}")
+
+
 class ReleaseUpdateCommand(BaseCommand):
     def __init__(self, github_context: GitHubContext, args: Namespace, environment: str, tenant: str):
         super().__init__(environment)
@@ -289,6 +309,9 @@ class RMKCLIExecutor(CMDInterface):
                 GitHubOutput().output_dict(data_output)
             case "release_sync":
                 ReleaseSyncCommand(self.github_context, self.args, self.environment, self.tenant).run()
+                GitHubOutput().output_dict(data_output)
+            case "release_destroy":
+                ReleaseDestroyCommand(self.github_context, self.args, self.environment, self.tenant).run()
                 GitHubOutput().output_dict(data_output)
             case "release_update":
                 extra_output = {

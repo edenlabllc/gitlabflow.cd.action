@@ -31,6 +31,14 @@ class GitLabflowCDArgumentParser(ArgumentParser):
                                  action=self.EnvDefault, envvar="INPUT_RMK_COMMAND",
                                  type=str, required=False)
 
+        self.parser.add_argument("--rmk-destroy-labels",
+                                 action=self.EnvDefault, envvar="INPUT_RMK_DESTROY_LABELS",
+                                 type=str, required=False)
+
+        self.parser.add_argument("--rmk-destroy-skip-release-destroy",
+                                 action=self.EnvDefault, envvar="INPUT_RMK_DESTROY_SKIP_RELEASE_DESTROY",
+                                 type=str, required=False)
+
         self.parser.add_argument("--rmk-download-url",
                                  action=self.EnvDefault, envvar="INPUT_RMK_DOWNLOAD_URL",
                                  type=str, default='https://edenlabllc-rmk.s3.eu-north-1.amazonaws.com/rmk/s3-installer')
@@ -41,6 +49,10 @@ class GitLabflowCDArgumentParser(ArgumentParser):
 
         self.parser.add_argument("--rmk-project-dependency-version",
                                  action=self.EnvDefault, envvar="INPUT_RMK_PROJECT_DEPENDENCY_VERSION",
+                                 type=str, required=False)
+
+        self.parser.add_argument("--rmk-provision-skip-release-sync",
+                                 action=self.EnvDefault, envvar="INPUT_RMK_PROVISION_SKIP_RELEASE_SYNC",
                                  type=str, required=False)
 
         self.parser.add_argument("--rmk-release-repository-full-name",

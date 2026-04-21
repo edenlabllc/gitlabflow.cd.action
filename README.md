@@ -31,7 +31,8 @@ Controlled by the `rmk_command` input:
 |---------------------|----------------------------------------------|
 | `provision`         | Provision a cluster and sync releases        |
 | `destroy`           | Tear down a cluster (with CAPI safety logic) |
-| `release_sync`      | Apply release definitions                    |
+| `release_destroy`   | Destroy releases by selector                 |
+| `release_sync`      | Sync releases by selector                    |
 | `release_update`    | Update release version/tag for a repository  |
 | `project_update`    | Patch dependency version in `project.yaml`   |
 | `helmfile_validate` | Validate Helmfile templates                  |
