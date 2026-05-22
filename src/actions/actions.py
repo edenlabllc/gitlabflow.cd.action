@@ -263,11 +263,11 @@ class HelmfileValidateCommand(BaseCommand):
     def run(self):
         print(f"Validate Helmfile templates for branch: {self.github_context.ref_name}")
         try:
-            print("Execute release build.")
-            self.run_command("rmk release build --skip-context-switch 1> /dev/null")
-
             print("Execute release template.")
             self.run_command("rmk release template --skip-context-switch 1> /dev/null")
+
+            print("Execute release build.")
+            self.run_command("rmk release build --skip-context-switch 1> /dev/null")
 
             print("The Helmfile templates have been validated.")
         except Exception as err:
